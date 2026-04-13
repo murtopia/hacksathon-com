@@ -1,0 +1,9 @@
+block_key,title,subtitle,duration_minutes,description,purpose,status,sort_order
+"zero","Kickoff","",15,"Introduce Loveable, explain vibe coding, set expectations, and outline the structure.","Remove intimidation and create clarity before ideas begin.","upcoming",0
+"1","Sprint to the IdeaLab","",30,"Your chance to brainstorm, define and submit your project idea at IdeaLab.seven2.com","Commit to a direction and articulate why the idea matters to you.","upcoming",1
+"2","Shark Tank, Minus the Sharks","",45,"Each participant delivers a 1-minute pitch with light feedback from the team.","Sharpen ideas and build collective energy.","upcoming",2
+"3","Documentation Is Everything","",30,"Develop specifics around your idea using AI, ZERO.Prmptr.ai, IdeaLab, or all three.","Translate the idea into a low-prompt, buildable direction.","upcoming",3
+"4a","Here We Go!","Build Session 1",45,"It's time to start your project in Loveable!","Jumpstart development of your idea.","upcoming",4
+"4b","Build Session 2","",45,"Protected build time with optional office hours.","Iterate and improve.","upcoming",5
+"4c","Your Final Build Session","",45,"This is your last time-blocked build session.","Polish demo flow and prepare for showcase.","upcoming",6
+"final","Showcase Showdown","",120,"Each participant presents a 3-minute demo followed by 2-minute Q&A.","Celebrate learning, reflect on insights, and capture takeaways.","upcoming",7

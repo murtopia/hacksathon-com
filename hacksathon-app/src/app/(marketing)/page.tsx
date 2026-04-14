@@ -166,7 +166,7 @@ export default function HomePage() {
             things they never thought possible.
           </p>
           <Button size="lg" className="mt-8" asChild>
-            <Link href="/signup">Get Started Free</Link>
+            <Link href="/signup">Set Up Your Event</Link>
           </Button>
         </div>
       </section>

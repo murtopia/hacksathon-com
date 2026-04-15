@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,24 +10,61 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmationSent, setConfirmationSent] = useState(false);
 
-  async function handleMagicLink(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/callback`,
-      },
-    });
 
-    setLoading(false);
-    if (!error) setSent(true);
+    if (mode === "signup") {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/callback`,
+          data: { full_name: fullName || undefined },
+        },
+      });
+
+      setLoading(false);
+
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+
+      setConfirmationSent(true);
+    } else {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      setLoading(false);
+
+      if (signInError) {
+        if (signInError.message.includes("Invalid login credentials")) {
+          setError("Invalid email or password.");
+        } else if (signInError.message.includes("Email not confirmed")) {
+          setError("Please confirm your email address before logging in.");
+        } else {
+          setError(signInError.message);
+        }
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    }
   }
 
   async function handleGoogleLogin() {
@@ -39,17 +77,20 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     });
   }
 
-  if (sent) {
+  if (confirmationSent) {
     return (
       <div className="text-center space-y-2">
         <p className="text-sm font-medium">Check your email</p>
         <p className="text-sm text-muted-foreground">
-          We sent a magic link to <strong>{email}</strong>
+          We sent a confirmation link to <strong>{email}</strong>
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Click the link in your email to activate your account.
         </p>
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setSent(false)}
+          onClick={() => setConfirmationSent(false)}
           className="mt-4"
         >
           Use a different email
@@ -93,7 +134,20 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </span>
       </div>
 
-      <form onSubmit={handleMagicLink} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {mode === "signup" && (
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full name</Label>
+            <Input
+              id="fullName"
+              type="text"
+              placeholder="Jane Smith"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              autoComplete="name"
+            />
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -102,11 +156,46 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             placeholder="you@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             required
           />
         </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            {mode === "login" && (
+              <Link
+                href="/forgot-password"
+                className="text-xs text-muted-foreground hover:text-foreground underline"
+              >
+                Forgot password?
+              </Link>
+            )}
+          </div>
+          <Input
+            id="password"
+            type="password"
+            placeholder={mode === "signup" ? "8+ characters" : ""}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={mode === "signup" ? "new-password" : "current-password"}
+            minLength={8}
+            required
+          />
+        </div>
+
+        {error && (
+          <p className="text-sm text-red-600">{error}</p>
+        )}
+
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Sending..." : "Send Magic Link"}
+          {loading
+            ? mode === "signup"
+              ? "Creating account..."
+              : "Logging in..."
+            : mode === "signup"
+              ? "Create account"
+              : "Log in"}
         </Button>
       </form>
 

@@ -82,7 +82,7 @@ export async function POST(req: Request) {
           "Analyze the full planning conversation and generate Build Notes. Return ONLY the JSON object.",
       },
     ],
-    maxTokens: 800,
+    maxOutputTokens: 800,
   });
 
   let notesData;

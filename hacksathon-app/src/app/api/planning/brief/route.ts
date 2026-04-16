@@ -87,7 +87,7 @@ export async function POST(req: Request) {
           "Generate my Project Brief from our full conversation above. Return ONLY the JSON object.",
       },
     ],
-    maxTokens: 1000,
+    maxOutputTokens: 1000,
   });
 
   // Parse the JSON response

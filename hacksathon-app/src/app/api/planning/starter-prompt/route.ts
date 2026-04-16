@@ -80,7 +80,7 @@ Project Brief:
 Write a clear, specific prompt that tells ${toolLabel} exactly what to build. Include the project name, what it does, who it's for, how it should look, what to include, and what NOT to include. Keep it under 300 words. Plain text only — no markdown formatting.`,
       },
     ],
-    maxTokens: 500,
+    maxOutputTokens: 500,
   });
 
   // Cache the result

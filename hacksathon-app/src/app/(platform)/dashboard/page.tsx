@@ -24,6 +24,20 @@ export default async function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
+            <CardTitle>Plan a Build</CardTitle>
+            <CardDescription>
+              Use ZERO.Prmptr to plan your project with an AI thinking partner.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/plan">Start Planning</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Create a Hackathon</CardTitle>
             <CardDescription>
               Set up a new event for your team with the proven playbook structure.

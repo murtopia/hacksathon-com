@@ -109,6 +109,48 @@ export const BUILD_NOTES_INSTRUCTION = `Analyze the full planning conversation a
 
 Be direct and specific. Reference actual things from the conversation. Don't be generic ("consider your target audience") — every note should be traceable to something they said. If everything looks solid, it's fine to have short arrays. Don't manufacture concerns.`;
 
+/**
+ * System prompt addition for revision mode.
+ * Appended to the main system prompt when mode is 'revise'.
+ */
+export function buildRevisePrompt(briefSummary: string): string {
+  return `## Revision Mode
+
+The participant has already completed a planning session and generated a Project Brief. They're returning to revise their plan — not start over.
+
+Their current Project Brief:
+${briefSummary}
+
+Your job:
+- Open by acknowledging they have a solid plan and ask what they want to revisit
+- Ask clarifying questions about what they want to change
+- Identify which Brief sections are affected by the change
+- Propose targeted updates — leave unaffected sections intact
+- Keep the same conversational style as the original session
+- Do NOT walk through all 5 steps again — focus only on what they want to change`;
+}
+
+/**
+ * Format a Project Brief into a readable summary for the revise prompt.
+ */
+export function formatBriefForRevision(brief: {
+  projectName: string;
+  oneSentenceScope: string;
+  targetUser: string;
+  coreFeature: string;
+  designVibe?: string | null;
+  outOfScope: string;
+  doneLooksLike: string;
+}): string {
+  return `- Project: ${brief.projectName}
+- Scope: ${brief.oneSentenceScope}
+- Target User: ${brief.targetUser}
+- Core Feature: ${brief.coreFeature}
+- Design: ${brief.designVibe ?? "not specified"}
+- Out of Scope: ${brief.outOfScope}
+- Done State: ${brief.doneLooksLike}`;
+}
+
 const BUILD_TOOL_LABELS: Record<string, string> = {
   lovable: "Lovable",
   cursor: "Cursor",

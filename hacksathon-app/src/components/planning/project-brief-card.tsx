@@ -8,12 +8,14 @@ interface ProjectBriefCardProps {
   brief: ProjectBrief;
   onCopyStarterPrompt: () => void;
   starterPromptLoading?: boolean;
+  onRevise?: () => void;
 }
 
 export function ProjectBriefCard({
   brief,
   onCopyStarterPrompt,
   starterPromptLoading,
+  onRevise,
 }: ProjectBriefCardProps) {
   const [copied, setCopied] = useState(false);
 
@@ -44,6 +46,18 @@ export function ProjectBriefCard({
     >
       <div className="flex items-center justify-between mb-4">
         <span className="mono-label">Project Brief</span>
+        {onRevise && (
+          <button
+            type="button"
+            onClick={onRevise}
+            className="font-sans text-xs transition-colors"
+            style={{ color: "var(--text-tertiary)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-tertiary)")}
+          >
+            Revisit your plan
+          </button>
+        )}
       </div>
 
       <div

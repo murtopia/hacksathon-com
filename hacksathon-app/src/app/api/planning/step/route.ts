@@ -12,6 +12,8 @@ import {
   buildSystemPrompt,
   buildStepInstruction,
   buildAdvanceNote,
+  buildRevisePrompt,
+  formatBriefForRevision,
 } from "@/lib/planning/prompts";
 import type { Message } from "@/lib/planning/types";
 import { getStep, isLastStep } from "@/lib/planning/steps";
@@ -96,7 +98,30 @@ export async function POST(req: Request) {
     eventName,
   });
 
-  const systemPrompt = buildSystemPrompt(participantCtx);
+  let systemPrompt = buildSystemPrompt(participantCtx);
+
+  // In revise mode, load the existing brief and append the revise prompt
+  if (session.mode === "revise" && session.existingBriefId) {
+    const { data: existingBrief } = await supabase
+      .from("project_briefs")
+      .select("project_name, one_sentence_scope, target_user, core_feature, design_vibe, out_of_scope, done_looks_like")
+      .eq("id", session.existingBriefId)
+      .single();
+
+    if (existingBrief) {
+      const briefSummary = formatBriefForRevision({
+        projectName: existingBrief.project_name,
+        oneSentenceScope: existingBrief.one_sentence_scope,
+        targetUser: existingBrief.target_user,
+        coreFeature: existingBrief.core_feature,
+        designVibe: existingBrief.design_vibe,
+        outOfScope: existingBrief.out_of_scope,
+        doneLooksLike: existingBrief.done_looks_like,
+      });
+      systemPrompt += "\n\n" + buildRevisePrompt(briefSummary);
+    }
+  }
+
   let history = session.conversationHistory;
   let currentStep = session.currentStep;
   let stepAnswers = session.stepAnswers;

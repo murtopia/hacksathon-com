@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { StepIndicator } from "./step-indicator";
 import { AIMessage } from "./ai-message";
 import { UserInput } from "./user-input";
@@ -20,6 +21,7 @@ interface PlanningFlowProps {
 }
 
 export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
+  const router = useRouter();
   const [session, setSession] = useState(initialSession);
   const [streamingText, setStreamingText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -190,6 +192,16 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
     }
   }
 
+  function handleRevise() {
+    if (!brief) return;
+    const url = new URL("/plan", window.location.origin);
+    url.searchParams.set("revise", brief.id);
+    if (session.eventId) url.searchParams.set("event", session.eventId);
+    if (session.ideaId) url.searchParams.set("idea", session.ideaId);
+    url.searchParams.set("tool", session.buildTool);
+    router.push(url.toString());
+  }
+
   async function handleCopyStarterPrompt() {
     if (starterPrompt) {
       await navigator.clipboard.writeText(starterPrompt);
@@ -297,6 +309,7 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
                 brief={normalizeBrief(brief)}
                 onCopyStarterPrompt={handleCopyStarterPrompt}
                 starterPromptLoading={starterPromptLoading}
+                onRevise={handleRevise}
               />
 
               {starterPrompt && <StarterPrompt prompt={starterPrompt} />}

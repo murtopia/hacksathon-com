@@ -7,7 +7,7 @@ interface StarterPromptProps {
 }
 
 /**
- * The Starter Prompt panel — the single most important UX moment for a
+ * The Next Steps panel — the single most important UX moment for a
  * non-technical participant. Above the prompt itself we show the
  * verbatim five-step kickoff instructions from the planning doc, so
  * pasting into Lovable (or another tool) is completely explicit.
@@ -31,7 +31,7 @@ export function StarterPrompt({ prompt }: StarterPromptProps) {
       }}
     >
       <div className="mb-5">
-        <span className="mono-label">Starter Prompt</span>
+        <span className="mono-label">Next Steps — Build It</span>
         <p
           className="font-serif text-[16px] leading-relaxed mt-3"
           style={{ color: "var(--text-secondary)" }}
@@ -43,7 +43,7 @@ export function StarterPrompt({ prompt }: StarterPromptProps) {
       <ol className="space-y-3 mb-6">
         <InstructionStep
           number={1}
-          text="Download your PRD using the button above."
+          text="Download your Blueprint using the button at the top of the card above."
         />
         <InstructionStep
           number={2}
@@ -55,7 +55,7 @@ export function StarterPrompt({ prompt }: StarterPromptProps) {
         />
         <InstructionStep
           number={4}
-          text="Attach your PRD file. In Lovable, click the paperclip icon and upload it. This gives the AI everything it needs to build the right thing from the start."
+          text="Attach your Blueprint file. In Lovable, click the paperclip icon and upload it. This gives the AI everything it needs to build the right thing from the start."
         />
         <InstructionStep number={5} text="Hit send. You're building." />
       </ol>

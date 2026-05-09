@@ -48,8 +48,8 @@ export function PostPrdInput({
         className="font-serif text-sm italic"
         style={{ color: "var(--text-secondary)" }}
       >
-        Have a change to your plan? Describe it here — your PRD stays loaded as
-        context.
+        Have a change to your Blueprint? Describe it here — the current
+        Blueprint stays loaded as context.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-2">
@@ -83,7 +83,7 @@ export function PostPrdInput({
           disabled={disabled || updating}
           className="mono-label w-full text-center py-2 transition-colors hover:text-[var(--text-primary)] disabled:opacity-50"
         >
-          {updating ? "Updating your PRD…" : "Update my PRD →"}
+          {updating ? "Updating your Blueprint…" : "Update my Blueprint →"}
         </button>
       )}
     </div>

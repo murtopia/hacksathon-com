@@ -104,8 +104,8 @@ export default async function PlanPage({
 
 /**
  * Sets expectations before the conversation starts. Hidden once a brief
- * exists — at that point the page is the PRD itself, not the planning
- * onramp. Doc-tone, plain prose, no jargon.
+ * exists — at that point the page is the Blueprint itself, not the
+ * planning onramp. Doc-tone, plain prose, no jargon.
  */
 function PlanningIntro({ ideaName }: { ideaName?: string | null } = {}) {
   return (
@@ -118,18 +118,20 @@ function PlanningIntro({ ideaName }: { ideaName?: string | null } = {}) {
         style={{ color: "var(--text-primary)" }}
       >
         {ideaName
-          ? `Let's shape ${ideaName} into a plan you can build from.`
-          : "Let's shape your idea into a plan you can build from."}
+          ? `Let's shape ${ideaName} into a Blueprint you can build from.`
+          : "Let's shape your idea into a Blueprint you can build from."}
       </h1>
       <p
         className="font-serif text-[17px] leading-relaxed"
         style={{ color: "var(--text-secondary)" }}
       >
-        Take a few minutes to think out loud before you open your build tool.
-        We'll talk through five short questions — what it does, who it's for,
+        Talk it through with a thinking partner — no forms, no steps to march
+        through. Over the conversation we'll cover what it does, who it's for,
         how it should feel, the one thing it has to do, and what done looks
-        like. Your answers become a clean PRD and a starter prompt you can
-        hand to Lovable, Cursor, or any AI build tool.
+        like. The end result is your <strong>Blueprint</strong> — a one-page
+        document you can hand to Lovable, Cursor, or any AI build tool, plus a
+        Starter Prompt to kick off the build. When you're ready, hit{" "}
+        <em>Generate my Blueprint</em> below the conversation.
       </p>
     </div>
   );

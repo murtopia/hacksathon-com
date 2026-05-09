@@ -310,3 +310,48 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/*
+ * Print stylesheet for the Blueprint export.
+ *
+ * Activated when html.printing-blueprint is set (briefly, around the
+ * window.print() call). Hides everything except the Blueprint card so
+ * "Save as PDF" produces a clean, document-only export. Card chrome
+ * (action buttons, footer CTA) is removed because those are surfaced
+ * via the print:hidden Tailwind utility on the elements themselves.
+ */
+@media print {
+  /* Always strip nav/footer chrome on any planning page print */
+  header,
+  footer,
+  nav {
+    display: none !important;
+  }
+}
+
+html.printing-blueprint body * {
+  visibility: hidden !important;
+}
+html.printing-blueprint body .print-blueprint-area,
+html.printing-blueprint body .print-blueprint-area * {
+  visibility: visible !important;
+}
+html.printing-blueprint body .print-blueprint-area {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: var(--white) !important;
+}
+/* Hide the Starter Prompt panel during print — the export is the
+   Blueprint document, not the Starter Prompt panel. */
+html.printing-blueprint body .print-blueprint-area > *:not(:first-child) {
+  display: none !important;
+}
+/* Strip the card outline so it prints as a flowing document. */
+html.printing-blueprint body .print-blueprint-area > *:first-child {
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+}

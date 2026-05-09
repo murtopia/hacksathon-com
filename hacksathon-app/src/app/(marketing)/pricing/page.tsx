@@ -12,7 +12,7 @@ const included = [
   "Full 10-block event format",
   "Organizer Dashboard with event setup, block controls, and participant management",
   "IdeaLab — idea submission and gallery",
-  "AI planning conversation with consolidated PRD output",
+  "AI planning conversation with a consolidated Blueprint output",
   "Shark Tank Pitch session structure",
   "Build sessions with time-blocked structure and Add to Calendar links",
   "Reflections form with AI-generated event summary",

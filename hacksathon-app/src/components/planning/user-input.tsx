@@ -3,32 +3,26 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { isLastStep } from "@/lib/planning/steps";
 
 interface UserInputProps {
-  currentStep: number;
   onSend: (message: string) => void;
-  onAdvance: () => void;
   disabled?: boolean;
-  hasAnsweredCurrentStep: boolean;
 }
 
-export function UserInput({
-  currentStep,
-  onSend,
-  onAdvance,
-  disabled,
-  hasAnsweredCurrentStep,
-}: UserInputProps) {
+/**
+ * Plain conversational input — textarea + Send. The Blueprint flow no
+ * longer has a per-step advance gate; the persistent "Generate my Blueprint"
+ * CTA lives in PlanningFlow alongside this input.
+ */
+export function UserInput({ onSend, disabled }: UserInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const lastStep = isLastStep(currentStep);
 
   useEffect(() => {
     if (!disabled) {
       textareaRef.current?.focus();
     }
-  }, [disabled, currentStep]);
+  }, [disabled]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,41 +39,28 @@ export function UserInput({
   }
 
   return (
-    <div className="space-y-3">
-      <form onSubmit={handleSubmit} className="space-y-2">
-        <Textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your response..."
-          disabled={disabled}
-          className="min-h-[80px] resize-y font-sans text-[15px]"
-          style={{
-            backgroundColor: "var(--white)",
-            borderColor: "var(--border-default)",
-            color: "var(--text-primary)",
-          }}
-        />
-        <Button
-          type="submit"
-          disabled={!value.trim() || disabled}
-          className="w-full"
-        >
-          Send
-        </Button>
-      </form>
-
-      {hasAnsweredCurrentStep && (
-        <button
-          type="button"
-          onClick={onAdvance}
-          disabled={disabled}
-          className="mono-label w-full text-center py-2 transition-colors hover:text-[var(--text-primary)] disabled:opacity-50"
-        >
-          {lastStep ? "Generate my PRD →" : "I'm ready to move on →"}
-        </button>
-      )}
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-2">
+      <Textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Type your response..."
+        disabled={disabled}
+        className="min-h-[80px] resize-y font-sans text-[15px]"
+        style={{
+          backgroundColor: "var(--white)",
+          borderColor: "var(--border-default)",
+          color: "var(--text-primary)",
+        }}
+      />
+      <Button
+        type="submit"
+        disabled={!value.trim() || disabled}
+        className="w-full"
+      >
+        Send
+      </Button>
+    </form>
   );
 }

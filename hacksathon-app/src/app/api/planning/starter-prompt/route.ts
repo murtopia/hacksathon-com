@@ -93,5 +93,5 @@ ${designLine ? `Design direction: ${designLine}\n\n` : ""}For this first build, 
 
 Start there and nothing else. Don't add features I haven't asked for.
 
-I'm attaching my full PRD — please read it before you start building.`;
+I'm attaching my Blueprint — please read it before you start building.`;
 }

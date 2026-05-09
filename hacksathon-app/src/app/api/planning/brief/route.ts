@@ -96,8 +96,8 @@ export async function POST(req: Request) {
   const aiMessages = toAIMessages(session.conversationHistory);
 
   const userInstruction = regenerate
-    ? "The participant has refined their thinking after generating the original PRD. Re-synthesize the Project Brief from the FULL conversation above, including everything they've said since the last PRD was generated. Return ONLY the JSON object."
-    : "Generate the participant's Project Brief from our full conversation above. Return ONLY the JSON object.";
+    ? "The participant has refined their thinking after generating the original Blueprint. Re-synthesize the Blueprint from the FULL conversation above, including everything they've said since the last Blueprint was generated. Return ONLY the JSON object."
+    : "Generate the participant's Blueprint from our full conversation above. Return ONLY the JSON object.";
 
   let text: string;
   try {
@@ -111,13 +111,13 @@ export async function POST(req: Request) {
           content: userInstruction,
         },
       ],
-      maxOutputTokens: 4000,
+      maxOutputTokens: 6000,
     });
     text = result.text;
   } catch (error) {
     // Make model failures loud in Vercel logs and surface a 502 to the
-    // client. The PRD step is non-streaming, so the client can show a
-    // clear error toast instead of guessing.
+    // client. The Blueprint step is non-streaming, so the client can show
+    // a clear error toast instead of guessing.
     console.error("[planning/brief] generateText failed", {
       sessionId: session.id,
       regenerate: !!regenerate,
@@ -126,7 +126,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error:
-          "We couldn't generate your PRD right now. Please try again in a moment.",
+          "We couldn't generate your Blueprint right now. Please try again in a moment.",
       },
       { status: 502 }
     );
@@ -239,7 +239,7 @@ function buildFallbackMarkdown(args: {
   oneThing: string;
   doneWhen: string;
 }): string {
-  return `# ${args.projectName} — Project Brief
+  return `# ${args.projectName} — Blueprint
 
 ## 🎯 What It Does
 ${args.whatItDoes || "_(Not yet captured.)_"}

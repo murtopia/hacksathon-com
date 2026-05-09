@@ -4,23 +4,24 @@ import { planningModel } from "@/lib/ai/model";
 import {
   rowToSession,
   appendMessage,
-  updateStepAnswer,
   toAIMessages,
   buildParticipantContext,
 } from "@/lib/planning/context";
-import {
-  buildSystemPrompt,
-  buildStepInstruction,
-  buildAdvanceNote,
-  buildPostPrdPrompt,
-} from "@/lib/planning/prompts";
+import { buildSystemPrompt, buildPostPrdPrompt } from "@/lib/planning/prompts";
 import type { Message } from "@/lib/planning/types";
-import { getStep, isLastStep, TOTAL_STEPS } from "@/lib/planning/steps";
 
 export const maxDuration = 60;
 
-type StepAction = "open_step" | "respond" | "advance";
-
+/**
+ * The planning conversation is one continuous chat — no per-step gating.
+ * The only thing this route does on each turn is:
+ *   1. (optionally) append the user's new message to history
+ *   2. stream an AI response with the conversation as context
+ *   3. persist the assistant's reply on finish
+ *
+ * Calling without `userMessage` is a retry — re-streams from the existing
+ * history without mutating it again.
+ */
 export async function POST(req: Request) {
   const supabase = await createClient();
   const {
@@ -34,11 +35,9 @@ export async function POST(req: Request) {
   const {
     planningSessionId,
     userMessage,
-    action,
   }: {
     planningSessionId: string;
     userMessage?: string;
-    action?: StepAction;
   } = body;
 
   const { data: sessionRow, error: sessionError } = await supabase
@@ -100,9 +99,10 @@ export async function POST(req: Request) {
 
   let systemPrompt = buildSystemPrompt(participantCtx);
 
-  // Post-PRD continuation: if a brief already exists, load it and inject
-  // the existing PRD as context. The conversation stays open — same session,
-  // same history — but the AI now treats the PRD as the source of truth.
+  // Post-Blueprint continuation: if a Blueprint already exists, load it
+  // and inject as context. The conversation stays open — same session,
+  // same history — but the AI now treats the Blueprint as the source of
+  // truth and helps the participant describe targeted changes.
   const isPostPrd = session.status === "complete" && session.briefId;
   if (isPostPrd) {
     const { data: existingBrief } = await supabase
@@ -117,83 +117,41 @@ export async function POST(req: Request) {
   }
 
   let history = session.conversationHistory;
-  let currentStep = session.currentStep;
-  let stepAnswers = session.stepAnswers;
 
-  // advance: user moves to the next step (only meaningful pre-PRD)
-  if (action === "advance" && !isPostPrd) {
-    const advanceNote: Message = {
-      role: "system",
-      content: buildAdvanceNote(currentStep),
-      stepNumber: currentStep,
-      messageType: "advance",
-    };
-    history = appendMessage(history, advanceNote);
-    currentStep = Math.min(currentStep + 1, TOTAL_STEPS);
-
-    await supabase
-      .from("planning_sessions")
-      .update({
-        conversation_history: history,
-        current_step: currentStep,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", session.id);
-  }
-
-  // respond: append the user's message to the conversation
-  if (action === "respond" && userMessage) {
+  // Append the user's new message (skip if this is a retry — no userMessage).
+  if (userMessage) {
     const userMsg: Message = {
       role: "user",
       content: userMessage,
-      stepNumber: currentStep,
       messageType: "user_response",
     };
     history = appendMessage(history, userMsg);
 
-    // Track step answers only during the structured 5-step phase
-    if (!isPostPrd) {
-      stepAnswers = updateStepAnswer(stepAnswers, currentStep, userMessage);
-    }
-
     await supabase
       .from("planning_sessions")
       .update({
         conversation_history: history,
-        step_answers: stepAnswers,
         updated_at: new Date().toISOString(),
       })
       .eq("id", session.id);
   }
-
-  // Build per-step instruction (only when opening a step pre-PRD)
-  const step = getStep(currentStep);
-  const shouldUseStepInstruction =
-    !isPostPrd &&
-    (action === "open_step" || action === "advance") &&
-    !!step;
-
-  const fullSystem = shouldUseStepInstruction
-    ? `${systemPrompt}\n\n---\n\n${buildStepInstruction(currentStep)}`
-    : systemPrompt;
 
   const aiMessages = toAIMessages(history);
 
   const result = streamText({
     model: planningModel,
-    system: fullSystem,
+    system: systemPrompt,
     messages:
       aiMessages.length > 0
         ? aiMessages
-        : [{ role: "user", content: "[Start the planning session]" }],
+        : [{ role: "user", content: "[Start the planning conversation]" }],
     onError: ({ error }) => {
       // Surface model failures (deprecation, rate limits, malformed
       // requests) loudly in Vercel logs instead of swallowing them.
       // Client-side picks this up via an empty stream + retry UI.
       console.error("[planning/step] streamText error", {
         sessionId: session.id,
-        action,
-        currentStep,
+        isPostPrd,
         error: error instanceof Error ? error.message : String(error),
       });
     },
@@ -208,11 +166,7 @@ export async function POST(req: Request) {
       const assistantMsg: Message = {
         role: "assistant",
         content: text,
-        stepNumber: currentStep,
-        messageType:
-          action === "open_step" || action === "advance"
-            ? "question"
-            : "reflection",
+        messageType: "reflection",
       };
 
       const updatedHistory = appendMessage(history, assistantMsg);
@@ -227,12 +181,8 @@ export async function POST(req: Request) {
     },
   });
 
-  const lastStep = isLastStep(currentStep);
-
   return result.toTextStreamResponse({
     headers: {
-      "X-Planning-Step": String(currentStep),
-      "X-Planning-Is-Last-Step": String(lastStep),
       "X-Planning-Post-Prd": String(isPostPrd),
     },
   });

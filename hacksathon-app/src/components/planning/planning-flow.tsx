@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { StepIndicator } from "./step-indicator";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { AIMessage } from "./ai-message";
 import { UserInput } from "./user-input";
 import { PostPrdInput } from "./post-prd-input";
@@ -12,11 +11,31 @@ import type {
   Message,
   ProjectBrief,
 } from "@/lib/planning/types";
-import { isLastStep, getStep } from "@/lib/planning/steps";
 
 interface PlanningFlowProps {
   session: PlanningSession;
   initialBrief?: ProjectBrief | null;
+}
+
+/**
+ * Heuristic for detecting when the AI has signaled the conversation has
+ * enough material to generate the Blueprint. Strike Mission's session
+ * ended with "That's everything I need. Ready to turn this into a build
+ * plan?" — exactly the kind of phrasing this matches. Purely visual: when
+ * matched, the persistent CTA upgrades to primary styling. The button is
+ * always clickable regardless.
+ */
+const READY_PHRASES = [
+  /\bthat[''']s everything i need\b/i,
+  /\bi (?:have|'ve got) (?:everything|all) i need\b/i,
+  /\bready to (?:turn|draft|build|generate|put|create) (?:this|it)\b/i,
+  /\bready to (?:generate|create|build) (?:your|the|this) (?:blueprint|plan|prd)\b/i,
+  /\bhit (?:generate|the generate)\b/i,
+  /\bgenerate (?:your|my|the) blueprint\b/i,
+];
+
+function isReadySignal(text: string): boolean {
+  return READY_PHRASES.some((re) => re.test(text));
 }
 
 export function PlanningFlow({
@@ -30,7 +49,6 @@ export function PlanningFlow({
   const [briefGenerating, setBriefGenerating] = useState(false);
   const [briefUpdating, setBriefUpdating] = useState(false);
   const [starterPrompt, setStarterPrompt] = useState<string | null>(null);
-  const [starterPromptLoading, setStarterPromptLoading] = useState(false);
   /**
    * Tracks the most recent stream failure so we can show an inline error
    * card with a Retry affordance — instead of the silent empty-bubble
@@ -44,15 +62,15 @@ export function PlanningFlow({
 
   /**
    * Snapshot of conversationHistory.length at the moment the most recent
-   * brief was generated/updated. Used to detect post-PRD continuation:
-   * the conversation has new messages worth committing to a PRD update.
+   * Blueprint was generated/updated. Used to detect post-Blueprint
+   * continuation: the conversation has new messages worth committing to
+   * a Blueprint update.
    */
   const [briefSnapshotLength, setBriefSnapshotLength] = useState<number | null>(
     initialBrief ? initialSession.conversationHistory.length : null
   );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const initialized = useRef(false);
 
   const isPostPrd = !!brief && session.status === "complete";
   const hasPostPrdMessages =
@@ -73,48 +91,34 @@ export function PlanningFlow({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Step 1's opening is seeded server-side at session creation
-  // (deterministic Scenario A/B from the planning doc). We only fall
-  // back to an AI open_step call here for legacy sessions that were
-  // created before that change and somehow have an empty history.
-  useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-
-    if (
-      session.conversationHistory.length === 0 &&
-      session.status === "in_progress"
-    ) {
-      callStepAPI("open_step");
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     scrollToBottom();
   }, [session.conversationHistory, streamingText, scrollToBottom]);
 
-  async function callStepAPI(
-    action: "open_step" | "respond" | "advance",
-    userMessage?: string
-  ) {
+  // Detect "ready to generate" signal in the most recent assistant turn
+  // so the persistent CTA can upgrade to primary styling.
+  const isReadyToGenerate = useMemo(() => {
+    if (isPostPrd) return false;
+    const lastAssistant = [...session.conversationHistory]
+      .reverse()
+      .find((m) => m.role === "assistant");
+    return lastAssistant ? isReadySignal(lastAssistant.content) : false;
+  }, [session.conversationHistory, isPostPrd]);
+
+  /**
+   * Send a turn to the planning step API. Pass `userMessage` for a new
+   * user turn; omit it for a retry (re-streams from existing history).
+   */
+  async function callStepAPI(userMessage?: string) {
     setIsStreaming(true);
     setStreamingText("");
     setStreamError(null);
 
-    // The server has different idempotency for each action: "respond"
-    // appends the user message and "advance" increments the step. If
-    // the model call fails after those side effects commit, retrying
-    // with the same action would double-write. Map both to safe
-    // retry actions that re-stream from existing history without
-    // mutating it again.
-    const buildRetry = () => async () => {
-      if (action === "advance") return callStepAPI("open_step");
-      if (action === "respond") return callStepAPI("respond"); // no userMessage = no re-append
-      return callStepAPI(action);
-    };
-
     const failWith = (message: string) => {
-      setStreamError({ message, retry: buildRetry() });
+      // Retry re-runs the call without the userMessage so the server
+      // doesn't re-append it (the user message was already persisted on
+      // the first call).
+      setStreamError({ message, retry: () => callStepAPI() });
       setStreamingText("");
       setIsStreaming(false);
     };
@@ -125,7 +129,6 @@ export function PlanningFlow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planningSessionId: session.id,
-          action,
           userMessage,
         }),
       });
@@ -135,11 +138,6 @@ export function PlanningFlow({
           "Something went wrong reaching the planning model. Try again?"
         );
         return;
-      }
-
-      const newStep = parseInt(res.headers.get("X-Planning-Step") ?? "0");
-      if (newStep > 0 && newStep !== session.currentStep) {
-        setSession((prev) => ({ ...prev, currentStep: newStep }));
       }
 
       const reader = res.body.getReader();
@@ -167,8 +165,7 @@ export function PlanningFlow({
       const assistantMsg: Message = {
         role: "assistant",
         content: fullText,
-        stepNumber: newStep || session.currentStep,
-        messageType: action === "respond" ? "reflection" : "question",
+        messageType: "reflection",
       };
 
       setSession((prev) => ({
@@ -186,7 +183,6 @@ export function PlanningFlow({
     const userMsg: Message = {
       role: "user",
       content: message,
-      stepNumber: session.currentStep,
       messageType: "user_response",
     };
 
@@ -195,16 +191,7 @@ export function PlanningFlow({
       conversationHistory: [...prev.conversationHistory, userMsg],
     }));
 
-    callStepAPI("respond", message);
-  }
-
-  async function handleAdvance() {
-    if (isLastStep(session.currentStep)) {
-      await callStepAPI("advance");
-      await generateBrief();
-    } else {
-      await callStepAPI("advance");
-    }
+    callStepAPI(message);
   }
 
   async function generateBrief() {
@@ -228,16 +215,21 @@ export function PlanningFlow({
         }));
         // Snapshot is set in a useEffect tied to brief.id/updatedAt so we
         // capture the latest history length post-render.
+
+        // Eagerly fetch the Starter Prompt so it's already populated when
+        // the participant sees the Blueprint render. The route is
+        // idempotent and caches in planning_sessions.starter_prompt_text.
+        fetchStarterPrompt();
       } else {
         const data = await res.json().catch(() => ({}));
         setBriefError(
           data?.error ??
-            "We couldn't generate your PRD right now. Please try again."
+            "We couldn't generate your Blueprint right now. Please try again."
         );
       }
     } catch {
       setBriefError(
-        "We couldn't generate your PRD right now. Please try again."
+        "We couldn't generate your Blueprint right now. Please try again."
       );
     } finally {
       setBriefGenerating(false);
@@ -260,46 +252,61 @@ export function PlanningFlow({
       if (res.ok) {
         const data = await res.json();
         setBrief(normalizeBrief(data.brief));
+        // Re-fetch the starter prompt — server invalidated it on
+        // regenerate so a fresh one will be generated.
         setStarterPrompt(null);
-        // Snapshot is reset in the brief-watching useEffect.
+        fetchStarterPrompt();
       } else {
         const data = await res.json().catch(() => ({}));
         setBriefError(
           data?.error ??
-            "We couldn't update your PRD right now. Please try again."
+            "We couldn't update your Blueprint right now. Please try again."
         );
       }
     } catch {
       setBriefError(
-        "We couldn't update your PRD right now. Please try again."
+        "We couldn't update your Blueprint right now. Please try again."
       );
     } finally {
       setBriefUpdating(false);
     }
   }
 
-  async function handleCopyStarterPrompt() {
-    if (starterPrompt) {
-      await navigator.clipboard.writeText(starterPrompt);
-      return;
-    }
-
-    setStarterPromptLoading(true);
+  async function fetchStarterPrompt() {
     try {
       const res = await fetch("/api/planning/starter-prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planningSessionId: session.id }),
       });
-
       if (res.ok) {
         const data = await res.json();
         setStarterPrompt(data.starterPrompt);
-        await navigator.clipboard.writeText(data.starterPrompt);
       }
-    } finally {
-      setStarterPromptLoading(false);
+    } catch {
+      // Non-critical — the StarterPrompt panel will show its own
+      // empty state and the Copy button will retry on click.
     }
+  }
+
+  // If we landed on /plan with an already-completed session (existing
+  // brief), eagerly populate the Starter Prompt the same way we do
+  // right after generating one.
+  useEffect(() => {
+    if (isPostPrd && !starterPrompt) {
+      fetchStarterPrompt();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPostPrd]);
+
+  async function handleCopyStarterPrompt() {
+    if (!starterPrompt) return;
+    await navigator.clipboard.writeText(starterPrompt);
+  }
+
+  function handleCopyBlueprint() {
+    if (!brief?.prdMarkdown) return;
+    navigator.clipboard.writeText(brief.prdMarkdown);
   }
 
   function handleDownloadPrd() {
@@ -310,52 +317,46 @@ export function PlanningFlow({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${slugifyForFilename(brief.projectName)}-PRD.md`;
+    a.download = `${slugifyForFilename(brief.projectName)}-Blueprint.md`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
-  const hasAnsweredCurrentStep = session.conversationHistory.some(
-    (m) =>
-      m.role === "user" &&
-      m.stepNumber === session.currentStep &&
-      m.messageType === "user_response"
-  );
+  function handlePrintBlueprint() {
+    if (!brief?.prdMarkdown) return;
+    // The print stylesheet (in globals.css) hides everything outside
+    // .print-blueprint-area when html.printing-blueprint is set, so the
+    // browser's print dialog produces a clean Blueprint-only PDF.
+    document.documentElement.classList.add("printing-blueprint");
+    const cleanup = () => {
+      document.documentElement.classList.remove("printing-blueprint");
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+    window.print();
+  }
 
   // Filter visible messages (exclude internal system notes)
   const visibleMessages = session.conversationHistory.filter(
     (m) => m.role !== "system"
   );
 
-  const currentStepDef = getStep(session.currentStep);
+  const hasUserTurn = session.conversationHistory.some(
+    (m) => m.role === "user"
+  );
 
   return (
     <div className="max-w-[var(--container-narrow)] mx-auto">
-      {/* Step indicator (pre-PRD only) */}
-      {!isPostPrd && (
-        <div className="mb-6">
-          <StepIndicator currentStep={session.currentStep} />
-        </div>
-      )}
-
-      {/* Coaching tip (pre-PRD only) */}
-      {!isPostPrd && currentStepDef && (
-        <p
-          className="font-serif text-sm italic mb-6"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          {currentStepDef.coachingTip}
-        </p>
-      )}
-
-      {/* PRD + Starter Prompt — shown above the conversation post-PRD */}
+      {/* Blueprint + Starter Prompt — shown above the conversation post-Blueprint */}
       {isPostPrd && brief && (
-        <div className="space-y-6 mb-10">
+        <div className="space-y-6 mb-10 print-blueprint-area">
           <ProjectBriefCard
             brief={brief}
+            onCopyBlueprint={handleCopyBlueprint}
             onCopyStarterPrompt={handleCopyStarterPrompt}
             onDownloadPrd={handleDownloadPrd}
-            starterPromptLoading={starterPromptLoading}
+            onPrintBlueprint={handlePrintBlueprint}
+            starterPromptReady={!!starterPrompt}
             updating={briefUpdating}
           />
           <StarterPrompt prompt={starterPrompt} />
@@ -414,7 +415,7 @@ export function PlanningFlow({
           </div>
         )}
 
-        {/* PRD generation/update error — surfaced inline so the
+        {/* Blueprint generation/update error — surfaced inline so the
             participant isn't left wondering after they hit "Generate". */}
         {briefError && (
           <div
@@ -441,7 +442,7 @@ export function PlanningFlow({
           </div>
         )}
 
-        {/* Generating PRD spinner — appears between conversation and input */}
+        {/* Generating Blueprint spinner — appears between conversation and input */}
         {briefGenerating && (
           <div className="text-center py-8">
             <div
@@ -451,25 +452,26 @@ export function PlanningFlow({
                 borderTopColor: "var(--text-primary)",
               }}
             />
-            <p className="mt-4 mono-label">Generating your PRD…</p>
+            <p className="mt-4 mono-label">Generating your Blueprint…</p>
           </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Pre-PRD input area */}
+      {/* Pre-Blueprint input area: textarea + Send + persistent CTA */}
       {!briefGenerating && !isPostPrd && (
-        <UserInput
-          currentStep={session.currentStep}
-          onSend={handleSend}
-          onAdvance={handleAdvance}
-          disabled={isStreaming}
-          hasAnsweredCurrentStep={hasAnsweredCurrentStep}
-        />
+        <div className="space-y-4">
+          <UserInput onSend={handleSend} disabled={isStreaming} />
+          <GenerateCTA
+            ready={isReadyToGenerate}
+            disabled={isStreaming || !hasUserTurn}
+            onClick={generateBrief}
+          />
+        </div>
       )}
 
-      {/* Post-PRD input area — conversation stays open */}
+      {/* Post-Blueprint input area — conversation stays open */}
       {!briefGenerating && isPostPrd && (
         <PostPrdInput
           onSend={handleSend}
@@ -479,6 +481,53 @@ export function PlanningFlow({
           showUpdateButton={hasPostPrdMessages}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * Persistent "Generate my Blueprint" CTA. Default state is secondary
+ * (subtle, helper text says "when you're ready"). When the AI's most
+ * recent message contains a ready-signal phrase, it upgrades to a
+ * primary styling and the helper text changes — so the AI's voice and
+ * the UI feel like a single product.
+ */
+function GenerateCTA({
+  ready,
+  disabled,
+  onClick,
+}: {
+  ready: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={
+          ready
+            ? "gradient-border w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
+            : "w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
+        }
+        style={{
+          color: ready ? "var(--text-primary)" : "var(--text-secondary)",
+          backgroundColor: ready ? undefined : "transparent",
+          border: ready ? undefined : "1px solid var(--border-default)",
+        }}
+      >
+        ◆ Generate my Blueprint →
+      </button>
+      <p
+        className="font-serif text-xs italic text-center"
+        style={{ color: "var(--text-tertiary)" }}
+      >
+        {ready
+          ? "You're ready — let's go."
+          : "Generate when you're ready. The longer you talk, the better it gets."}
+      </p>
     </div>
   );
 }

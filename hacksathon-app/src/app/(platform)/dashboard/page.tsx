@@ -27,7 +27,7 @@ export default async function DashboardPage() {
             <CardTitle>Plan a Build</CardTitle>
             <CardDescription>
               Talk through your idea with a thinking partner. End with a clear
-              PRD and Starter Prompt for your build tool.
+              Blueprint and Starter Prompt for your build tool.
             </CardDescription>
           </CardHeader>
           <CardContent>

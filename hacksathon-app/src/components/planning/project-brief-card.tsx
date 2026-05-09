@@ -6,25 +6,41 @@ import type { ProjectBrief } from "@/lib/planning/types";
 
 interface ProjectBriefCardProps {
   brief: ProjectBrief;
+  onCopyBlueprint: () => void;
   onCopyStarterPrompt: () => void;
   onDownloadPrd: () => void;
-  starterPromptLoading?: boolean;
+  onPrintBlueprint: () => void;
+  starterPromptReady: boolean;
   updating?: boolean;
 }
 
+/**
+ * The rendered Blueprint card — header has Copy / Download / Print
+ * actions, body is the markdown rendered with custom typography, and
+ * the footer copies the pre-generated Starter Prompt to the clipboard.
+ */
 export function ProjectBriefCard({
   brief,
+  onCopyBlueprint,
   onCopyStarterPrompt,
   onDownloadPrd,
-  starterPromptLoading,
+  onPrintBlueprint,
+  starterPromptReady,
   updating,
 }: ProjectBriefCardProps) {
-  const [copied, setCopied] = useState(false);
+  const [copiedBlueprint, setCopiedBlueprint] = useState(false);
+  const [copiedStarter, setCopiedStarter] = useState(false);
 
-  function handleCopy() {
+  function handleCopyBlueprint() {
+    onCopyBlueprint();
+    setCopiedBlueprint(true);
+    setTimeout(() => setCopiedBlueprint(false), 2000);
+  }
+
+  function handleCopyStarter() {
     onCopyStarterPrompt();
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedStarter(true);
+    setTimeout(() => setCopiedStarter(false), 2000);
   }
 
   return (
@@ -35,27 +51,34 @@ export function ProjectBriefCard({
         border: "1px solid var(--border-default)",
       }}
     >
-      <div className="flex items-center justify-between mb-6">
-        <span className="mono-label">Your PRD</span>
-        <button
-          type="button"
-          onClick={onDownloadPrd}
-          disabled={updating || !brief.prdMarkdown}
-          className="font-sans text-xs transition-colors disabled:opacity-50"
-          style={{ color: "var(--text-tertiary)" }}
-          onMouseEnter={(e) => {
-            if (!updating)
-              e.currentTarget.style.color = "var(--text-primary)";
-          }}
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.color = "var(--text-tertiary)")
-          }
-        >
-          ↓ Download PRD
-        </button>
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+        <span className="mono-label">Your Blueprint</span>
+
+        <div className="flex items-center gap-1 print:hidden">
+          <CardAction
+            onClick={handleCopyBlueprint}
+            disabled={updating || !brief.prdMarkdown}
+            label={copiedBlueprint ? "Copied!" : "Copy"}
+            ariaLabel="Copy Blueprint markdown to clipboard"
+          />
+          <ActionDivider />
+          <CardAction
+            onClick={onDownloadPrd}
+            disabled={updating || !brief.prdMarkdown}
+            label="Download .md"
+            ariaLabel="Download Blueprint as Markdown file"
+          />
+          <ActionDivider />
+          <CardAction
+            onClick={onPrintBlueprint}
+            disabled={updating || !brief.prdMarkdown}
+            label="Print / PDF"
+            ariaLabel="Print Blueprint or save as PDF"
+          />
+        </div>
       </div>
 
-      {/* The PRD itself — rendered from prdMarkdown */}
+      {/* The Blueprint itself — rendered from prdMarkdown */}
       <div className="prd-markdown">
         {brief.prdMarkdown ? (
           <ReactMarkdown
@@ -154,7 +177,7 @@ export function ProjectBriefCard({
             className="font-serif italic"
             style={{ color: "var(--text-tertiary)" }}
           >
-            PRD is being prepared…
+            Blueprint is being prepared…
           </p>
         )}
       </div>
@@ -175,29 +198,72 @@ export function ProjectBriefCard({
                 borderTopColor: "var(--text-primary)",
               }}
             />
-            <p className="mt-3 mono-label">Updating your PRD…</p>
+            <p className="mt-3 mono-label">Updating your Blueprint…</p>
           </div>
         </div>
       )}
 
       <div
-        className="mt-8 pt-6"
+        className="mt-8 pt-6 print:hidden"
         style={{ borderTop: "1px solid var(--border-default)" }}
       >
         <button
           type="button"
-          onClick={handleCopy}
-          disabled={starterPromptLoading || updating}
+          onClick={handleCopyStarter}
+          disabled={!starterPromptReady || updating}
           className="gradient-border w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-colors disabled:opacity-50"
           style={{ color: "var(--text-primary)" }}
         >
-          {starterPromptLoading
-            ? "Generating…"
-            : copied
+          {!starterPromptReady
+            ? "Preparing Starter Prompt…"
+            : copiedStarter
               ? "Copied!"
               : "◆ Copy Starter Prompt →"}
         </button>
       </div>
     </div>
+  );
+}
+
+function CardAction({
+  onClick,
+  disabled,
+  label,
+  ariaLabel,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+  ariaLabel: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className="font-sans text-xs px-2 py-1 transition-colors disabled:opacity-50"
+      style={{ color: "var(--text-tertiary)" }}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.color = "var(--text-primary)";
+      }}
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.color = "var(--text-tertiary)")
+      }
+    >
+      {label}
+    </button>
+  );
+}
+
+function ActionDivider() {
+  return (
+    <span
+      aria-hidden="true"
+      className="font-sans text-xs"
+      style={{ color: "var(--text-tertiary)", opacity: 0.4 }}
+    >
+      ·
+    </span>
   );
 }

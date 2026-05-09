@@ -1,6 +1,6 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import { streamText } from "ai";
 import { createClient } from "@/lib/supabase/server";
+import { planningModel } from "@/lib/ai/model";
 import {
   rowToSession,
   appendMessage,
@@ -180,13 +180,31 @@ export async function POST(req: Request) {
   const aiMessages = toAIMessages(history);
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-6-20250514"),
+    model: planningModel,
     system: fullSystem,
     messages:
       aiMessages.length > 0
         ? aiMessages
         : [{ role: "user", content: "[Start the planning session]" }],
+    onError: ({ error }) => {
+      // Surface model failures (deprecation, rate limits, malformed
+      // requests) loudly in Vercel logs instead of swallowing them.
+      // Client-side picks this up via an empty stream + retry UI.
+      console.error("[planning/step] streamText error", {
+        sessionId: session.id,
+        action,
+        currentStep,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    },
     onFinish: async ({ text }) => {
+      // Guard against persisting empty assistant turns. When the model
+      // call errors before producing any text, onFinish still fires —
+      // committing an empty bubble would be worse than nothing because
+      // it visibly breaks the conversation.
+      const trimmed = text?.trim();
+      if (!trimmed) return;
+
       const assistantMsg: Message = {
         role: "assistant",
         content: text,

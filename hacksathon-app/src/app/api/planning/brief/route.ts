@@ -1,7 +1,7 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { planningModel } from "@/lib/ai/model";
 import {
   rowToSession,
   toAIMessages,
@@ -99,18 +99,38 @@ export async function POST(req: Request) {
     ? "The participant has refined their thinking after generating the original PRD. Re-synthesize the Project Brief from the FULL conversation above, including everything they've said since the last PRD was generated. Return ONLY the JSON object."
     : "Generate the participant's Project Brief from our full conversation above. Return ONLY the JSON object.";
 
-  const { text } = await generateText({
-    model: anthropic("claude-sonnet-4-6-20250514"),
-    system: `${systemPrompt}\n\n---\n\n${BRIEF_GENERATION_INSTRUCTION}`,
-    messages: [
-      ...aiMessages,
+  let text: string;
+  try {
+    const result = await generateText({
+      model: planningModel,
+      system: `${systemPrompt}\n\n---\n\n${BRIEF_GENERATION_INSTRUCTION}`,
+      messages: [
+        ...aiMessages,
+        {
+          role: "user",
+          content: userInstruction,
+        },
+      ],
+      maxOutputTokens: 4000,
+    });
+    text = result.text;
+  } catch (error) {
+    // Make model failures loud in Vercel logs and surface a 502 to the
+    // client. The PRD step is non-streaming, so the client can show a
+    // clear error toast instead of guessing.
+    console.error("[planning/brief] generateText failed", {
+      sessionId: session.id,
+      regenerate: !!regenerate,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.json(
       {
-        role: "user",
-        content: userInstruction,
+        error:
+          "We couldn't generate your PRD right now. Please try again in a moment.",
       },
-    ],
-    maxOutputTokens: 4000,
-  });
+      { status: 502 }
+    );
+  }
 
   let briefData: BriefData;
   try {

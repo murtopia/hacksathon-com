@@ -31,6 +31,16 @@ export function PlanningFlow({
   const [briefUpdating, setBriefUpdating] = useState(false);
   const [starterPrompt, setStarterPrompt] = useState<string | null>(null);
   const [starterPromptLoading, setStarterPromptLoading] = useState(false);
+  /**
+   * Tracks the most recent stream failure so we can show an inline error
+   * card with a Retry affordance — instead of the silent empty-bubble
+   * failure mode we hit when an Anthropic model ID was invalid.
+   */
+  const [streamError, setStreamError] = useState<{
+    message: string;
+    retry: () => Promise<void>;
+  } | null>(null);
+  const [briefError, setBriefError] = useState<string | null>(null);
 
   /**
    * Snapshot of conversationHistory.length at the moment the most recent
@@ -63,7 +73,10 @@ export function PlanningFlow({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Open the first step on mount if the conversation is empty
+  // Step 1's opening is seeded server-side at session creation
+  // (deterministic Scenario A/B from the planning doc). We only fall
+  // back to an AI open_step call here for legacy sessions that were
+  // created before that change and somehow have an empty history.
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
@@ -86,6 +99,25 @@ export function PlanningFlow({
   ) {
     setIsStreaming(true);
     setStreamingText("");
+    setStreamError(null);
+
+    // The server has different idempotency for each action: "respond"
+    // appends the user message and "advance" increments the step. If
+    // the model call fails after those side effects commit, retrying
+    // with the same action would double-write. Map both to safe
+    // retry actions that re-stream from existing history without
+    // mutating it again.
+    const buildRetry = () => async () => {
+      if (action === "advance") return callStepAPI("open_step");
+      if (action === "respond") return callStepAPI("respond"); // no userMessage = no re-append
+      return callStepAPI(action);
+    };
+
+    const failWith = (message: string) => {
+      setStreamError({ message, retry: buildRetry() });
+      setStreamingText("");
+      setIsStreaming(false);
+    };
 
     try {
       const res = await fetch("/api/planning/step", {
@@ -99,7 +131,9 @@ export function PlanningFlow({
       });
 
       if (!res.ok || !res.body) {
-        setIsStreaming(false);
+        failWith(
+          "Something went wrong reaching the planning model. Try again?"
+        );
         return;
       }
 
@@ -120,6 +154,16 @@ export function PlanningFlow({
         setStreamingText(fullText);
       }
 
+      // An empty stream means the model errored before producing text
+      // (server logs the cause via onError). Skip the empty bubble and
+      // surface a retry instead of silently breaking the conversation.
+      if (!fullText.trim()) {
+        failWith(
+          "The planning model didn't respond. This usually clears up on retry."
+        );
+        return;
+      }
+
       const assistantMsg: Message = {
         role: "assistant",
         content: fullText,
@@ -132,8 +176,9 @@ export function PlanningFlow({
         conversationHistory: [...prev.conversationHistory, assistantMsg],
       }));
       setStreamingText("");
-    } finally {
       setIsStreaming(false);
+    } catch {
+      failWith("Network hiccup while streaming. Try again?");
     }
   }
 
@@ -164,6 +209,7 @@ export function PlanningFlow({
 
   async function generateBrief() {
     setBriefGenerating(true);
+    setBriefError(null);
     try {
       const res = await fetch("/api/planning/brief", {
         method: "POST",
@@ -182,7 +228,17 @@ export function PlanningFlow({
         }));
         // Snapshot is set in a useEffect tied to brief.id/updatedAt so we
         // capture the latest history length post-render.
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setBriefError(
+          data?.error ??
+            "We couldn't generate your PRD right now. Please try again."
+        );
       }
+    } catch {
+      setBriefError(
+        "We couldn't generate your PRD right now. Please try again."
+      );
     } finally {
       setBriefGenerating(false);
     }
@@ -190,6 +246,7 @@ export function PlanningFlow({
 
   async function handleUpdatePrd() {
     setBriefUpdating(true);
+    setBriefError(null);
     try {
       const res = await fetch("/api/planning/brief", {
         method: "POST",
@@ -205,7 +262,17 @@ export function PlanningFlow({
         setBrief(normalizeBrief(data.brief));
         setStarterPrompt(null);
         // Snapshot is reset in the brief-watching useEffect.
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setBriefError(
+          data?.error ??
+            "We couldn't update your PRD right now. Please try again."
+        );
       }
+    } catch {
+      setBriefError(
+        "We couldn't update your PRD right now. Please try again."
+      );
     } finally {
       setBriefUpdating(false);
     }
@@ -318,6 +385,60 @@ export function PlanningFlow({
 
         {isStreaming && streamingText && (
           <AIMessage content={streamingText} isStreaming />
+        )}
+
+        {/* Inline error card with Retry — replaces the silent empty-bubble
+            failure mode that used to appear when a model call failed. */}
+        {streamError && !isStreaming && (
+          <div
+            className="py-4 px-4 rounded-sm"
+            style={{
+              backgroundColor: "var(--surface-muted, #fafafa)",
+              border: "1px solid var(--border-default)",
+            }}
+          >
+            <p
+              className="font-serif text-[15px] leading-relaxed mb-3"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              {streamError.message}
+            </p>
+            <button
+              type="button"
+              onClick={() => streamError.retry()}
+              className="mono-label transition-colors hover:text-[var(--text-primary)]"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              ↻ Retry
+            </button>
+          </div>
+        )}
+
+        {/* PRD generation/update error — surfaced inline so the
+            participant isn't left wondering after they hit "Generate". */}
+        {briefError && (
+          <div
+            className="py-4 px-4 rounded-sm"
+            style={{
+              backgroundColor: "var(--surface-muted, #fafafa)",
+              border: "1px solid var(--border-default)",
+            }}
+          >
+            <p
+              className="font-serif text-[15px] leading-relaxed mb-3"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              {briefError}
+            </p>
+            <button
+              type="button"
+              onClick={() => (brief ? handleUpdatePrd() : generateBrief())}
+              className="mono-label transition-colors hover:text-[var(--text-primary)]"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              ↻ Retry
+            </button>
+          </div>
         )}
 
         {/* Generating PRD spinner — appears between conversation and input */}

@@ -80,6 +80,30 @@ By the end of Step 5, you have enough to synthesize a clear, buildable PRD: a on
 }
 
 /**
+ * Deterministic Step 1 opening message.
+ *
+ * Step 1's opening is verbatim from Session 2 doc Section 4 (Scenario A/B)
+ * and seeded server-side at session creation — never via an AI call. This
+ * removes a class of silent failure (e.g. an invalid model ID) from the
+ * very first thing a participant sees on /plan.
+ *
+ * Scenarios B-E inside the planning flow still rely on AI generation,
+ * but those failures surface inline once the participant has at least
+ * one assistant message on screen.
+ */
+export function buildStep1Opening(ideaName: string | null): string {
+  if (ideaName && ideaName.trim().length > 0) {
+    return `You've got ${ideaName} in the IdeaLab — let's build your plan before you start building. I'm going to ask you five questions. Nothing technical, just about what you're making and who it's for.
+
+Tell me more about ${ideaName} — what does it actually do? Explain it like you're telling a friend.`;
+  }
+
+  return `Before you start building, let's take a few minutes to think through your project. I'll ask you some questions — you just talk, and I'll help shape it into a plan.
+
+First: what do you want to call it? Even a rough working title is fine.`;
+}
+
+/**
  * Step-specific instruction appended when the AI opens a new step.
  */
 export function buildStepInstruction(stepNumber: number): string {

@@ -1,40 +1,63 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { StepIndicator } from "./step-indicator";
 import { AIMessage } from "./ai-message";
 import { UserInput } from "./user-input";
+import { PostPrdInput } from "./post-prd-input";
 import { ProjectBriefCard } from "./project-brief-card";
-import { BuildNotesPanel } from "./build-notes-panel";
 import { StarterPrompt } from "./starter-prompt";
 import type {
   PlanningSession,
   Message,
   ProjectBrief,
-  BuildNotes,
 } from "@/lib/planning/types";
 import { isLastStep, getStep } from "@/lib/planning/steps";
 
 interface PlanningFlowProps {
   session: PlanningSession;
+  initialBrief?: ProjectBrief | null;
 }
 
-export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
-  const router = useRouter();
+export function PlanningFlow({
+  session: initialSession,
+  initialBrief = null,
+}: PlanningFlowProps) {
   const [session, setSession] = useState(initialSession);
   const [streamingText, setStreamingText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [brief, setBrief] = useState<ProjectBrief | null>(null);
-  const [buildNotes, setBuildNotes] = useState<BuildNotes | null>(null);
-  const [buildNotesLoading, setBuildNotesLoading] = useState(false);
+  const [brief, setBrief] = useState<ProjectBrief | null>(initialBrief);
+  const [briefGenerating, setBriefGenerating] = useState(false);
+  const [briefUpdating, setBriefUpdating] = useState(false);
   const [starterPrompt, setStarterPrompt] = useState<string | null>(null);
   const [starterPromptLoading, setStarterPromptLoading] = useState(false);
-  const [phase, setPhase] = useState<"conversation" | "complete">(
-    session.status === "complete" ? "complete" : "conversation"
+
+  /**
+   * Snapshot of conversationHistory.length at the moment the most recent
+   * brief was generated/updated. Used to detect post-PRD continuation:
+   * the conversation has new messages worth committing to a PRD update.
+   */
+  const [briefSnapshotLength, setBriefSnapshotLength] = useState<number | null>(
+    initialBrief ? initialSession.conversationHistory.length : null
   );
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
+
+  const isPostPrd = !!brief && session.status === "complete";
+  const hasPostPrdMessages =
+    isPostPrd &&
+    briefSnapshotLength !== null &&
+    session.conversationHistory.length > briefSnapshotLength;
+
+  // Snapshot the conversation length whenever a new brief becomes available
+  // (initial load, fresh generation, or regeneration). Driven by brief
+  // identity + updatedAt so we capture all three cases reliably.
+  useEffect(() => {
+    if (!brief) return;
+    setBriefSnapshotLength(session.conversationHistory.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brief?.id, brief?.updatedAt]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -97,7 +120,6 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
         setStreamingText(fullText);
       }
 
-      // After streaming completes, add the assistant message to local state
       const assistantMsg: Message = {
         role: "assistant",
         content: fullText,
@@ -116,7 +138,6 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
   }
 
   function handleSend(message: string) {
-    // Optimistically add the user message to the conversation
     const userMsg: Message = {
       role: "user",
       content: message,
@@ -134,7 +155,6 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
 
   async function handleAdvance() {
     if (isLastStep(session.currentStep)) {
-      // Generate the brief
       await callStepAPI("advance");
       await generateBrief();
     } else {
@@ -143,8 +163,7 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
   }
 
   async function generateBrief() {
-    setPhase("complete");
-
+    setBriefGenerating(true);
     try {
       const res = await fetch("/api/planning/brief", {
         method: "POST",
@@ -154,52 +173,42 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
 
       if (res.ok) {
         const data = await res.json();
-        setBrief(data.brief);
+        const normalized = normalizeBrief(data.brief);
+        setBrief(normalized);
         setSession((prev) => ({
           ...prev,
           status: "complete",
-          briefId: data.brief.id,
+          briefId: normalized.id,
         }));
-
-        // Fire build notes generation in the background
-        generateBuildNotes(data.brief.id);
+        // Snapshot is set in a useEffect tied to brief.id/updatedAt so we
+        // capture the latest history length post-render.
       }
-    } catch {
-      // Brief generation failed — the user can retry
+    } finally {
+      setBriefGenerating(false);
     }
   }
 
-  async function generateBuildNotes(briefId: string) {
-    setBuildNotesLoading(true);
+  async function handleUpdatePrd() {
+    setBriefUpdating(true);
     try {
-      const res = await fetch("/api/planning/build-notes", {
+      const res = await fetch("/api/planning/brief", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planningSessionId: session.id,
-          projectBriefId: briefId,
+          regenerate: true,
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (data.buildNotes) {
-          setBuildNotes(data.buildNotes);
-        }
+        setBrief(normalizeBrief(data.brief));
+        setStarterPrompt(null);
+        // Snapshot is reset in the brief-watching useEffect.
       }
     } finally {
-      setBuildNotesLoading(false);
+      setBriefUpdating(false);
     }
-  }
-
-  function handleRevise() {
-    if (!brief) return;
-    const url = new URL("/plan", window.location.origin);
-    url.searchParams.set("revise", brief.id);
-    if (session.eventId) url.searchParams.set("event", session.eventId);
-    if (session.ideaId) url.searchParams.set("idea", session.ideaId);
-    url.searchParams.set("tool", session.buildTool);
-    router.push(url.toString());
   }
 
   async function handleCopyStarterPrompt() {
@@ -226,7 +235,19 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
     }
   }
 
-  // Check if the user has answered the current step at least once
+  function handleDownloadPrd() {
+    if (!brief?.prdMarkdown) return;
+    const blob = new Blob([brief.prdMarkdown], {
+      type: "text/markdown;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${slugifyForFilename(brief.projectName)}-PRD.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const hasAnsweredCurrentStep = session.conversationHistory.some(
     (m) =>
       m.role === "user" &&
@@ -234,7 +255,7 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
       m.messageType === "user_response"
   );
 
-  // Filter visible messages (exclude system-role advance notes)
+  // Filter visible messages (exclude internal system notes)
   const visibleMessages = session.conversationHistory.filter(
     (m) => m.role !== "system"
   );
@@ -243,21 +264,35 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
 
   return (
     <div className="max-w-[var(--container-narrow)] mx-auto">
-      {/* Step indicator */}
-      {phase === "conversation" && (
+      {/* Step indicator (pre-PRD only) */}
+      {!isPostPrd && (
         <div className="mb-6">
           <StepIndicator currentStep={session.currentStep} />
         </div>
       )}
 
-      {/* Coaching tip */}
-      {phase === "conversation" && currentStepDef && (
+      {/* Coaching tip (pre-PRD only) */}
+      {!isPostPrd && currentStepDef && (
         <p
           className="font-serif text-sm italic mb-6"
           style={{ color: "var(--text-secondary)" }}
         >
           {currentStepDef.coachingTip}
         </p>
+      )}
+
+      {/* PRD + Starter Prompt — shown above the conversation post-PRD */}
+      {isPostPrd && brief && (
+        <div className="space-y-6 mb-10">
+          <ProjectBriefCard
+            brief={brief}
+            onCopyStarterPrompt={handleCopyStarterPrompt}
+            onDownloadPrd={handleDownloadPrd}
+            starterPromptLoading={starterPromptLoading}
+            updating={briefUpdating}
+          />
+          <StarterPrompt prompt={starterPrompt} />
+        </div>
       )}
 
       {/* Conversation messages */}
@@ -281,16 +316,29 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
           </div>
         ))}
 
-        {/* Streaming AI message */}
         {isStreaming && streamingText && (
           <AIMessage content={streamingText} isStreaming />
+        )}
+
+        {/* Generating PRD spinner — appears between conversation and input */}
+        {briefGenerating && (
+          <div className="text-center py-8">
+            <div
+              className="inline-block w-6 h-6 border-2 rounded-full animate-spin"
+              style={{
+                borderColor: "var(--border-default)",
+                borderTopColor: "var(--text-primary)",
+              }}
+            />
+            <p className="mt-4 mono-label">Generating your PRD…</p>
+          </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* User input area */}
-      {phase === "conversation" && (
+      {/* Pre-PRD input area */}
+      {!briefGenerating && !isPostPrd && (
         <UserInput
           currentStep={session.currentStep}
           onSend={handleSend}
@@ -300,42 +348,15 @@ export function PlanningFlow({ session: initialSession }: PlanningFlowProps) {
         />
       )}
 
-      {/* Post-conversation outputs */}
-      {phase === "complete" && (
-        <div className="space-y-6">
-          {brief ? (
-            <>
-              <ProjectBriefCard
-                brief={normalizeBrief(brief)}
-                onCopyStarterPrompt={handleCopyStarterPrompt}
-                starterPromptLoading={starterPromptLoading}
-                onRevise={handleRevise}
-              />
-
-              {starterPrompt && <StarterPrompt prompt={starterPrompt} />}
-
-              <BuildNotesPanel
-                buildNotes={buildNotes}
-                loading={buildNotesLoading}
-              />
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <div
-                className="inline-block w-6 h-6 border-2 rounded-full animate-spin"
-                style={{
-                  borderColor: "var(--border-default)",
-                  borderTopColor: "var(--text-primary)",
-                }}
-              />
-              <p
-                className="mt-4 mono-label"
-              >
-                Generating your Project Brief...
-              </p>
-            </div>
-          )}
-        </div>
+      {/* Post-PRD input area — conversation stays open */}
+      {!briefGenerating && isPostPrd && (
+        <PostPrdInput
+          onSend={handleSend}
+          onUpdatePrd={handleUpdatePrd}
+          disabled={isStreaming || briefUpdating}
+          updating={briefUpdating}
+          showUpdateButton={hasPostPrdMessages}
+        />
       )}
     </div>
   );
@@ -362,9 +383,20 @@ function normalizeBrief(raw: any): ProjectBrief {
     colorToneNotes: raw.color_tone_notes ?? raw.colorToneNotes ?? null,
     outOfScope: raw.out_of_scope ?? raw.outOfScope,
     doneLooksLike: raw.done_looks_like ?? raw.doneLooksLike,
+    prdMarkdown: raw.prd_markdown ?? raw.prdMarkdown ?? null,
     version: raw.version ?? 1,
     isCurrent: raw.is_current ?? raw.isCurrent ?? true,
     createdAt: raw.created_at ?? raw.createdAt,
     updatedAt: raw.updated_at ?? raw.updatedAt,
   };
+}
+
+function slugifyForFilename(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "project"
+  );
 }

@@ -68,6 +68,13 @@ export interface ProjectBrief {
   colorToneNotes: string | null;
   outOfScope: string;
   doneLooksLike: string;
+  /**
+   * AI-synthesized consolidated PRD as markdown.
+   * Single source of truth for the rendered Project Brief and
+   * the downloadable .md file. The structured fields above are
+   * the data layer; this is the readable output.
+   */
+  prdMarkdown: string | null;
   version: number;
   isCurrent: boolean;
   createdAt: string;

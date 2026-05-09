@@ -12,13 +12,14 @@ import {
   buildSystemPrompt,
   buildStepInstruction,
   buildAdvanceNote,
-  buildRevisePrompt,
-  formatBriefForRevision,
+  buildPostPrdPrompt,
 } from "@/lib/planning/prompts";
 import type { Message } from "@/lib/planning/types";
-import { getStep, isLastStep } from "@/lib/planning/steps";
+import { getStep, isLastStep, TOTAL_STEPS } from "@/lib/planning/steps";
 
 export const maxDuration = 60;
+
+type StepAction = "open_step" | "respond" | "advance";
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -37,10 +38,9 @@ export async function POST(req: Request) {
   }: {
     planningSessionId: string;
     userMessage?: string;
-    action?: "open_step" | "respond" | "advance";
+    action?: StepAction;
   } = body;
 
-  // Load session
   const { data: sessionRow, error: sessionError } = await supabase
     .from("planning_sessions")
     .select("*")
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  // Load participant context
+  // Participant context
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
@@ -100,25 +100,19 @@ export async function POST(req: Request) {
 
   let systemPrompt = buildSystemPrompt(participantCtx);
 
-  // In revise mode, load the existing brief and append the revise prompt
-  if (session.mode === "revise" && session.existingBriefId) {
+  // Post-PRD continuation: if a brief already exists, load it and inject
+  // the existing PRD as context. The conversation stays open — same session,
+  // same history — but the AI now treats the PRD as the source of truth.
+  const isPostPrd = session.status === "complete" && session.briefId;
+  if (isPostPrd) {
     const { data: existingBrief } = await supabase
       .from("project_briefs")
-      .select("project_name, one_sentence_scope, target_user, core_feature, design_vibe, out_of_scope, done_looks_like")
-      .eq("id", session.existingBriefId)
+      .select("prd_markdown, project_name")
+      .eq("id", session.briefId!)
       .single();
 
-    if (existingBrief) {
-      const briefSummary = formatBriefForRevision({
-        projectName: existingBrief.project_name,
-        oneSentenceScope: existingBrief.one_sentence_scope,
-        targetUser: existingBrief.target_user,
-        coreFeature: existingBrief.core_feature,
-        designVibe: existingBrief.design_vibe,
-        outOfScope: existingBrief.out_of_scope,
-        doneLooksLike: existingBrief.done_looks_like,
-      });
-      systemPrompt += "\n\n" + buildRevisePrompt(briefSummary);
+    if (existingBrief?.prd_markdown) {
+      systemPrompt += "\n\n" + buildPostPrdPrompt(existingBrief.prd_markdown);
     }
   }
 
@@ -126,8 +120,8 @@ export async function POST(req: Request) {
   let currentStep = session.currentStep;
   let stepAnswers = session.stepAnswers;
 
-  // Handle advance action: user moves to the next step
-  if (action === "advance") {
+  // advance: user moves to the next step (only meaningful pre-PRD)
+  if (action === "advance" && !isPostPrd) {
     const advanceNote: Message = {
       role: "system",
       content: buildAdvanceNote(currentStep),
@@ -135,7 +129,7 @@ export async function POST(req: Request) {
       messageType: "advance",
     };
     history = appendMessage(history, advanceNote);
-    currentStep = Math.min(currentStep + 1, 5);
+    currentStep = Math.min(currentStep + 1, TOTAL_STEPS);
 
     await supabase
       .from("planning_sessions")
@@ -147,7 +141,7 @@ export async function POST(req: Request) {
       .eq("id", session.id);
   }
 
-  // Handle user response: append their message to history
+  // respond: append the user's message to the conversation
   if (action === "respond" && userMessage) {
     const userMsg: Message = {
       role: "user",
@@ -157,7 +151,10 @@ export async function POST(req: Request) {
     };
     history = appendMessage(history, userMsg);
 
-    stepAnswers = updateStepAnswer(stepAnswers, currentStep, userMessage);
+    // Track step answers only during the structured 5-step phase
+    if (!isPostPrd) {
+      stepAnswers = updateStepAnswer(stepAnswers, currentStep, userMessage);
+    }
 
     await supabase
       .from("planning_sessions")
@@ -169,28 +166,18 @@ export async function POST(req: Request) {
       .eq("id", session.id);
   }
 
-  // Build the step instruction for the AI
+  // Build per-step instruction (only when opening a step pre-PRD)
   const step = getStep(currentStep);
-  const stepInstruction =
-    action === "open_step" || action === "advance"
-      ? buildStepInstruction(currentStep)
-      : "";
+  const shouldUseStepInstruction =
+    !isPostPrd &&
+    (action === "open_step" || action === "advance") &&
+    !!step;
 
-  const fullSystem = stepInstruction
-    ? `${systemPrompt}\n\n---\n\n${stepInstruction}`
+  const fullSystem = shouldUseStepInstruction
+    ? `${systemPrompt}\n\n---\n\n${buildStepInstruction(currentStep)}`
     : systemPrompt;
 
-  // For step openings, if this is step 1 with no history, seed the
-  // opening question as context so the AI knows what to ask.
   const aiMessages = toAIMessages(history);
-  if (
-    (action === "open_step" || action === "advance") &&
-    step &&
-    !step.aiGeneratedOpening &&
-    aiMessages.length === 0
-  ) {
-    // Step 1 with no conversation yet: let the AI generate a natural opening
-  }
 
   const result = streamText({
     model: anthropic("claude-sonnet-4-6-20250514"),
@@ -228,6 +215,7 @@ export async function POST(req: Request) {
     headers: {
       "X-Planning-Step": String(currentStep),
       "X-Planning-Is-Last-Step": String(lastStep),
+      "X-Planning-Post-Prd": String(isPostPrd),
     },
   });
 }

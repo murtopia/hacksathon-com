@@ -3,32 +3,30 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { isLastStep } from "@/lib/planning/steps";
 
-interface UserInputProps {
-  currentStep: number;
+interface PostPrdInputProps {
   onSend: (message: string) => void;
-  onAdvance: () => void;
+  onUpdatePrd: () => void;
   disabled?: boolean;
-  hasAnsweredCurrentStep: boolean;
+  updating?: boolean;
+  showUpdateButton: boolean;
 }
 
-export function UserInput({
-  currentStep,
+export function PostPrdInput({
   onSend,
-  onAdvance,
+  onUpdatePrd,
   disabled,
-  hasAnsweredCurrentStep,
-}: UserInputProps) {
+  updating,
+  showUpdateButton,
+}: PostPrdInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const lastStep = isLastStep(currentStep);
 
   useEffect(() => {
     if (!disabled) {
       textareaRef.current?.focus();
     }
-  }, [disabled, currentStep]);
+  }, [disabled]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,13 +44,21 @@ export function UserInput({
 
   return (
     <div className="space-y-3">
+      <p
+        className="font-serif text-sm italic"
+        style={{ color: "var(--text-secondary)" }}
+      >
+        Have a change to your plan? Describe it here — your PRD stays loaded as
+        context.
+      </p>
+
       <form onSubmit={handleSubmit} className="space-y-2">
         <Textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type your response..."
+          placeholder="What's changed?"
           disabled={disabled}
           className="min-h-[80px] resize-y font-sans text-[15px]"
           style={{
@@ -70,14 +76,14 @@ export function UserInput({
         </Button>
       </form>
 
-      {hasAnsweredCurrentStep && (
+      {showUpdateButton && (
         <button
           type="button"
-          onClick={onAdvance}
-          disabled={disabled}
+          onClick={onUpdatePrd}
+          disabled={disabled || updating}
           className="mono-label w-full text-center py-2 transition-colors hover:text-[var(--text-primary)] disabled:opacity-50"
         >
-          {lastStep ? "Generate my PRD →" : "I'm ready to move on →"}
+          {updating ? "Updating your PRD…" : "Update my PRD →"}
         </button>
       )}
     </div>

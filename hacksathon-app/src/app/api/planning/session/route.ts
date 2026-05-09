@@ -13,13 +13,14 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
+  // Per the planning spec: there is no formal "revise" mode. Any returning
+  // exchange continues the existing session. New sessions always start
+  // from the structured 5-step flow.
   const row = buildNewSessionRow({
     userId: user.id,
     eventId: body.eventId,
     ideaId: body.ideaId,
     buildTool: body.buildTool,
-    mode: body.mode,
-    existingBriefId: body.existingBriefId,
   });
 
   const { data, error } = await supabase

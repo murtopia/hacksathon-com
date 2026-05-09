@@ -2,10 +2,30 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { rowToSession, toAIMessages, buildParticipantContext } from "@/lib/planning/context";
-import { buildSystemPrompt, BRIEF_GENERATION_INSTRUCTION } from "@/lib/planning/prompts";
+import {
+  rowToSession,
+  toAIMessages,
+  buildParticipantContext,
+} from "@/lib/planning/context";
+import {
+  buildSystemPrompt,
+  BRIEF_GENERATION_INSTRUCTION,
+} from "@/lib/planning/prompts";
 
 export const maxDuration = 60;
+
+interface BriefData {
+  projectName: string;
+  oneSentenceScope: string;
+  targetUser: string;
+  coreFeature: string;
+  designVibe: string | null;
+  referenceUrl: string | null;
+  colorToneNotes: string | null;
+  outOfScope: string;
+  doneLooksLike: string;
+  prdMarkdown: string;
+}
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -16,7 +36,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { planningSessionId } = await req.json();
+  const { planningSessionId, regenerate } = await req.json();
 
   const { data: sessionRow, error: sessionError } = await supabase
     .from("planning_sessions")
@@ -34,7 +54,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Build context
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
@@ -76,6 +95,10 @@ export async function POST(req: Request) {
   const systemPrompt = buildSystemPrompt(participantCtx);
   const aiMessages = toAIMessages(session.conversationHistory);
 
+  const userInstruction = regenerate
+    ? "The participant has refined their thinking after generating the original PRD. Re-synthesize the Project Brief from the FULL conversation above, including everything they've said since the last PRD was generated. Return ONLY the JSON object."
+    : "Generate the participant's Project Brief from our full conversation above. Return ONLY the JSON object.";
+
   const { text } = await generateText({
     model: anthropic("claude-sonnet-4-6-20250514"),
     system: `${systemPrompt}\n\n---\n\n${BRIEF_GENERATION_INSTRUCTION}`,
@@ -83,21 +106,18 @@ export async function POST(req: Request) {
       ...aiMessages,
       {
         role: "user",
-        content:
-          "Generate my Project Brief from our full conversation above. Return ONLY the JSON object.",
+        content: userInstruction,
       },
     ],
-    maxOutputTokens: 1000,
+    maxOutputTokens: 4000,
   });
 
-  // Parse the JSON response
-  let briefData;
+  let briefData: BriefData;
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("No JSON found in response");
-    briefData = JSON.parse(jsonMatch[0]);
+    briefData = JSON.parse(jsonMatch[0]) as BriefData;
   } catch {
-    // Fallback: assemble from step answers
     briefData = {
       projectName: ideaName ?? "Untitled Project",
       oneSentenceScope: session.stepAnswers.step1 ?? "",
@@ -108,43 +128,112 @@ export async function POST(req: Request) {
       colorToneNotes: session.stepAnswers.step3?.colorNotes ?? null,
       outOfScope: session.stepAnswers.step4 ?? "",
       doneLooksLike: session.stepAnswers.step5 ?? "",
+      prdMarkdown: buildFallbackMarkdown({
+        projectName: ideaName ?? "Untitled Project",
+        whatItDoes: session.stepAnswers.step1 ?? "",
+        whoItsFor: session.stepAnswers.step2 ?? "",
+        howItFeels: session.stepAnswers.step3?.vibe ?? "",
+        oneThing: session.stepAnswers.step4 ?? "",
+        doneWhen: session.stepAnswers.step5 ?? "",
+      }),
     };
   }
 
-  // Insert the project brief
-  const { data: brief, error: briefError } = await supabase
+  const briefPayload = {
+    event_id: session.eventId,
+    user_id: user.id,
+    idea_id: session.ideaId,
+    planning_session_id: session.id,
+    project_name: briefData.projectName,
+    one_sentence_scope: briefData.oneSentenceScope,
+    target_user: briefData.targetUser,
+    core_feature: briefData.coreFeature,
+    design_vibe: briefData.designVibe,
+    reference_url: briefData.referenceUrl,
+    color_tone_notes: briefData.colorToneNotes,
+    out_of_scope: briefData.outOfScope,
+    done_looks_like: briefData.doneLooksLike,
+    prd_markdown: briefData.prdMarkdown,
+  };
+
+  if (regenerate && session.briefId) {
+    const { data: updated, error: updateError } = await supabase
+      .from("project_briefs")
+      .update({
+        ...briefPayload,
+        version: ((sessionRow.brief_version as number) ?? 1) + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", session.briefId)
+      .select()
+      .single();
+
+    if (updateError || !updated) {
+      return NextResponse.json(
+        { error: updateError?.message ?? "Failed to update brief" },
+        { status: 500 }
+      );
+    }
+
+    await supabase
+      .from("planning_sessions")
+      .update({
+        starter_prompt_text: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", session.id);
+
+    return NextResponse.json({ brief: updated });
+  }
+
+  const { data: inserted, error: insertError } = await supabase
     .from("project_briefs")
-    .insert({
-      event_id: session.eventId,
-      user_id: user.id,
-      idea_id: session.ideaId,
-      planning_session_id: session.id,
-      project_name: briefData.projectName,
-      one_sentence_scope: briefData.oneSentenceScope,
-      target_user: briefData.targetUser,
-      core_feature: briefData.coreFeature,
-      design_vibe: briefData.designVibe,
-      reference_url: briefData.referenceUrl,
-      color_tone_notes: briefData.colorToneNotes,
-      out_of_scope: briefData.outOfScope,
-      done_looks_like: briefData.doneLooksLike,
-    })
+    .insert(briefPayload)
     .select()
     .single();
 
-  if (briefError) {
-    return NextResponse.json({ error: briefError.message }, { status: 500 });
+  if (insertError || !inserted) {
+    return NextResponse.json(
+      { error: insertError?.message ?? "Failed to create brief" },
+      { status: 500 }
+    );
   }
 
-  // Update the session with the brief ID and mark complete
   await supabase
     .from("planning_sessions")
     .update({
-      brief_id: brief.id,
+      brief_id: inserted.id,
       status: "complete",
       updated_at: new Date().toISOString(),
     })
     .eq("id", session.id);
 
-  return NextResponse.json({ brief });
+  return NextResponse.json({ brief: inserted });
+}
+
+function buildFallbackMarkdown(args: {
+  projectName: string;
+  whatItDoes: string;
+  whoItsFor: string;
+  howItFeels: string;
+  oneThing: string;
+  doneWhen: string;
+}): string {
+  return `# ${args.projectName} — Project Brief
+
+## 🎯 What It Does
+${args.whatItDoes || "_(Not yet captured.)_"}
+
+## 👥 Who It's For
+${args.whoItsFor || "_(Not yet captured.)_"}
+
+## ✨ How It Should Feel
+${args.howItFeels || "_(Not yet captured.)_"}
+
+## ⚡ The One Thing
+${args.oneThing || "_(Not yet captured.)_"}
+
+## ✅ Done When
+${args.doneWhen || "_(Not yet captured.)_"}
+`;
 }

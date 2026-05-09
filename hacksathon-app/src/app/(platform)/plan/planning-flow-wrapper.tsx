@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { PlanningFlow } from "@/components/planning/planning-flow";
 import { rowToSession } from "@/lib/planning/context";
-import type { PlanningSession } from "@/lib/planning/types";
+import type { PlanningSession, ProjectBrief } from "@/lib/planning/types";
 
 interface PlanningFlowWrapperProps {
   existingSession?: Record<string, unknown>;
+  existingBrief?: Record<string, unknown> | null;
   userId?: string;
   profileName?: string | null;
   eventId?: string;
@@ -15,18 +16,15 @@ interface PlanningFlowWrapperProps {
   ideaName?: string;
   ideaPitch?: string;
   buildTool?: string;
-  reviseMode?: boolean;
-  existingBriefId?: string;
 }
 
 export function PlanningFlowWrapper({
   existingSession,
+  existingBrief,
   userId,
   eventId,
   ideaId,
   buildTool,
-  reviseMode,
-  existingBriefId,
 }: PlanningFlowWrapperProps) {
   const [session, setSession] = useState<PlanningSession | null>(
     existingSession ? rowToSession(existingSession) : null
@@ -49,8 +47,6 @@ export function PlanningFlowWrapper({
             eventId: eventId ?? null,
             ideaId: ideaId ?? null,
             buildTool: buildTool ?? "lovable",
-            mode: reviseMode ? "revise" : "create",
-            existingBriefId: existingBriefId ?? null,
           }),
         });
 
@@ -62,7 +58,7 @@ export function PlanningFlowWrapper({
         const data = await res.json();
         setSession(data.session);
 
-        // Update the URL with the session ID for reload support
+        // Persist session ID in the URL for reload support
         const url = new URL(window.location.href);
         url.searchParams.set("session", data.session.id);
         window.history.replaceState({}, "", url.toString());
@@ -72,7 +68,7 @@ export function PlanningFlowWrapper({
     }
 
     createSession();
-  }, [session, userId, eventId, ideaId, buildTool, reviseMode, existingBriefId]);
+  }, [session, userId, eventId, ideaId, buildTool]);
 
   if (error) {
     return (
@@ -97,10 +93,37 @@ export function PlanningFlowWrapper({
             borderTopColor: "var(--text-primary)",
           }}
         />
-        <p className="mt-4 mono-label">Starting your planning session...</p>
+        <p className="mt-4 mono-label">Starting your planning session…</p>
       </div>
     );
   }
 
-  return <PlanningFlow session={session} />;
+  const initialBrief = existingBrief ? normalizeBrief(existingBrief) : null;
+
+  return <PlanningFlow session={session} initialBrief={initialBrief} />;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeBrief(raw: any): ProjectBrief {
+  return {
+    id: raw.id,
+    eventId: raw.event_id ?? null,
+    userId: raw.user_id,
+    ideaId: raw.idea_id ?? null,
+    planningSessionId: raw.planning_session_id,
+    projectName: raw.project_name,
+    oneSentenceScope: raw.one_sentence_scope,
+    targetUser: raw.target_user,
+    coreFeature: raw.core_feature,
+    designVibe: raw.design_vibe ?? null,
+    referenceUrl: raw.reference_url ?? null,
+    colorToneNotes: raw.color_tone_notes ?? null,
+    outOfScope: raw.out_of_scope,
+    doneLooksLike: raw.done_looks_like,
+    prdMarkdown: raw.prd_markdown ?? null,
+    version: raw.version ?? 1,
+    isCurrent: raw.is_current ?? true,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+  };
 }

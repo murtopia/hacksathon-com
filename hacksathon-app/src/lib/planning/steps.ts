@@ -2,65 +2,76 @@ export interface StepDefinition {
   number: number;
   key: string;
   title: string;
-  openingQuestion: string;
+  /**
+   * Question template the AI uses to open this step.
+   * `[Project Name]` placeholder is interpolated by the AI from
+   * conversation context (set in Step 1 or pre-loaded from IdeaLab).
+   */
+  questionTemplate: string;
+  /**
+   * Short coaching tip shown above the input. Plain prose, no jargon.
+   */
   coachingTip: string;
   /**
-   * For steps 2-5, the opening question references prior context.
-   * This flag tells the API route to let the AI generate the opening
-   * from the full conversation history rather than using a static string.
+   * For Step 1, the AI may use a static opening if no IdeaLab entry
+   * exists (Scenario B). For Steps 2-5, the AI always generates the
+   * opening from full conversation history.
    */
   aiGeneratedOpening: boolean;
 }
 
+/**
+ * The five planning steps, copy verbatim from Session 2 doc Section 4.
+ */
 export const STEPS: StepDefinition[] = [
   {
     number: 1,
-    key: "core_function",
-    title: "Core Function",
-    openingQuestion:
-      "What does this do? Describe the core function in one sentence.",
+    key: "what_it_does",
+    title: "What it does",
+    questionTemplate:
+      "In your own words, what does [Project Name] do? Tell me like you'd explain it to a friend.",
     coachingTip:
-      'Try to boil it down to one verb and one outcome. "It lets people [verb] their [noun]."',
+      "Plain language wins here. Skip the buzzwords. Imagine telling a friend at dinner.",
     aiGeneratedOpening: false,
   },
   {
     number: 2,
-    key: "target_user",
-    title: "Target User",
-    openingQuestion:
-      "Who specifically is this for? Describe one real person who would use it.",
+    key: "who_its_for",
+    title: "Who it's for",
+    questionTemplate:
+      "Who's the first real person you'd show this to when it's done? Tell me about them — not a demographic, just someone specific.",
     coachingTip:
-      "Not 'busy professionals' — more like 'a dad who travels for work and misses bedtime.'",
+      "Pick one real person. Their situation is more useful than \"busy professionals.\"",
     aiGeneratedOpening: true,
   },
   {
     number: 3,
-    key: "visual_direction",
-    title: "Visual Direction",
-    openingQuestion:
-      "How should this look and feel? Share a reference app or site you like, and describe the vibe.",
+    key: "how_it_feels",
+    title: "How it should feel",
+    questionTemplate:
+      "When someone opens [Project Name] for the first time, what should it feel like? Name a vibe, describe an aesthetic, reference a website you like — or say \"it should feel like [Brand X] but for [Person Y].\"",
     coachingTip:
-      "Think about the mood: clean and minimal? Bold and playful? Dark and serious? A screenshot or URL helps.",
+      "References help. \"Calm but confident, like Linear but warmer\" tells the build tool everything.",
     aiGeneratedOpening: true,
   },
   {
     number: 4,
-    key: "scope_guard",
-    title: "Scope Guard",
-    openingQuestion:
-      "What does this NOT do? Give me at least two things that are out of scope.",
+    key: "the_one_thing",
+    title: "The one thing",
+    questionTemplate:
+      "If [Project Name] could only do one thing when it launches — just one — what is that thing? Finish this sentence: \"[Project Name] helps [someone] do [one thing].\"",
     coachingTip:
-      "Saying no to things is what makes a v1 shippable. If everything is in, nothing stands out.",
+      "Saying no to things is what makes a v1 shippable. We can name v2 stuff in a minute.",
     aiGeneratedOpening: true,
   },
   {
     number: 5,
-    key: "done_state",
-    title: "Done State",
-    openingQuestion:
-      "What does done look like? Your build is complete when ___.",
+    key: "done_looks_like",
+    title: "Done looks like",
+    questionTemplate:
+      "Last one: how will you know when it's done enough to demo? What's the minimum that has to actually work for you to feel good showing it at the Showcase Showdown?",
     coachingTip:
-      "Make it specific enough that you could demo it in 3 minutes. If you can't demo it, it's too big.",
+      "If you can demo it in 3 minutes and feel proud, that's done. Be specific about what \"working\" means.",
     aiGeneratedOpening: true,
   },
 ];

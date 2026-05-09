@@ -26,7 +26,8 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>Plan a Build</CardTitle>
             <CardDescription>
-              Use ZERO.Prmptr to plan your project with an AI thinking partner.
+              Talk through your idea with a thinking partner. End with a clear
+              PRD and Starter Prompt for your build tool.
             </CardDescription>
           </CardHeader>
           <CardContent>

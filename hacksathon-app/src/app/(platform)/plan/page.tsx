@@ -10,7 +10,12 @@ export const metadata: Metadata = {
 export default async function PlanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ session?: string; event?: string; idea?: string; tool?: string; revise?: string }>;
+  searchParams: Promise<{
+    session?: string;
+    event?: string;
+    idea?: string;
+    tool?: string;
+  }>;
 }) {
   const supabase = await createClient();
   const {
@@ -21,7 +26,7 @@ export default async function PlanPage({
 
   const params = await searchParams;
 
-  // If a session ID is provided, load it
+  // If a session ID is provided, load it (along with its brief if any)
   if (params.session) {
     const { data: sessionRow } = await supabase
       .from("planning_sessions")
@@ -30,37 +35,35 @@ export default async function PlanPage({
       .single();
 
     if (sessionRow && sessionRow.user_id === user.id) {
+      let existingBrief = null;
+      if (sessionRow.brief_id) {
+        const { data: brief } = await supabase
+          .from("project_briefs")
+          .select("*")
+          .eq("id", sessionRow.brief_id)
+          .single();
+        existingBrief = brief;
+      }
+
       return (
         <div className="py-4">
-          <PlanningFlowWrapper existingSession={sessionRow} />
+          <PlanningFlowWrapper
+            existingSession={sessionRow}
+            existingBrief={existingBrief}
+          />
         </div>
       );
     }
   }
 
-  // Load the user's profile for context
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
     .eq("id", user.id)
     .single();
 
-  // If revise mode, load the existing brief
-  let existingBrief = null;
-  if (params.revise) {
-    const { data: brief } = await supabase
-      .from("project_briefs")
-      .select("*, planning_sessions(*)")
-      .eq("id", params.revise)
-      .single();
-
-    if (brief && brief.user_id === user.id) {
-      existingBrief = brief;
-    }
-  }
-
-  // Load idea context if provided
-  let ideaContext = null;
+  // Idea context (Scenario A — pre-load project name + pitch)
+  let ideaContext: { id: string; title: string; pitch: string } | null = null;
   if (params.idea) {
     const { data: idea } = await supabase
       .from("ideas")
@@ -70,8 +73,8 @@ export default async function PlanPage({
     if (idea) ideaContext = idea;
   }
 
-  // Load event context if provided
-  let eventContext = null;
+  // Event context
+  let eventContext: { id: string; title: string } | null = null;
   if (params.event) {
     const { data: event } = await supabase
       .from("events")
@@ -92,8 +95,6 @@ export default async function PlanPage({
         ideaName={ideaContext?.title}
         ideaPitch={ideaContext?.pitch}
         buildTool={params.tool ?? "lovable"}
-        reviseMode={!!existingBrief}
-        existingBriefId={existingBrief?.id}
       />
     </div>
   );

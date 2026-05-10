@@ -9,7 +9,7 @@ interface ProjectBriefCardProps {
   onCopyBlueprint: () => void;
   onCopyStarterPrompt: () => void;
   onDownloadPrd: () => void;
-  onPrintBlueprint: () => void;
+  onSaveAsPdf: () => void;
   starterPromptReady: boolean;
   updating?: boolean;
 }
@@ -24,7 +24,7 @@ export function ProjectBriefCard({
   onCopyBlueprint,
   onCopyStarterPrompt,
   onDownloadPrd,
-  onPrintBlueprint,
+  onSaveAsPdf,
   starterPromptReady,
   updating,
 }: ProjectBriefCardProps) {
@@ -70,10 +70,10 @@ export function ProjectBriefCard({
           />
           <ActionDivider />
           <CardAction
-            onClick={onPrintBlueprint}
+            onClick={onSaveAsPdf}
             disabled={updating || !brief.prdMarkdown}
-            label="Print / PDF"
-            ariaLabel="Print Blueprint or save as PDF"
+            label="Save as PDF"
+            ariaLabel="Save Blueprint as PDF"
           />
         </div>
       </div>

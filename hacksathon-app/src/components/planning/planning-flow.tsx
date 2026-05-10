@@ -71,6 +71,15 @@ export function PlanningFlow({
   );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const blueprintRef = useRef<HTMLDivElement>(null);
+  /**
+   * Set true the moment a fresh Blueprint generation completes, so a
+   * post-render effect can scroll the card into view. Without this, the
+   * Blueprint card materialized above the conversation and the user was
+   * left reading the post-Blueprint input at the bottom of the page,
+   * thinking nothing happened.
+   */
+  const shouldScrollToBlueprint = useRef(false);
 
   const isPostPrd = !!brief && session.status === "complete";
   const hasPostPrdMessages =
@@ -84,6 +93,22 @@ export function PlanningFlow({
   useEffect(() => {
     if (!brief) return;
     setBriefSnapshotLength(session.conversationHistory.length);
+
+    // Scroll the Blueprint into view after fresh generation/update so it's
+    // unmissable. We gate on a flag instead of firing on every brief
+    // mount — initial page loads with an existing brief shouldn't yank
+    // the user past the conversation they were reading.
+    if (shouldScrollToBlueprint.current) {
+      shouldScrollToBlueprint.current = false;
+      // requestAnimationFrame ensures the new layout (with the rendered
+      // card) has committed before we measure for scroll position.
+      requestAnimationFrame(() => {
+        blueprintRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brief?.id, brief?.updatedAt]);
 
@@ -207,6 +232,9 @@ export function PlanningFlow({
       if (res.ok) {
         const data = await res.json();
         const normalized = normalizeBrief(data.brief);
+        // Mark this as a fresh generation so the brief-watching useEffect
+        // smooth-scrolls the card into view post-render.
+        shouldScrollToBlueprint.current = true;
         setBrief(normalized);
         setSession((prev) => ({
           ...prev,
@@ -251,6 +279,9 @@ export function PlanningFlow({
 
       if (res.ok) {
         const data = await res.json();
+        // Same scroll-into-view treatment for regenerate so the user
+        // sees the updated Blueprint instead of having to hunt for it.
+        shouldScrollToBlueprint.current = true;
         setBrief(normalizeBrief(data.brief));
         // Re-fetch the starter prompt — server invalidated it on
         // regenerate so a fresh one will be generated.
@@ -322,11 +353,14 @@ export function PlanningFlow({
     URL.revokeObjectURL(url);
   }
 
-  function handlePrintBlueprint() {
+  function handleSaveAsPdf() {
     if (!brief?.prdMarkdown) return;
-    // The print stylesheet (in globals.css) hides everything outside
-    // .print-blueprint-area when html.printing-blueprint is set, so the
-    // browser's print dialog produces a clean Blueprint-only PDF.
+    // We use window.print() under the hood — modern browsers expose a
+    // "Save as PDF" destination in the print dialog, which is the right
+    // mental model for the user. The print stylesheet (globals.css)
+    // hides everything outside .print-blueprint-area when
+    // html.printing-blueprint is set, so the resulting PDF is a clean
+    // document export with no chrome.
     document.documentElement.classList.add("printing-blueprint");
     const cleanup = () => {
       document.documentElement.classList.remove("printing-blueprint");
@@ -347,22 +381,6 @@ export function PlanningFlow({
 
   return (
     <div className="max-w-[var(--container-narrow)] mx-auto">
-      {/* Blueprint + Starter Prompt — shown above the conversation post-Blueprint */}
-      {isPostPrd && brief && (
-        <div className="space-y-6 mb-10 print-blueprint-area">
-          <ProjectBriefCard
-            brief={brief}
-            onCopyBlueprint={handleCopyBlueprint}
-            onCopyStarterPrompt={handleCopyStarterPrompt}
-            onDownloadPrd={handleDownloadPrd}
-            onPrintBlueprint={handlePrintBlueprint}
-            starterPromptReady={!!starterPrompt}
-            updating={briefUpdating}
-          />
-          <StarterPrompt prompt={starterPrompt} />
-        </div>
-      )}
-
       {/* Conversation messages */}
       <div className="space-y-4 mb-6">
         {visibleMessages.map((msg, i) => (
@@ -458,6 +476,28 @@ export function PlanningFlow({
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Blueprint + Next Steps — rendered right after the conversation
+          so the artifact appears at the participant's eye-line when
+          they click Generate. Smooth-scroll into view on first
+          generation. */}
+      {isPostPrd && brief && (
+        <div
+          ref={blueprintRef}
+          className="space-y-6 mb-10 print-blueprint-area"
+        >
+          <ProjectBriefCard
+            brief={brief}
+            onCopyBlueprint={handleCopyBlueprint}
+            onCopyStarterPrompt={handleCopyStarterPrompt}
+            onDownloadPrd={handleDownloadPrd}
+            onSaveAsPdf={handleSaveAsPdf}
+            starterPromptReady={!!starterPrompt}
+            updating={briefUpdating}
+          />
+          <StarterPrompt prompt={starterPrompt} />
+        </div>
+      )}
 
       {/* Pre-Blueprint input area: textarea + Send + persistent CTA */}
       {!briefGenerating && !isPostPrd && (

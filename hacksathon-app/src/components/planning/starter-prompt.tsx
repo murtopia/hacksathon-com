@@ -4,6 +4,8 @@ import { useState } from "react";
 
 interface StarterPromptProps {
   prompt: string | null;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
 /**
@@ -12,7 +14,7 @@ interface StarterPromptProps {
  * verbatim five-step kickoff instructions from the planning doc, so
  * pasting into Lovable (or another tool) is completely explicit.
  */
-export function StarterPrompt({ prompt }: StarterPromptProps) {
+export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -43,7 +45,7 @@ export function StarterPrompt({ prompt }: StarterPromptProps) {
       <ol className="space-y-3 mb-6">
         <InstructionStep
           number={1}
-          text="Download your Blueprint using the button at the top of the card above."
+          text="Download your Blueprint from the card above — Download .md or Save as PDF, your choice."
         />
         <InstructionStep
           number={2}
@@ -94,13 +96,42 @@ export function StarterPrompt({ prompt }: StarterPromptProps) {
           >
             {prompt}
           </pre>
+        ) : error ? (
+          <div className="space-y-2">
+            <p
+              className="font-serif italic text-[14px]"
+              style={{ color: "var(--text-tertiary)" }}
+            >
+              {error}
+            </p>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mono-label transition-colors hover:text-[var(--text-primary)]"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                ↻ Retry
+              </button>
+            )}
+          </div>
         ) : (
-          <p
-            className="font-serif italic text-[14px]"
-            style={{ color: "var(--text-tertiary)" }}
-          >
-            Click &ldquo;Copy Starter Prompt&rdquo; above to generate your prompt.
-          </p>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block w-3 h-3 border-2 rounded-full animate-spin shrink-0"
+              style={{
+                borderColor: "var(--border-default)",
+                borderTopColor: "var(--text-primary)",
+              }}
+              aria-hidden="true"
+            />
+            <p
+              className="font-serif italic text-[14px]"
+              style={{ color: "var(--text-tertiary)" }}
+            >
+              Preparing your Starter Prompt…
+            </p>
+          </div>
         )}
       </div>
     </div>

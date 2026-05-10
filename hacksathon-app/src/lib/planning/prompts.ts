@@ -37,7 +37,7 @@ export function buildSystemPrompt(ctx: ParticipantContext): string {
     ? `You can use their first name occasionally to keep things warm — never robotic.`
     : `You don't know their name yet. Don't ask for it — just stay warm and direct.`;
 
-  return `You are a thinking partner helping someone plan their first build before they open ${toolLabel}. Together you're producing a "Blueprint" — a one-page document that describes what they're making, who it's for, how it should feel, the one thing it has to do, and what done looks like. The Blueprint is what they'll hand to their build tool, along with a Starter Prompt, to actually build the thing.
+  return `You are a thinking partner helping someone plan their first build before they open ${toolLabel}. Together you're producing a "Blueprint" — a focused document that describes what they're making, who it's for, how it should feel, the one thing it has to do, and what done looks like. The Blueprint is what they'll hand to their build tool, along with a Starter Prompt, to actually build the thing.
 
 ## Who you're talking to
 A non-technical creative who may never have built a product before. ${audience} ${ideaContext} ${namedAddressing}
@@ -133,12 +133,12 @@ ${prdMarkdown}`;
  */
 export function buildStep1Opening(ideaName: string | null): string {
   if (ideaName && ideaName.trim().length > 0) {
-    return `You've got ${ideaName} in the IdeaLab — let's build your Blueprint before you start building. We'll just talk it through, no forms, no steps. By the end you'll have a one-page Blueprint and a Starter Prompt you can hand straight to your build tool.
+    return `You've got ${ideaName} in the IdeaLab — let's build your Blueprint before you start building. We'll just talk it through, no forms, no steps. By the end you'll have a Blueprint and a Starter Prompt you can hand straight to your build tool.
 
 Tell me more about ${ideaName} — what does it actually do? Explain it like you're telling a friend.`;
   }
 
-  return `Before you start building, let's shape your idea into a Blueprint — a one-page document you'll hand to your build tool. We'll just talk it through, no forms or steps to march through. By the end you'll have everything you need to kick off the build.
+  return `Before you start building, let's shape your idea into a Blueprint — the document you'll hand to your build tool. We'll just talk it through, no forms or steps to march through. By the end you'll have everything you need to kick off the build.
 
 First: what do you want to call it? Even a rough working title is fine.`;
 }

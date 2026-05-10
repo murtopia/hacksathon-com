@@ -14,9 +14,14 @@ export async function POST(req: Request) {
 
   const { planningSessionId } = await req.json();
 
+  // Note: planning_sessions has TWO foreign keys to project_briefs
+  // (brief_id and existing_brief_id), so we can't rely on PostgREST's
+  // implicit foreign-key joins. Fetch the session and brief in two
+  // explicit steps instead — this also keeps the route resilient if a
+  // session has a stale brief_id.
   const { data: session, error: sessionError } = await supabase
     .from("planning_sessions")
-    .select("*, project_briefs!planning_sessions_brief_id_fkey(*)")
+    .select("*")
     .eq("id", planningSessionId)
     .single();
 
@@ -35,11 +40,23 @@ export async function POST(req: Request) {
     });
   }
 
-  const brief = session.project_briefs;
-  if (!brief) {
+  if (!session.brief_id) {
     return NextResponse.json(
-      { error: "No brief generated yet" },
+      { error: "No Blueprint generated yet" },
       { status: 400 }
+    );
+  }
+
+  const { data: brief, error: briefError } = await supabase
+    .from("project_briefs")
+    .select("*")
+    .eq("id", session.brief_id)
+    .single();
+
+  if (briefError || !brief) {
+    return NextResponse.json(
+      { error: "Blueprint not found" },
+      { status: 404 }
     );
   }
 

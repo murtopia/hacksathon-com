@@ -128,7 +128,7 @@ function PlanningIntro({ ideaName }: { ideaName?: string | null } = {}) {
         Talk it through with a thinking partner — no forms, no steps to march
         through. Over the conversation we'll cover what it does, who it's for,
         how it should feel, the one thing it has to do, and what done looks
-        like. The end result is your <strong>Blueprint</strong> — a one-page
+        like. The end result is your <strong>Blueprint</strong> — a focused
         document you can hand to Lovable, Cursor, or any AI build tool, plus a
         Starter Prompt to kick off the build. When you're ready, hit{" "}
         <em>Generate my Blueprint</em> below the conversation.

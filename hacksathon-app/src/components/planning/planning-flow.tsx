@@ -49,6 +49,9 @@ export function PlanningFlow({
   const [briefGenerating, setBriefGenerating] = useState(false);
   const [briefUpdating, setBriefUpdating] = useState(false);
   const [starterPrompt, setStarterPrompt] = useState<string | null>(null);
+  const [starterPromptError, setStarterPromptError] = useState<string | null>(
+    null
+  );
   /**
    * Tracks the most recent stream failure so we can show an inline error
    * card with a Retry affordance — instead of the silent empty-bubble
@@ -304,6 +307,7 @@ export function PlanningFlow({
   }
 
   async function fetchStarterPrompt() {
+    setStarterPromptError(null);
     try {
       const res = await fetch("/api/planning/starter-prompt", {
         method: "POST",
@@ -313,10 +317,19 @@ export function PlanningFlow({
       if (res.ok) {
         const data = await res.json();
         setStarterPrompt(data.starterPrompt);
+        return;
       }
+      // Non-OK response — surface a retry instead of silently leaving the
+      // panel in a "preparing" state forever.
+      const data = await res.json().catch(() => ({}));
+      setStarterPromptError(
+        data?.error ??
+          "We couldn't prepare your Starter Prompt. Try again?"
+      );
     } catch {
-      // Non-critical — the StarterPrompt panel will show its own
-      // empty state and the Copy button will retry on click.
+      setStarterPromptError(
+        "We couldn't prepare your Starter Prompt. Try again?"
+      );
     }
   }
 
@@ -493,9 +506,15 @@ export function PlanningFlow({
             onDownloadPrd={handleDownloadPrd}
             onSaveAsPdf={handleSaveAsPdf}
             starterPromptReady={!!starterPrompt}
+            starterPromptError={starterPromptError}
+            onRetryStarterPrompt={fetchStarterPrompt}
             updating={briefUpdating}
           />
-          <StarterPrompt prompt={starterPrompt} />
+          <StarterPrompt
+            prompt={starterPrompt}
+            error={starterPromptError}
+            onRetry={fetchStarterPrompt}
+          />
         </div>
       )}
 

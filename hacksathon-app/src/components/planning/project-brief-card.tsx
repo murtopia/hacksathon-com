@@ -11,13 +11,17 @@ interface ProjectBriefCardProps {
   onDownloadPrd: () => void;
   onSaveAsPdf: () => void;
   starterPromptReady: boolean;
+  starterPromptError?: string | null;
+  onRetryStarterPrompt?: () => void;
   updating?: boolean;
 }
 
 /**
- * The rendered Blueprint card — header has Copy / Download / Print
- * actions, body is the markdown rendered with custom typography, and
- * the footer copies the pre-generated Starter Prompt to the clipboard.
+ * The rendered Blueprint card — header AND footer expose the same
+ * Copy / Download / Save as PDF actions because the Blueprint can run
+ * 1.5–2 pages and scrolling back to the top to take action is friction.
+ * Below the markdown, the footer also copies the pre-generated Starter
+ * Prompt to the clipboard (or surfaces a retry if it failed to prepare).
  */
 export function ProjectBriefCard({
   brief,
@@ -26,6 +30,8 @@ export function ProjectBriefCard({
   onDownloadPrd,
   onSaveAsPdf,
   starterPromptReady,
+  starterPromptError,
+  onRetryStarterPrompt,
   updating,
 }: ProjectBriefCardProps) {
   const [copiedBlueprint, setCopiedBlueprint] = useState(false);
@@ -43,6 +49,31 @@ export function ProjectBriefCard({
     setTimeout(() => setCopiedStarter(false), 2000);
   }
 
+  const actionRow = (
+    <div className="flex items-center gap-1 print:hidden">
+      <CardAction
+        onClick={handleCopyBlueprint}
+        disabled={updating || !brief.prdMarkdown}
+        label={copiedBlueprint ? "Copied!" : "Copy"}
+        ariaLabel="Copy Blueprint markdown to clipboard"
+      />
+      <ActionDivider />
+      <CardAction
+        onClick={onDownloadPrd}
+        disabled={updating || !brief.prdMarkdown}
+        label="Download .md"
+        ariaLabel="Download Blueprint as Markdown file"
+      />
+      <ActionDivider />
+      <CardAction
+        onClick={onSaveAsPdf}
+        disabled={updating || !brief.prdMarkdown}
+        label="Save as PDF"
+        ariaLabel="Save Blueprint as PDF"
+      />
+    </div>
+  );
+
   return (
     <div
       className="rounded-sm p-[var(--space-6)] relative"
@@ -53,29 +84,7 @@ export function ProjectBriefCard({
     >
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <span className="mono-label">Your Blueprint</span>
-
-        <div className="flex items-center gap-1 print:hidden">
-          <CardAction
-            onClick={handleCopyBlueprint}
-            disabled={updating || !brief.prdMarkdown}
-            label={copiedBlueprint ? "Copied!" : "Copy"}
-            ariaLabel="Copy Blueprint markdown to clipboard"
-          />
-          <ActionDivider />
-          <CardAction
-            onClick={onDownloadPrd}
-            disabled={updating || !brief.prdMarkdown}
-            label="Download .md"
-            ariaLabel="Download Blueprint as Markdown file"
-          />
-          <ActionDivider />
-          <CardAction
-            onClick={onSaveAsPdf}
-            disabled={updating || !brief.prdMarkdown}
-            label="Save as PDF"
-            ariaLabel="Save Blueprint as PDF"
-          />
-        </div>
+        {actionRow}
       </div>
 
       {/* The Blueprint itself — rendered from prdMarkdown */}
@@ -203,10 +212,40 @@ export function ProjectBriefCard({
         </div>
       )}
 
+      {/* Repeat the Blueprint actions at the bottom — the document can
+          run 1.5–2 pages and scrolling back up to act is friction. */}
       <div
-        className="mt-8 pt-6 print:hidden"
+        className="mt-8 pt-6 flex items-center justify-end gap-4 flex-wrap print:hidden"
         style={{ borderTop: "1px solid var(--border-default)" }}
       >
+        {actionRow}
+      </div>
+
+      <div className="mt-6 print:hidden">
+        {starterPromptError && onRetryStarterPrompt ? (
+          <div
+            className="py-4 px-4 mb-3 rounded-sm"
+            style={{
+              backgroundColor: "var(--surface-muted, #fafafa)",
+              border: "1px solid var(--border-default)",
+            }}
+          >
+            <p
+              className="font-serif text-[14px] leading-relaxed mb-2"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              {starterPromptError}
+            </p>
+            <button
+              type="button"
+              onClick={onRetryStarterPrompt}
+              className="mono-label transition-colors hover:text-[var(--text-primary)]"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              ↻ Retry
+            </button>
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={handleCopyStarter}
@@ -215,7 +254,9 @@ export function ProjectBriefCard({
           style={{ color: "var(--text-primary)" }}
         >
           {!starterPromptReady
-            ? "Preparing Starter Prompt…"
+            ? starterPromptError
+              ? "Starter Prompt unavailable"
+              : "Preparing Starter Prompt…"
             : copiedStarter
               ? "Copied!"
               : "◆ Copy Starter Prompt →"}

@@ -2,17 +2,14 @@
 
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { Check, Copy as CopyIcon } from "lucide-react";
 import type { ProjectBrief } from "@/lib/planning/types";
 
 interface ProjectBriefCardProps {
   brief: ProjectBrief;
   onCopyBlueprint: () => void;
-  onCopyStarterPrompt: () => void;
   onDownloadPrd: () => void;
   onSaveAsPdf: () => void;
-  starterPromptReady: boolean;
-  starterPromptError?: string | null;
-  onRetryStarterPrompt?: () => void;
   updating?: boolean;
 }
 
@@ -20,33 +17,22 @@ interface ProjectBriefCardProps {
  * The rendered Blueprint card — header AND footer expose the same
  * Copy / Download / Save as PDF actions because the Blueprint can run
  * 1.5–2 pages and scrolling back to the top to take action is friction.
- * Below the markdown, the footer also copies the pre-generated Starter
- * Prompt to the clipboard (or surfaces a retry if it failed to prepare).
+ * The Starter Prompt CTA lives in the StarterPrompt panel below this
+ * card so the call-to-action sits right next to the prompt it copies.
  */
 export function ProjectBriefCard({
   brief,
   onCopyBlueprint,
-  onCopyStarterPrompt,
   onDownloadPrd,
   onSaveAsPdf,
-  starterPromptReady,
-  starterPromptError,
-  onRetryStarterPrompt,
   updating,
 }: ProjectBriefCardProps) {
   const [copiedBlueprint, setCopiedBlueprint] = useState(false);
-  const [copiedStarter, setCopiedStarter] = useState(false);
 
   function handleCopyBlueprint() {
     onCopyBlueprint();
     setCopiedBlueprint(true);
     setTimeout(() => setCopiedBlueprint(false), 2000);
-  }
-
-  function handleCopyStarter() {
-    onCopyStarterPrompt();
-    setCopiedStarter(true);
-    setTimeout(() => setCopiedStarter(false), 2000);
   }
 
   const actionRow = (
@@ -56,6 +42,7 @@ export function ProjectBriefCard({
         disabled={updating || !brief.prdMarkdown}
         label={copiedBlueprint ? "Copied!" : "Copy"}
         ariaLabel="Copy Blueprint markdown to clipboard"
+        icon={copiedBlueprint ? "check" : "copy"}
       />
       <ActionDivider />
       <CardAction
@@ -220,48 +207,6 @@ export function ProjectBriefCard({
       >
         {actionRow}
       </div>
-
-      <div className="mt-6 print:hidden">
-        {starterPromptError && onRetryStarterPrompt ? (
-          <div
-            className="py-4 px-4 mb-3 rounded-sm"
-            style={{
-              backgroundColor: "var(--surface-muted, #fafafa)",
-              border: "1px solid var(--border-default)",
-            }}
-          >
-            <p
-              className="font-serif text-[14px] leading-relaxed mb-2"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              {starterPromptError}
-            </p>
-            <button
-              type="button"
-              onClick={onRetryStarterPrompt}
-              className="mono-label transition-colors hover:text-[var(--text-primary)]"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              ↻ Retry
-            </button>
-          </div>
-        ) : null}
-        <button
-          type="button"
-          onClick={handleCopyStarter}
-          disabled={!starterPromptReady || updating}
-          className="gradient-border w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-colors disabled:opacity-50"
-          style={{ color: "var(--text-primary)" }}
-        >
-          {!starterPromptReady
-            ? starterPromptError
-              ? "Starter Prompt unavailable"
-              : "Preparing Starter Prompt…"
-            : copiedStarter
-              ? "Copied!"
-              : "◆ Copy Starter Prompt →"}
-        </button>
-      </div>
     </div>
   );
 }
@@ -271,11 +216,13 @@ function CardAction({
   disabled,
   label,
   ariaLabel,
+  icon,
 }: {
   onClick: () => void;
   disabled?: boolean;
   label: string;
   ariaLabel: string;
+  icon?: "copy" | "check";
 }) {
   return (
     <button
@@ -283,7 +230,7 @@ function CardAction({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className="font-sans text-xs px-2 py-1 transition-colors disabled:opacity-50"
+      className="font-sans text-xs px-2 py-1 transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
       style={{ color: "var(--text-tertiary)" }}
       onMouseEnter={(e) => {
         if (!disabled) e.currentTarget.style.color = "var(--text-primary)";
@@ -292,6 +239,8 @@ function CardAction({
         (e.currentTarget.style.color = "var(--text-tertiary)")
       }
     >
+      {icon === "copy" && <CopyIcon size={12} aria-hidden="true" />}
+      {icon === "check" && <Check size={12} aria-hidden="true" />}
       {label}
     </button>
   );

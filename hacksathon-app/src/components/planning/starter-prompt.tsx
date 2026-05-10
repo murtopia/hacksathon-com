@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check, Copy as CopyIcon } from "lucide-react";
 
 interface StarterPromptProps {
   prompt: string | null;
@@ -12,17 +13,31 @@ interface StarterPromptProps {
  * The Next Steps panel — the single most important UX moment for a
  * non-technical participant. Above the prompt itself we show the
  * verbatim five-step kickoff instructions from the planning doc, so
- * pasting into Lovable (or another tool) is completely explicit.
+ * pasting into Lovable (or another tool) is completely explicit. The
+ * prominent "Copy Starter Prompt" CTA lives here (not on the Blueprint
+ * card above) so the call-to-action sits right next to the prompt it
+ * copies.
  */
 export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
-  const [copied, setCopied] = useState(false);
+  const [copiedHeader, setCopiedHeader] = useState(false);
+  const [copiedCta, setCopiedCta] = useState(false);
 
-  async function handleCopy() {
+  async function handleCopy(
+    setCopied: (v: boolean) => void
+  ) {
     if (!prompt) return;
     await navigator.clipboard.writeText(prompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
+
+  const ctaLabel = !prompt
+    ? error
+      ? "Starter Prompt unavailable"
+      : "Preparing Starter Prompt…"
+    : copiedCta
+      ? "Copied!"
+      : "Copy Starter Prompt";
 
   return (
     <div
@@ -62,6 +77,48 @@ export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
         <InstructionStep number={5} text="Hit send. You're building." />
       </ol>
 
+      {/* Primary CTA — sits directly above the prompt it copies. */}
+      {error && onRetry ? (
+        <div
+          className="py-4 px-4 mb-3 rounded-sm"
+          style={{
+            backgroundColor: "var(--surface-muted, #fafafa)",
+            border: "1px solid var(--border-default)",
+          }}
+        >
+          <p
+            className="font-serif text-[14px] leading-relaxed mb-2"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            {error}
+          </p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mono-label transition-colors hover:text-[var(--text-primary)]"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            ↻ Retry
+          </button>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => handleCopy(setCopiedCta)}
+        disabled={!prompt}
+        className="gradient-border w-full py-3 px-4 mb-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 print:hidden"
+        style={{ color: "var(--text-primary)" }}
+      >
+        {prompt &&
+          (copiedCta ? (
+            <Check size={14} aria-hidden="true" />
+          ) : (
+            <CopyIcon size={14} aria-hidden="true" />
+          ))}
+        <span>{ctaLabel}</span>
+        {prompt && !copiedCta && <span aria-hidden="true">→</span>}
+      </button>
+
       <div
         className="rounded-sm p-4 relative"
         style={{
@@ -78,14 +135,21 @@ export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
           </span>
           <button
             type="button"
-            onClick={handleCopy}
+            onClick={() => handleCopy(setCopiedHeader)}
             disabled={!prompt}
-            className="font-sans text-xs transition-colors disabled:opacity-50"
+            className="font-sans text-xs transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
             style={{
-              color: copied ? "var(--text-primary)" : "var(--text-tertiary)",
+              color: copiedHeader
+                ? "var(--text-primary)"
+                : "var(--text-tertiary)",
             }}
           >
-            {copied ? "Copied!" : "Copy"}
+            {copiedHeader ? (
+              <Check size={12} aria-hidden="true" />
+            ) : (
+              <CopyIcon size={12} aria-hidden="true" />
+            )}
+            {copiedHeader ? "Copied!" : "Copy"}
           </button>
         </div>
 
@@ -96,25 +160,6 @@ export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
           >
             {prompt}
           </pre>
-        ) : error ? (
-          <div className="space-y-2">
-            <p
-              className="font-serif italic text-[14px]"
-              style={{ color: "var(--text-tertiary)" }}
-            >
-              {error}
-            </p>
-            {onRetry && (
-              <button
-                type="button"
-                onClick={onRetry}
-                className="mono-label transition-colors hover:text-[var(--text-primary)]"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                ↻ Retry
-              </button>
-            )}
-          </div>
         ) : (
           <div className="flex items-center gap-2">
             <span
@@ -129,7 +174,9 @@ export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
               className="font-serif italic text-[14px]"
               style={{ color: "var(--text-tertiary)" }}
             >
-              Preparing your Starter Prompt…
+              {error
+                ? "Starter Prompt unavailable."
+                : "Preparing your Starter Prompt…"}
             </p>
           </div>
         )}

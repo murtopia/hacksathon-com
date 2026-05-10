@@ -343,11 +343,6 @@ export function PlanningFlow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPostPrd]);
 
-  async function handleCopyStarterPrompt() {
-    if (!starterPrompt) return;
-    await navigator.clipboard.writeText(starterPrompt);
-  }
-
   function handleCopyBlueprint() {
     if (!brief?.prdMarkdown) return;
     navigator.clipboard.writeText(brief.prdMarkdown);
@@ -502,12 +497,8 @@ export function PlanningFlow({
           <ProjectBriefCard
             brief={brief}
             onCopyBlueprint={handleCopyBlueprint}
-            onCopyStarterPrompt={handleCopyStarterPrompt}
             onDownloadPrd={handleDownloadPrd}
             onSaveAsPdf={handleSaveAsPdf}
-            starterPromptReady={!!starterPrompt}
-            starterPromptError={starterPromptError}
-            onRetryStarterPrompt={fetchStarterPrompt}
             updating={briefUpdating}
           />
           <StarterPrompt

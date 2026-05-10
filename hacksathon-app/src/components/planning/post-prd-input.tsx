@@ -6,19 +6,19 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface PostPrdInputProps {
   onSend: (message: string) => void;
-  onUpdatePrd: () => void;
   disabled?: boolean;
-  updating?: boolean;
-  showUpdateButton: boolean;
 }
 
-export function PostPrdInput({
-  onSend,
-  onUpdatePrd,
-  disabled,
-  updating,
-  showUpdateButton,
-}: PostPrdInputProps) {
+/**
+ * The post-Blueprint refinement textarea. Visually it lives directly
+ * below the live continuation thread (the section labeled "Refining
+ * your Blueprint") so the AI's reply lands above the input rather than
+ * far up the page. The framing copy and "Update my Blueprint" link
+ * used to live here too — both moved out: the framing is now the
+ * section header in PlanningFlow, and the Update action is the smart
+ * UpdateCTA component just below this input.
+ */
+export function PostPrdInput({ onSend, disabled }: PostPrdInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -43,49 +43,28 @@ export function PostPrdInput({
   }
 
   return (
-    <div className="space-y-3">
-      <p
-        className="font-serif text-sm italic"
-        style={{ color: "var(--text-secondary)" }}
+    <form onSubmit={handleSubmit} className="space-y-2">
+      <Textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Keep talking — describe a change, ask a question, or refine."
+        disabled={disabled}
+        className="min-h-[80px] resize-y font-sans text-[15px]"
+        style={{
+          backgroundColor: "var(--white)",
+          borderColor: "var(--border-default)",
+          color: "var(--text-primary)",
+        }}
+      />
+      <Button
+        type="submit"
+        disabled={!value.trim() || disabled}
+        className="w-full"
       >
-        Have a change to your Blueprint? Describe it here — the current
-        Blueprint stays loaded as context.
-      </p>
-
-      <form onSubmit={handleSubmit} className="space-y-2">
-        <Textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="What's changed?"
-          disabled={disabled}
-          className="min-h-[80px] resize-y font-sans text-[15px]"
-          style={{
-            backgroundColor: "var(--white)",
-            borderColor: "var(--border-default)",
-            color: "var(--text-primary)",
-          }}
-        />
-        <Button
-          type="submit"
-          disabled={!value.trim() || disabled}
-          className="w-full"
-        >
-          Send
-        </Button>
-      </form>
-
-      {showUpdateButton && (
-        <button
-          type="button"
-          onClick={onUpdatePrd}
-          disabled={disabled || updating}
-          className="mono-label w-full text-center py-2 transition-colors hover:text-[var(--text-primary)] disabled:opacity-50"
-        >
-          {updating ? "Updating your Blueprint…" : "Update my Blueprint →"}
-        </button>
-      )}
-    </div>
+        Send
+      </Button>
+    </form>
   );
 }

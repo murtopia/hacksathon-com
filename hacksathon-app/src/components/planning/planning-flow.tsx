@@ -34,8 +34,26 @@ const READY_PHRASES = [
   /\bgenerate (?:your|my|the) blueprint\b/i,
 ];
 
+/**
+ * Mirror of READY_PHRASES but for the post-Blueprint refinement loop.
+ * Matches the phrases the AI uses when it has fully captured a requested
+ * change and is inviting the participant to commit the update.
+ */
+const POST_PRD_READY_PHRASES = [
+  /\b(?:roll|fold|bake) (?:those|that|these|it|them) (?:in|into)\b/i,
+  /\b(?:ready|want me) to update (?:your|the) blueprint\b/i,
+  /\bhit (?:update|the update)\b/i,
+  /\bupdate (?:your|my|the) blueprint\b/i,
+  /\bcaptured? (?:all|everything|the) (?:that|change|changes?)\b/i,
+  /\bthat (?:captures|covers) (?:the|that|those) changes?\b/i,
+];
+
 function isReadySignal(text: string): boolean {
   return READY_PHRASES.some((re) => re.test(text));
+}
+
+function isReadyToUpdateSignal(text: string): boolean {
+  return POST_PRD_READY_PHRASES.some((re) => re.test(text));
 }
 
 export function PlanningFlow({
@@ -74,6 +92,7 @@ export function PlanningFlow({
   );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const postMessagesEndRef = useRef<HTMLDivElement>(null);
   const blueprintRef = useRef<HTMLDivElement>(null);
   /**
    * Set true the moment a fresh Blueprint generation completes, so a
@@ -115,9 +134,17 @@ export function PlanningFlow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brief?.id, brief?.updatedAt]);
 
+  // Auto-scroll target depends on the mode: in post-Blueprint refinement
+  // the live conversation lives below the Blueprint, so we need to scroll
+  // that anchor (not the original messages-end anchor at the top) to keep
+  // the latest AI reply + input in view.
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+    const target =
+      isPostPrd && hasPostPrdMessages
+        ? postMessagesEndRef.current
+        : messagesEndRef.current;
+    target?.scrollIntoView({ behavior: "smooth" });
+  }, [isPostPrd, hasPostPrdMessages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -132,6 +159,19 @@ export function PlanningFlow({
       .find((m) => m.role === "assistant");
     return lastAssistant ? isReadySignal(lastAssistant.content) : false;
   }, [session.conversationHistory, isPostPrd]);
+
+  // Mirror of isReadyToGenerate, scoped to assistant messages that arrived
+  // AFTER the most recent Blueprint snapshot. We don't want a "ready"
+  // phrase from the original Blueprint conversation to keep the Update CTA
+  // permanently primary.
+  const isReadyToUpdate = useMemo(() => {
+    if (!isPostPrd || briefSnapshotLength === null) return false;
+    const postSlice = session.conversationHistory.slice(briefSnapshotLength);
+    const lastAssistant = [...postSlice]
+      .reverse()
+      .find((m) => m.role === "assistant");
+    return lastAssistant ? isReadyToUpdateSignal(lastAssistant.content) : false;
+  }, [session.conversationHistory, briefSnapshotLength, isPostPrd]);
 
   /**
    * Send a turn to the planning step API. Pass `userMessage` for a new
@@ -378,8 +418,24 @@ export function PlanningFlow({
     window.print();
   }
 
-  // Filter visible messages (exclude internal system notes)
-  const visibleMessages = session.conversationHistory.filter(
+  // Split the conversation around the Blueprint snapshot point so the
+  // pre-Blueprint thread renders above the Blueprint card (as the chat
+  // that produced it) and any post-Blueprint refinement renders directly
+  // adjacent to the input below. The full history stays unified
+  // server-side; this is purely a render-time split.
+  const preBlueprintAll =
+    briefSnapshotLength !== null
+      ? session.conversationHistory.slice(0, briefSnapshotLength)
+      : session.conversationHistory;
+  const postBlueprintAll =
+    briefSnapshotLength !== null
+      ? session.conversationHistory.slice(briefSnapshotLength)
+      : [];
+
+  const preBlueprintVisible = preBlueprintAll.filter(
+    (m) => m.role !== "system"
+  );
+  const postBlueprintVisible = postBlueprintAll.filter(
     (m) => m.role !== "system"
   );
 
@@ -387,88 +443,87 @@ export function PlanningFlow({
     (m) => m.role === "user"
   );
 
+  // While a brief is being updated, route stream/error UI into the
+  // post-Blueprint section. Pre-Blueprint section keeps its UIs when we
+  // haven't shipped a Blueprint yet.
+  const streamAndErrorPanel = (
+    <>
+      {isStreaming && streamingText && (
+        <AIMessage content={streamingText} isStreaming />
+      )}
+
+      {/* Inline error card with Retry — replaces the silent empty-bubble
+          failure mode that used to appear when a model call failed. */}
+      {streamError && !isStreaming && (
+        <div
+          className="py-4 px-4 rounded-sm"
+          style={{
+            backgroundColor: "var(--surface-muted, #fafafa)",
+            border: "1px solid var(--border-default)",
+          }}
+        >
+          <p
+            className="font-serif text-[15px] leading-relaxed mb-3"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            {streamError.message}
+          </p>
+          <button
+            type="button"
+            onClick={() => streamError.retry()}
+            className="mono-label transition-colors hover:text-[var(--text-primary)]"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            ↻ Retry
+          </button>
+        </div>
+      )}
+
+      {/* Blueprint generation/update error — surfaced inline so the
+          participant isn't left wondering after they hit Generate or
+          Update. */}
+      {briefError && (
+        <div
+          className="py-4 px-4 rounded-sm"
+          style={{
+            backgroundColor: "var(--surface-muted, #fafafa)",
+            border: "1px solid var(--border-default)",
+          }}
+        >
+          <p
+            className="font-serif text-[15px] leading-relaxed mb-3"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            {briefError}
+          </p>
+          <button
+            type="button"
+            onClick={() => (brief ? handleUpdatePrd() : generateBrief())}
+            className="mono-label transition-colors hover:text-[var(--text-primary)]"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            ↻ Retry
+          </button>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="max-w-[var(--container-narrow)] mx-auto">
-      {/* Conversation messages */}
+      {/* Pre-Blueprint conversation — the chat that produced (or is
+          producing) the current Blueprint. Once a Blueprint exists,
+          this section becomes a record; new turns land below. */}
       <div className="space-y-4 mb-6">
-        {visibleMessages.map((msg, i) => (
-          <div key={i}>
-            {msg.role === "assistant" ? (
-              <AIMessage content={msg.content} />
-            ) : (
-              <div
-                className="font-sans text-[15px] leading-relaxed py-3 px-4 rounded-sm"
-                style={{
-                  backgroundColor: "var(--white)",
-                  border: "1px solid var(--border-default)",
-                  color: "var(--text-primary)",
-                }}
-              >
-                {msg.content}
-              </div>
-            )}
-          </div>
+        {preBlueprintVisible.map((msg, i) => (
+          <MessageBubble key={`pre-${i}`} message={msg} />
         ))}
 
-        {isStreaming && streamingText && (
-          <AIMessage content={streamingText} isStreaming />
-        )}
+        {/* Streaming + error UIs live here only while we're still in the
+            pre-Blueprint flow. Once isPostPrd is true they move into the
+            refinement section below. */}
+        {!isPostPrd && streamAndErrorPanel}
 
-        {/* Inline error card with Retry — replaces the silent empty-bubble
-            failure mode that used to appear when a model call failed. */}
-        {streamError && !isStreaming && (
-          <div
-            className="py-4 px-4 rounded-sm"
-            style={{
-              backgroundColor: "var(--surface-muted, #fafafa)",
-              border: "1px solid var(--border-default)",
-            }}
-          >
-            <p
-              className="font-serif text-[15px] leading-relaxed mb-3"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              {streamError.message}
-            </p>
-            <button
-              type="button"
-              onClick={() => streamError.retry()}
-              className="mono-label transition-colors hover:text-[var(--text-primary)]"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              ↻ Retry
-            </button>
-          </div>
-        )}
-
-        {/* Blueprint generation/update error — surfaced inline so the
-            participant isn't left wondering after they hit "Generate". */}
-        {briefError && (
-          <div
-            className="py-4 px-4 rounded-sm"
-            style={{
-              backgroundColor: "var(--surface-muted, #fafafa)",
-              border: "1px solid var(--border-default)",
-            }}
-          >
-            <p
-              className="font-serif text-[15px] leading-relaxed mb-3"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              {briefError}
-            </p>
-            <button
-              type="button"
-              onClick={() => (brief ? handleUpdatePrd() : generateBrief())}
-              className="mono-label transition-colors hover:text-[var(--text-primary)]"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              ↻ Retry
-            </button>
-          </div>
-        )}
-
-        {/* Generating Blueprint spinner — appears between conversation and input */}
         {briefGenerating && (
           <div className="text-center py-8">
             <div
@@ -521,16 +576,85 @@ export function PlanningFlow({
         </div>
       )}
 
-      {/* Post-Blueprint input area — conversation stays open */}
+      {/* Post-Blueprint refinement section — section header, live
+          continuation thread, input, and smart Update CTA. The
+          continuation thread sits directly above the input so the AI's
+          reply lands at the user's eye-line. */}
       {!briefGenerating && isPostPrd && (
-        <PostPrdInput
-          onSend={handleSend}
-          onUpdatePrd={handleUpdatePrd}
-          disabled={isStreaming || briefUpdating}
-          updating={briefUpdating}
-          showUpdateButton={hasPostPrdMessages}
-        />
+        <div className="space-y-4 print:hidden">
+          <div
+            className="mb-2 pb-3"
+            style={{ borderBottom: "1px solid var(--border-default)" }}
+          >
+            <span className="mono-label">Refining your Blueprint</span>
+            <p
+              className="font-serif text-sm italic mt-2"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Keep talking it through. When the changes feel right, hit
+              Update my Blueprint and I&rsquo;ll roll them in.
+            </p>
+          </div>
+
+          {postBlueprintVisible.length === 0 &&
+          !isStreaming &&
+          !streamError &&
+          !briefError ? (
+            <p
+              className="font-serif italic text-[15px] py-2"
+              style={{ color: "var(--text-tertiary)" }}
+            >
+              Anything you want to refine? Talk it through below and
+              I&rsquo;ll roll your changes in.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {postBlueprintVisible.map((msg, i) => (
+                <MessageBubble key={`post-${i}`} message={msg} />
+              ))}
+              {streamAndErrorPanel}
+            </div>
+          )}
+
+          <div ref={postMessagesEndRef} />
+
+          <PostPrdInput
+            onSend={handleSend}
+            disabled={isStreaming || briefUpdating}
+          />
+
+          <UpdateCTA
+            ready={isReadyToUpdate}
+            disabled={
+              isStreaming || briefUpdating || !hasPostPrdMessages
+            }
+            updating={!!briefUpdating}
+            onClick={handleUpdatePrd}
+          />
+        </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Single message bubble — extracted so the pre- and post-Blueprint
+ * threads render identical styling without duplicated markup.
+ */
+function MessageBubble({ message }: { message: Message }) {
+  if (message.role === "assistant") {
+    return <AIMessage content={message.content} />;
+  }
+  return (
+    <div
+      className="font-sans text-[15px] leading-relaxed py-3 px-4 rounded-sm"
+      style={{
+        backgroundColor: "var(--white)",
+        border: "1px solid var(--border-default)",
+        color: "var(--text-primary)",
+      }}
+    >
+      {message.content}
     </div>
   );
 }
@@ -577,6 +701,68 @@ function GenerateCTA({
         {ready
           ? "You're ready — let's go."
           : "Generate when you're ready. The longer you talk, the better it gets."}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * The post-Blueprint counterpart to GenerateCTA. Default state is a
+ * quiet bordered button that's disabled until at least one post-Blueprint
+ * exchange has happened. When the AI signals it has captured the changes
+ * (POST_PRD_READY_PHRASES), the button upgrades to the same gradient
+ * primary treatment as GenerateCTA so the visual cue matches the AI's
+ * voice. While updating, the label and helper text reflect progress.
+ */
+function UpdateCTA({
+  ready,
+  disabled,
+  updating,
+  onClick,
+}: {
+  ready: boolean;
+  disabled: boolean;
+  updating: boolean;
+  onClick: () => void;
+}) {
+  const label = updating
+    ? "Updating your Blueprint…"
+    : "◆ Update my Blueprint →";
+
+  const helper = updating
+    ? "Rolling your changes into the Blueprint now."
+    : ready
+      ? "Ready to roll those in."
+      : "Hit Update when these changes feel right.";
+
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={
+          ready && !updating
+            ? "gradient-border w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
+            : "w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
+        }
+        style={{
+          color:
+            ready && !updating
+              ? "var(--text-primary)"
+              : "var(--text-secondary)",
+          backgroundColor: ready && !updating ? undefined : "transparent",
+          border:
+            ready && !updating ? undefined : "1px solid var(--border-default)",
+        }}
+      >
+        {label}
+      </button>
+      <p
+        className="font-serif text-xs italic text-center"
+        style={{ color: "var(--text-tertiary)" }}
+      >
+        {helper}
       </p>
     </div>
   );

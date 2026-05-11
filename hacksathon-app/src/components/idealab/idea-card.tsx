@@ -59,7 +59,7 @@ export function IdeaCard({ idea, eventId, isOwner }: IdeaCardProps) {
                 alt={`${idea.title} screenshot`}
                 className="h-full w-full object-cover"
                 style={{
-                  objectPosition: `center ${idea.heroCropY ?? 50}%`,
+                  objectPosition: `${idea.heroCropX ?? 50}% ${idea.heroCropY ?? 50}%`,
                 }}
               />
             </div>

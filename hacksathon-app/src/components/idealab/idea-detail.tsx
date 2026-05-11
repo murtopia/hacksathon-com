@@ -203,10 +203,12 @@ export function IdeaDetail({
 
   async function handleScreenshotUploaded(url: string) {
     try {
-      // Reset the crop on a fresh upload — old focal-point on a new
-      // image is meaningless.
+      // Reset both axes on a fresh upload — old focal-points on a new
+      // image are meaningless, and a replacement may flip orientation
+      // (tall → wide or vice versa).
       const updated = await patchIdea({
         finalScreenshotUrl: url,
+        heroCropX: 50,
         heroCropY: 50,
       });
       if (updated) {
@@ -221,13 +223,16 @@ export function IdeaDetail({
     }
   }
 
-  async function handleCropChanged(cropY: number) {
+  async function handleCropChanged(next: {
+    heroCropX?: number;
+    heroCropY?: number;
+  }) {
     try {
-      const updated = await patchIdea({ heroCropY: cropY });
+      const updated = await patchIdea(next);
       if (updated) {
         setIdea(updated);
         // No router.refresh here — crop changes are cheap and the
-        // local mini-preview already reflects the change.
+        // local crop tool already reflects the change.
       }
     } catch (err) {
       toast.error("Couldn't save the crop position.", {
@@ -239,12 +244,14 @@ export function IdeaDetail({
 
   async function handleScreenshotRemoved() {
     try {
-      // Single PATCH: clear the URL + crop, and roll back the status
-      // if it was Completed (otherwise the DB CHECK constraint blocks
-      // the update because a Completed idea must have both assets).
+      // Single PATCH: clear the URL + both crops, and roll back the
+      // status if it was Completed (otherwise the DB CHECK constraint
+      // blocks the update because a Completed idea must have both
+      // assets).
       const wasCompleted = idea.status === "completed";
       const updated = await patchIdea({
         finalScreenshotUrl: null,
+        heroCropX: 50,
         heroCropY: 50,
         ...(wasCompleted ? { status: "in_progress" as IdeaStatus } : {}),
       });
@@ -332,7 +339,7 @@ export function IdeaDetail({
                 alt={`${idea.title} screenshot`}
                 className="h-full w-full object-cover"
                 style={{
-                  objectPosition: `center ${idea.heroCropY ?? 50}%`,
+                  objectPosition: `${idea.heroCropX ?? 50}% ${idea.heroCropY ?? 50}%`,
                 }}
               />
             </div>
@@ -529,6 +536,7 @@ export function IdeaDetail({
           <ScreenshotUploader
             ideaId={idea.id}
             currentUrl={idea.finalScreenshotUrl}
+            heroCropX={idea.heroCropX ?? 50}
             heroCropY={idea.heroCropY ?? 50}
             onUploaded={handleScreenshotUploaded}
             onCropChanged={handleCropChanged}

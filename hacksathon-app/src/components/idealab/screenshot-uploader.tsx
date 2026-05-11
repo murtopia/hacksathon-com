@@ -29,18 +29,21 @@ interface ScreenshotUploaderProps {
   ideaId: string;
   /** Current persisted screenshot URL, or null when empty. */
   currentUrl: string | null;
-  /**
-   * Vertical focal-point (0..100). Used both for the live mini-preview
-   * here and on the gallery card. 50 = center.
-   */
+  /** Horizontal focal-point (0..100). Active when the image is wider than 16:9. */
+  heroCropX: number;
+  /** Vertical focal-point (0..100). Active when the image is taller than 16:9. */
   heroCropY: number;
   /** Called with the new public URL after a successful upload. */
   onUploaded: (url: string) => Promise<void> | void;
   /**
    * Called on drag-end (not on every move) to persist the new crop
-   * value. Avoids one PATCH per pixel.
+   * value. Avoids one PATCH per pixel. Partial: only the axis the
+   * uploader is driving will be present.
    */
-  onCropChanged: (cropY: number) => Promise<void> | void;
+  onCropChanged: (next: {
+    heroCropX?: number;
+    heroCropY?: number;
+  }) => Promise<void> | void;
   /**
    * Called after the storage file is deleted. Parent is responsible
    * for clearing the URL + crop in a single PATCH and (if the idea
@@ -59,13 +62,19 @@ interface ScreenshotUploaderProps {
  * make every upload unique by construction, so we never need `upsert`
  * or a cache-buster query param.
  *
- * "Cropping" is intentionally CSS-only — we save a `hero_crop_y`
- * percentage and let `object-position` move the visible 16:9 window on
- * the original image at render time. No image processing pipeline, no
- * Sharp, no edge function.
+ * "Cropping" is intentionally CSS-only — we save `hero_crop_x` /
+ * `hero_crop_y` percentages and let `object-position` move the visible
+ * 16:9 window on the original image at render time. No image
+ * processing pipeline, no Sharp, no edge function.
+ *
+ * Axis selection follows the natural aspect ratio: `object-cover` in a
+ * 16:9 frame only crops one direction, so we pick the axis that's
+ * actually meaningful. Images taller than 16:9 get a vertical band
+ * (Y); wider get a horizontal band (X); exactly 16:9 gets no band at
+ * all.
  *
  * Remove flow: delete the storage object, then call `onRemoved()` so
- * the parent can clear `final_screenshot_url`, reset `hero_crop_y` to
+ * the parent can clear `final_screenshot_url`, reset both crops to
  * 50, and roll status back to `in_progress` if needed (the DB CHECK
  * constraint would otherwise block the screenshot clear on a Completed
  * idea).
@@ -73,6 +82,7 @@ interface ScreenshotUploaderProps {
 export function ScreenshotUploader({
   ideaId,
   currentUrl,
+  heroCropX,
   heroCropY,
   onUploaded,
   onCropChanged,
@@ -84,6 +94,7 @@ export function ScreenshotUploader({
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [localCropX, setLocalCropX] = useState(heroCropX);
   const [localCropY, setLocalCropY] = useState(heroCropY);
   const [isDragging, setIsDragging] = useState(false);
   const [heroNaturalSize, setHeroNaturalSize] = useState<{
@@ -91,61 +102,88 @@ export function ScreenshotUploader({
     h: number;
   } | null>(null);
 
-  // Keep local crop in sync with the persisted value when the parent
-  // pushes a new one (e.g. after a refresh or on a freshly-uploaded
-  // screenshot that resets to 50).
+  // Keep local crop in sync with the persisted values when the parent
+  // pushes new ones (refresh, fresh upload that resets to 50, etc.).
+  useEffect(() => {
+    setLocalCropX(heroCropX);
+  }, [heroCropX]);
   useEffect(() => {
     setLocalCropY(heroCropY);
   }, [heroCropY]);
 
   /**
-   * Visible slice height as a percentage of the full image. This is
-   * what `object-cover` will reveal on the 16:9 card given the
-   * image's natural aspect ratio. Falls back to a reasonable default
-   * before the image loads. Capped at 100 — for images already wider
-   * than 16:9, the full vertical range is visible and Y is a no-op.
+   * Which axis is meaningful for this image. `object-cover` in a 16:9
+   * frame crops only one direction — taller-than-16:9 crops vertically
+   * (Y axis), wider-than-16:9 crops horizontally (X axis), exactly 16:9
+   * doesn't crop at all so the focal point is moot.
+   *
+   * Before the image loads we default to "y" because most app
+   * screenshots (phones, laptops) are taller than 16:9.
    */
-  const sliceH = useMemo(() => {
-    if (!heroNaturalSize) return 30;
-    const pct =
-      (9 / 16) * (heroNaturalSize.w / heroNaturalSize.h) * 100;
-    return Math.min(100, pct);
+  const cropAxis: "x" | "y" | null = useMemo(() => {
+    if (!heroNaturalSize) return "y";
+    const r = heroNaturalSize.w / heroNaturalSize.h;
+    if (r > 16 / 9) return "x";
+    if (r < 16 / 9) return "y";
+    return null;
   }, [heroNaturalSize]);
 
   /**
-   * Band geometry on the source image. As Y goes 0..100, the band's
-   * top edge linearly slides from 0% to (100 - sliceH)%, so the band
-   * always stays fully inside the image bounds — and `bandTop` /
-   * `bandHeight` map exactly to the slice that `object-cover` shows
-   * at `object-position: center {Y}%`.
+   * Visible slice size along the active axis as a percentage of the
+   * full image. For Y axis this is the slice height; for X axis it's
+   * the slice width. Capped at 100 — when the image already fits the
+   * 16:9 frame in that direction, there's nothing to crop.
    */
-  const bandTop = (localCropY * (100 - sliceH)) / 100;
-  const bandHeight = sliceH;
+  const sliceSize = useMemo(() => {
+    if (!heroNaturalSize || !cropAxis) return 100;
+    const { w, h } = heroNaturalSize;
+    if (cropAxis === "y") return Math.min(100, (9 / 16) * (w / h) * 100);
+    return Math.min(100, (16 / 9) * (h / w) * 100);
+  }, [heroNaturalSize, cropAxis]);
+
+  /**
+   * Band geometry on the source image. As the active crop value goes
+   * 0..100, the band's leading edge linearly slides from 0% to
+   * (100 - sliceSize)%, so the band always stays fully inside the
+   * image — and the leading edge / size map exactly to the slice that
+   * `object-cover` shows at the corresponding `object-position`.
+   */
+  const activeCrop = cropAxis === "x" ? localCropX : localCropY;
+  const bandStart = (activeCrop * (100 - sliceSize)) / 100;
+  const bandSize = sliceSize;
 
   const updateCropFromPointer = useCallback(
-    (clientY: number) => {
+    (clientX: number, clientY: number) => {
       const container = cropContainerRef.current;
       if (!container) return;
-      // Wide-or-16:9 image: there's nothing to crop vertically. Lock
-      // the focal point at center; the band already covers the whole
-      // image so dragging would be a visual no-op.
-      if (sliceH >= 100) {
+      // No active axis (exactly 16:9) or the slice already covers the
+      // full image — nothing to crop. Lock both axes at center.
+      if (!cropAxis || sliceSize >= 100) {
+        setLocalCropX(50);
         setLocalCropY(50);
         return;
       }
       const rect = container.getBoundingClientRect();
       const pointerPct =
-        ((clientY - rect.top) / rect.height) * 100;
-      // Solve for Y such that the band CENTER follows the pointer,
-      // then clamp to [0, 100]. The clamp is what keeps the band from
-      // overhanging the top or bottom of the image: pointer positions
-      // closer than sliceH/2 to an edge map to Y=0 or Y=100, parking
-      // the band flush against that edge.
-      const y =
-        ((pointerPct - sliceH / 2) * 100) / (100 - sliceH);
-      setLocalCropY(Math.round(Math.max(0, Math.min(100, y))));
+        cropAxis === "y"
+          ? ((clientY - rect.top) / rect.height) * 100
+          : ((clientX - rect.left) / rect.width) * 100;
+      // Solve so the band CENTER follows the pointer, then clamp to
+      // [0, 100]. Pointer positions inside half-a-slice of an edge
+      // park the band flush against that edge instead of overhanging.
+      const next = Math.round(
+        Math.max(
+          0,
+          Math.min(
+            100,
+            ((pointerPct - sliceSize / 2) * 100) / (100 - sliceSize)
+          )
+        )
+      );
+      if (cropAxis === "y") setLocalCropY(next);
+      else setLocalCropX(next);
     },
-    [sliceH]
+    [cropAxis, sliceSize]
   );
 
   // Bind pointer move/up to the window while dragging so the drag
@@ -153,12 +191,17 @@ export function ScreenshotUploader({
   useEffect(() => {
     if (!isDragging) return;
     function onMove(e: PointerEvent) {
-      updateCropFromPointer(e.clientY);
+      updateCropFromPointer(e.clientX, e.clientY);
     }
     async function onUp() {
       setIsDragging(false);
+      if (!cropAxis) return;
       try {
-        await onCropChanged(localCropY);
+        await onCropChanged(
+          cropAxis === "y"
+            ? { heroCropY: localCropY }
+            : { heroCropX: localCropX }
+        );
       } catch (err) {
         toast.error("Couldn't save the crop position.", {
           description:
@@ -172,7 +215,14 @@ export function ScreenshotUploader({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
     };
-  }, [isDragging, localCropY, onCropChanged, updateCropFromPointer]);
+  }, [
+    isDragging,
+    cropAxis,
+    localCropX,
+    localCropY,
+    onCropChanged,
+    updateCropFromPointer,
+  ]);
 
   async function handleFile(file: File) {
     if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -348,24 +398,32 @@ export function ScreenshotUploader({
   // already communicates exactly what the gallery card will show, so
   // we don't duplicate that as a separate hero thumbnail or mini
   // preview — those added noise without new information.
+  const hasCrop = cropAxis !== null && sliceSize < 100;
+  const helperCopy = !hasCrop
+    ? "This image already fills the card. Nothing to crop."
+    : cropAxis === "x"
+      ? "Drag the highlighted strip left or right to choose what shows on the card."
+      : "Drag the highlighted strip up or down to choose what shows on the card.";
+
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
-        Drag the highlighted strip up or down to choose what shows on
-        the card.
-      </p>
+      <p className="text-xs text-muted-foreground">{helperCopy}</p>
 
       <div
         ref={cropContainerRef}
         onPointerDown={(e) => {
-          if (disabled) return;
+          if (disabled || !hasCrop) return;
           e.preventDefault();
           setIsDragging(true);
-          updateCropFromPointer(e.clientY);
+          updateCropFromPointer(e.clientX, e.clientY);
         }}
         className={cn(
           "relative w-full select-none overflow-hidden rounded-lg border bg-muted",
-          disabled ? "cursor-not-allowed" : "cursor-ns-resize"
+          disabled || !hasCrop
+            ? "cursor-default"
+            : cropAxis === "x"
+              ? "cursor-ew-resize"
+              : "cursor-ns-resize"
         )}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -382,23 +440,50 @@ export function ScreenshotUploader({
             });
           }}
         />
-        {/* Dim the area outside the viewport band */}
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 bg-background/55"
-          style={{ height: `${bandTop}%` }}
-        />
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 bg-background/55"
-          style={{ height: `${Math.max(0, 100 - (bandTop + bandHeight))}%` }}
-        />
-        {/* The viewport band itself */}
-        <div
-          className="pointer-events-none absolute inset-x-0 border-y-2 border-foreground/80 shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
-          style={{
-            top: `${bandTop}%`,
-            height: `${bandHeight}%`,
-          }}
-        />
+        {hasCrop && cropAxis === "y" && (
+          <>
+            {/* Dim above and below the viewport band */}
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 bg-background/55"
+              style={{ height: `${bandStart}%` }}
+            />
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 bg-background/55"
+              style={{
+                height: `${Math.max(0, 100 - (bandStart + bandSize))}%`,
+              }}
+            />
+            <div
+              className="pointer-events-none absolute inset-x-0 border-y-2 border-foreground/80 shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
+              style={{
+                top: `${bandStart}%`,
+                height: `${bandSize}%`,
+              }}
+            />
+          </>
+        )}
+        {hasCrop && cropAxis === "x" && (
+          <>
+            {/* Dim left and right of the viewport band */}
+            <div
+              className="pointer-events-none absolute inset-y-0 left-0 bg-background/55"
+              style={{ width: `${bandStart}%` }}
+            />
+            <div
+              className="pointer-events-none absolute inset-y-0 right-0 bg-background/55"
+              style={{
+                width: `${Math.max(0, 100 - (bandStart + bandSize))}%`,
+              }}
+            />
+            <div
+              className="pointer-events-none absolute inset-y-0 border-x-2 border-foreground/80 shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
+              style={{
+                left: `${bandStart}%`,
+                width: `${bandSize}%`,
+              }}
+            />
+          </>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">

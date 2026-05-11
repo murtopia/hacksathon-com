@@ -22,9 +22,16 @@ export interface Idea {
   liveUrl: string | null;
   finalScreenshotUrl: string | null;
   /**
+   * Horizontal focal-point (0..100) for the hero screenshot. Applied
+   * as the X component of `object-position` on the 16:9 card thumbnail.
+   * Only meaningful when the image is wider than 16:9 (otherwise no
+   * horizontal cropping happens). 50 = center.
+   */
+  heroCropX: number;
+  /**
    * Vertical focal-point (0..100) for the hero screenshot. Applied as
-   * `object-position: center {y}%` on the 16:9 card thumbnail so the
-   * owner can choose what shows in the crop. 50 = center.
+   * the Y component of `object-position`. Only meaningful when the
+   * image is taller than 16:9. 50 = center.
    */
   heroCropY: number;
   createdAt: string;
@@ -86,6 +93,10 @@ export function rowToIdea(row: any): Idea {
     projectUrl: row.project_url ?? null,
     liveUrl: row.live_url ?? null,
     finalScreenshotUrl: row.final_screenshot_url ?? null,
+    heroCropX:
+      typeof row.hero_crop_x === "number"
+        ? row.hero_crop_x
+        : Number(row.hero_crop_x ?? 50),
     heroCropY:
       typeof row.hero_crop_y === "number"
         ? row.hero_crop_y

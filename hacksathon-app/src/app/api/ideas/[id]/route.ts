@@ -103,6 +103,22 @@ export async function PATCH(
         : null;
   }
 
+  if ("heroCropX" in body) {
+    const raw = body.heroCropX;
+    if (
+      typeof raw !== "number" ||
+      !Number.isInteger(raw) ||
+      raw < 0 ||
+      raw > 100
+    ) {
+      return NextResponse.json(
+        { error: "heroCropX must be an integer between 0 and 100" },
+        { status: 400 }
+      );
+    }
+    updates.hero_crop_x = raw;
+  }
+
   if ("heroCropY" in body) {
     const raw = body.heroCropY;
     if (

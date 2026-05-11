@@ -422,6 +422,41 @@ export function IdeaDetail({
           />
         </div>
 
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="status">Where&apos;s it at?</Label>
+            {statusSaving && (
+              <span className="text-xs text-muted-foreground">
+                Updating…
+              </span>
+            )}
+          </div>
+          <Select
+            value={idea.status}
+            onValueChange={(v) => handleStatusChange(v as IdeaStatus)}
+            disabled={statusSaving}
+          >
+            <SelectTrigger id="status" className="w-full sm:w-[240px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="completed" disabled={!hasDemoAssets}>
+                Completed
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Flip to <strong>Completed</strong> once your link and
+            screenshot are in.
+          </p>
+          {statusError && (
+            <p className="text-sm text-destructive" role="alert">
+              {statusError}
+            </p>
+          )}
+        </div>
+
         {error && (
           <div
             className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive"
@@ -501,46 +536,6 @@ export function IdeaDetail({
             disabled={saving}
           />
         </div>
-      </section>
-
-      <section className="space-y-4 rounded-lg border p-6">
-        <div>
-          <h2 className="text-lg font-semibold">Where&apos;s it at?</h2>
-          <p className="text-sm text-muted-foreground">
-            Flip to <strong>Completed</strong> once your link and screenshot
-            are in.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Select
-            value={idea.status}
-            onValueChange={(v) => handleStatusChange(v as IdeaStatus)}
-            disabled={statusSaving}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="completed" disabled={!hasDemoAssets}>
-                Completed
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          {statusSaving && (
-            <span className="text-sm text-muted-foreground">Updating…</span>
-          )}
-        </div>
-
-        {statusError && (
-          <div
-            className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive"
-            role="alert"
-          >
-            {statusError}
-          </div>
-        )}
       </section>
     </div>
   );

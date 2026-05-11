@@ -318,117 +318,110 @@ export function ScreenshotUploader({
   }
 
   // ============================================================
-  // Loaded state — thumbnail + crop tool + mini preview
+  // Loaded state — crop tool (with overlay band) + Replace / Remove
   // ============================================================
+  //
+  // The crop tool is the preview. The band overlay on the full image
+  // already communicates exactly what the gallery card will show, so
+  // we don't duplicate that as a separate hero thumbnail or mini
+  // preview — those added noise without new information.
   return (
-    <div className="space-y-5">
-      {/* Hero thumbnail with hover-only remove button */}
-      <div className="group relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Drag the highlighted strip up or down to choose what shows on
+        the card.
+      </p>
+
+      <div
+        ref={cropContainerRef}
+        onPointerDown={(e) => {
+          if (disabled) return;
+          e.preventDefault();
+          setIsDragging(true);
+          updateCropFromPointer(e.clientY);
+        }}
+        className={cn(
+          "relative w-full select-none overflow-hidden rounded-lg border bg-muted",
+          disabled ? "cursor-not-allowed" : "cursor-ns-resize"
+        )}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={currentUrl}
           alt="Screenshot"
-          className="h-full w-full object-cover"
-          style={{ objectPosition: `center ${heroCropY}%` }}
+          className="block w-full"
+          draggable={false}
+          onLoad={(e) => {
+            const img = e.currentTarget;
+            setHeroNaturalSize({
+              w: img.naturalWidth,
+              h: img.naturalHeight,
+            });
+          }}
         />
-        <button
+        {/* Dim the area outside the viewport band */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 bg-background/55"
+          style={{
+            height: `${Math.max(0, localCropY - viewportHalf)}%`,
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 bg-background/55"
+          style={{
+            height: `${Math.max(0, 100 - (localCropY + viewportHalf))}%`,
+          }}
+        />
+        {/* The viewport band itself */}
+        <div
+          className="pointer-events-none absolute inset-x-0 border-y-2 border-foreground/80 shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
+          style={{
+            top: `${localCropY - viewportHalf}%`,
+            height: `${viewportHalf * 2}%`,
+          }}
+        />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
           type="button"
-          aria-label="Remove screenshot"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled || uploading || removing}
+        >
+          {uploading ? (
+            <>
+              <Loader2
+                className="mr-2 h-4 w-4 animate-spin"
+                aria-hidden="true"
+              />
+              Uploading…
+            </>
+          ) : (
+            "Replace"
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
           onClick={handleRemove}
-          disabled={disabled || removing}
-          className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-background/90 text-foreground opacity-0 shadow-sm transition-opacity hover:bg-background focus-visible:opacity-100 group-hover:opacity-100 disabled:cursor-not-allowed"
+          disabled={disabled || uploading || removing}
         >
           {removing ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <>
+              <Loader2
+                className="mr-2 h-4 w-4 animate-spin"
+                aria-hidden="true"
+              />
+              Removing…
+            </>
           ) : (
-            <X className="h-4 w-4" aria-hidden="true" />
+            <>
+              <X className="mr-2 h-4 w-4" aria-hidden="true" />
+              Remove
+            </>
           )}
-        </button>
-      </div>
-
-      {/* Crop tool: full image + draggable viewport band */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium">Pick what shows on the card</p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled || uploading || removing}
-          >
-            {uploading ? "Uploading…" : "Replace"}
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Drag the highlighted strip up or down to choose the focal point.
-        </p>
-
-        <div
-          ref={cropContainerRef}
-          onPointerDown={(e) => {
-            if (disabled) return;
-            e.preventDefault();
-            setIsDragging(true);
-            updateCropFromPointer(e.clientY);
-          }}
-          className={cn(
-            "relative w-full select-none overflow-hidden rounded-lg border bg-muted",
-            disabled ? "cursor-not-allowed" : "cursor-ns-resize"
-          )}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={currentUrl}
-            alt="Crop source"
-            className="block w-full"
-            draggable={false}
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              setHeroNaturalSize({
-                w: img.naturalWidth,
-                h: img.naturalHeight,
-              });
-            }}
-          />
-          {/* Dim the area outside the viewport band */}
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 bg-background/55"
-            style={{
-              height: `${Math.max(0, localCropY - viewportHalf)}%`,
-            }}
-          />
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 bg-background/55"
-            style={{
-              height: `${Math.max(0, 100 - (localCropY + viewportHalf))}%`,
-            }}
-          />
-          {/* The viewport band itself */}
-          <div
-            className="pointer-events-none absolute inset-x-0 border-y-2 border-foreground/80 shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
-            style={{
-              top: `${localCropY - viewportHalf}%`,
-              height: `${viewportHalf * 2}%`,
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Mini card preview */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Card preview
-        </p>
-        <div className="aspect-video w-full max-w-xs overflow-hidden rounded-md border bg-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={currentUrl}
-            alt="Card crop preview"
-            className="h-full w-full object-cover"
-            style={{ objectPosition: `center ${localCropY}%` }}
-          />
-        </div>
+        </Button>
       </div>
 
       <input

@@ -91,6 +91,7 @@ export function ScreenshotUploader({
 }: ScreenshotUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cropContainerRef = useRef<HTMLDivElement>(null);
+  const heroImgRef = useRef<HTMLImageElement>(null);
   const savedFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -112,6 +113,29 @@ export function ScreenshotUploader({
       if (savedFlashTimer.current) clearTimeout(savedFlashTimer.current);
     };
   }, []);
+
+  // If the screenshot is already in the browser cache, the <img>'s
+  // `load` event may fire before React attaches our `onLoad` handler
+  // — leaving `heroNaturalSize` null and the crop tool stuck in the
+  // "nothing to crop" state. Read the dimensions directly from the
+  // ref whenever the URL changes, falling back to onLoad for fresh
+  // loads.
+  useEffect(() => {
+    if (!currentUrl) return;
+    const img = heroImgRef.current;
+    if (img && img.complete && img.naturalWidth > 0) {
+      setHeroNaturalSize((prev) => {
+        if (
+          prev &&
+          prev.w === img.naturalWidth &&
+          prev.h === img.naturalHeight
+        ) {
+          return prev;
+        }
+        return { w: img.naturalWidth, h: img.naturalHeight };
+      });
+    }
+  }, [currentUrl]);
 
   // Keep local crop in sync with the persisted values when the parent
   // pushes new ones (refresh, fresh upload that resets to 50, etc.).
@@ -474,6 +498,7 @@ export function ScreenshotUploader({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          ref={heroImgRef}
           src={currentUrl}
           alt="Screenshot"
           className="block w-full"

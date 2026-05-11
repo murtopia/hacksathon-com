@@ -37,7 +37,7 @@ export function NewEventForm({ action }: NewEventFormProps) {
           disabled={isPending}
         />
         <p className="text-xs text-muted-foreground">
-          The team or company running the hackathon.
+          The team or company running the Hacks-a-Thon.
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export function NewEventForm({ action }: NewEventFormProps) {
         <Input
           id="eventTitle"
           name="eventTitle"
-          placeholder="e.g. Acme Hackathon 2026"
+          placeholder="e.g. Acme Hacks-a-Thon 2026"
           required
           disabled={isPending}
         />

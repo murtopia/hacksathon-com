@@ -13,7 +13,7 @@ export default function SignupPage() {
       <CardHeader className="text-center">
         <CardTitle className="text-xl">Create your account</CardTitle>
         <CardDescription>
-          Start running hackathons at your company
+          Start running Hacks-a-Thons at your company
         </CardDescription>
       </CardHeader>
       <CardContent>

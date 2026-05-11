@@ -7,18 +7,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LockMyIdeaButton } from "@/components/blocks/lock-my-idea-button";
 
 interface SharkTankScreenProps {
   eventId: string;
   ideaId: string | null;
+  alreadyLocked: boolean;
 }
 
 /**
  * Shark Tank Prep — the brief on-screen reminder of pitch shape, plus
- * a deep link to edit the participant's IdeaLab entry after the
- * exercise (where they'll likely want to capture feedback).
+ * the two affordances that close out this block:
+ *
+ *   1. "Update your idea" deep link so participants can capture
+ *      feedback from the room while it's fresh.
+ *   2. "Lock my idea" — explicit per-participant completion. Writes a
+ *      block_completions row for block '02'.
  */
-export function SharkTankScreen({ eventId, ideaId }: SharkTankScreenProps) {
+export function SharkTankScreen({
+  eventId,
+  ideaId,
+  alreadyLocked,
+}: SharkTankScreenProps) {
   return (
     <div className="space-y-6">
       <Card>
@@ -50,27 +60,41 @@ export function SharkTankScreen({ eventId, ideaId }: SharkTankScreenProps) {
         <CardHeader>
           <CardTitle className="text-base">After your pitch</CardTitle>
           <CardDescription>
-            Take a beat. Capture what your team said while it&apos;s fresh.
+            Take a beat. Capture what your team said, then lock it in.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {ideaId ? (
-            <Button asChild>
-              <Link href={`/events/${eventId}/idealab/${ideaId}`}>
-                Update your idea
-              </Link>
-            </Button>
+            <>
+              <div className="flex flex-wrap items-center gap-3">
+                <LockMyIdeaButton
+                  eventId={eventId}
+                  alreadyLocked={alreadyLocked}
+                />
+                <Button asChild variant="outline">
+                  <Link href={`/events/${eventId}/idealab/${ideaId}`}>
+                    Update your idea
+                  </Link>
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {alreadyLocked
+                  ? "Your idea is locked. You can still edit it from the IdeaLab."
+                  : "Sharpen the pitch, swap a feature, or refine your one-liner — whatever the room landed on. Lock it in when you're ready to build."}
+              </p>
+            </>
           ) : (
-            <Button asChild>
-              <Link href={`/events/${eventId}/idealab/new`}>
-                Drop your idea first
-              </Link>
-            </Button>
+            <>
+              <Button asChild>
+                <Link href={`/events/${eventId}/idealab/new`}>
+                  Drop your idea first
+                </Link>
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Drop your idea in the IdeaLab so you have something to pitch.
+              </p>
+            </>
           )}
-          <p className="text-xs text-muted-foreground">
-            Sharpen the pitch, swap a feature, or refine your one-liner — whatever
-            the room landed on.
-          </p>
         </CardContent>
       </Card>
     </div>

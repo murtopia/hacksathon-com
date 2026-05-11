@@ -13,6 +13,11 @@ import {
 import { ShowcasePrep } from "@/components/blocks/showcase-prep";
 import { AwardsPlaceholder } from "@/components/blocks/awards-placeholder";
 import { ReflectionsPlaceholder } from "@/components/blocks/reflections-placeholder";
+import {
+  deriveWindowStatus,
+  formatScheduledDate,
+  type WindowStatus,
+} from "@/lib/blocks/status";
 
 export const metadata: Metadata = {
   title: "Block",
@@ -54,9 +59,15 @@ interface BlockRow {
   subtitle: string | null;
   description: string | null;
   purpose: string | null;
-  status: "upcoming" | "active" | "completed";
   scheduled_date: string | null;
+  duration_minutes: number;
   checklists: unknown;
+}
+
+interface EventSettingsRow {
+  id: string;
+  title: string;
+  settings: Record<string, unknown> | null;
 }
 
 /**
@@ -98,25 +109,54 @@ export default async function BlockPage({ params }: PageProps) {
     redirect(`/plan?${params.toString()}`);
   }
 
-  // Load the event + the specific block row.
-  const [{ data: eventRow }, { data: block }] = await Promise.all([
+  // Load the event + the specific block row + Shark Tank completion in
+  // parallel. The completion row only matters for blockKey '02' but the
+  // query is cheap and the Promise.all keeps latency at one round-trip.
+  const [
+    { data: eventRow },
+    { data: block },
+    { data: completionRow },
+  ] = await Promise.all([
     supabase
       .from("events")
-      .select("id, title")
+      .select("id, title, settings")
       .eq("id", eventId)
-      .single<{ id: string; title: string }>(),
+      .single<EventSettingsRow>(),
     supabase
       .from("blocks")
       .select(
-        "id, block_key, title, subtitle, description, purpose, status, scheduled_date, checklists",
+        "id, block_key, title, subtitle, description, purpose, scheduled_date, duration_minutes, checklists",
       )
       .eq("event_id", eventId)
       .eq("block_key", blockKey)
       .maybeSingle<BlockRow>(),
+    supabase
+      .from("block_completions")
+      .select("block_key")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .eq("block_key", blockKey)
+      .maybeSingle<{ block_key: string }>(),
   ]);
 
   if (!eventRow) notFound();
   if (!block) notFound();
+
+  const windowStatus = deriveWindowStatus(
+    block.scheduled_date,
+    block.duration_minutes,
+    new Date(),
+  );
+  const scheduledLabel = formatScheduledDate(block.scheduled_date);
+  const completedByUser = Boolean(completionRow);
+
+  const slackUrl =
+    typeof eventRow.settings === "object" &&
+    eventRow.settings !== null &&
+    typeof (eventRow.settings as Record<string, unknown>).slack_url ===
+      "string"
+      ? ((eventRow.settings as Record<string, unknown>).slack_url as string)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -129,11 +169,16 @@ export default async function BlockPage({ params }: PageProps) {
       </Link>
 
       <header className="space-y-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="inline-flex h-8 min-w-12 items-center justify-center rounded-md border border-foreground bg-foreground px-2 text-xs font-semibold text-background">
             {block.block_key}
           </span>
-          <BlockStatusBadge status={block.status} />
+          <BlockStatusBadge status={windowStatus} />
+          {scheduledLabel && (
+            <span className="text-xs font-medium text-muted-foreground">
+              {scheduledLabel}
+            </span>
+          )}
         </div>
         <h1 className="text-3xl font-bold tracking-tight">{block.title}</h1>
         {block.subtitle && (
@@ -152,16 +197,14 @@ export default async function BlockPage({ params }: PageProps) {
           (ideaRow?.final_screenshot_url as string | null) ?? null
         }
         ideaStatus={(ideaRow?.status as string | null) ?? null}
+        completedByUser={completedByUser}
+        slackUrl={slackUrl}
       />
     </div>
   );
 }
 
-function BlockStatusBadge({
-  status,
-}: {
-  status: "upcoming" | "active" | "completed";
-}) {
+function BlockStatusBadge({ status }: { status: WindowStatus }) {
   if (status === "active") {
     return (
       <Badge variant="default" className="uppercase tracking-widest">
@@ -172,7 +215,7 @@ function BlockStatusBadge({
   if (status === "completed") {
     return (
       <Badge variant="outline" className="uppercase tracking-widest">
-        Completed
+        Window closed
       </Badge>
     );
   }
@@ -192,6 +235,8 @@ async function BlockBody({
   liveUrl,
   finalScreenshotUrl,
   ideaStatus,
+  completedByUser,
+  slackUrl,
 }: {
   blockKey: BlockKey;
   block: BlockRow;
@@ -201,6 +246,8 @@ async function BlockBody({
   liveUrl: string | null;
   finalScreenshotUrl: string | null;
   ideaStatus: string | null;
+  completedByUser: boolean;
+  slackUrl: string | null;
 }) {
   if (blockKey === "ZERO") {
     return (
@@ -213,7 +260,13 @@ async function BlockBody({
   }
 
   if (blockKey === "02") {
-    return <SharkTankScreen eventId={eventId} ideaId={ideaId} />;
+    return (
+      <SharkTankScreen
+        eventId={eventId}
+        ideaId={ideaId}
+        alreadyLocked={completedByUser}
+      />
+    );
   }
 
   if (blockKey === "04" || blockKey === "05" || blockKey === "06") {
@@ -223,6 +276,7 @@ async function BlockBody({
         userId={userId}
         ideaId={ideaId}
         sessionKey={blockKey}
+        slackUrl={slackUrl}
       />
     );
   }
@@ -256,11 +310,13 @@ async function BuildSessionBody({
   userId,
   ideaId,
   sessionKey,
+  slackUrl,
 }: {
   eventId: string;
   userId: string;
   ideaId: string | null;
   sessionKey: BuildSessionKey;
+  slackUrl: string | null;
 }) {
   const supabase = await createClient();
 
@@ -318,6 +374,7 @@ async function BuildSessionBody({
       ideaId={ideaId}
       blueprintMarkdown={blueprintMarkdown}
       starterPromptText={starterPromptText}
+      slackUrl={slackUrl}
     />
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +18,7 @@ interface BuildSessionProps {
   ideaId: string | null;
   blueprintMarkdown: string | null;
   starterPromptText: string | null;
+  slackUrl: string | null;
 }
 
 const ENCOURAGEMENT: Record<BuildSessionKey, { title: string; body: string }> = {
@@ -35,17 +37,18 @@ const ENCOURAGEMENT: Record<BuildSessionKey, { title: string; body: string }> = 
 };
 
 /**
- * Build session screens for blocks 04 / 05 / 06. They share a layout
- * so participants always know where to find their Blueprint and Starter
- * Prompt, even three sessions deep.
+ * Build session screens for blocks 04 / 05 / 06.
  *
- * Structure:
- *   1. Block-specific encouragement copy.
- *   2. Collapsed Blueprint card (<details>) so it doesn't dominate the
- *      page but is one click away. Falls back to a deep link to /plan
- *      when no Blueprint exists yet.
- *   3. Starter Prompt block — same component as /plan.
- *   4. Reminder of the kickoff steps.
+ * Block 04 is the kickoff session — full surface: encouragement,
+ * collapsed Blueprint, and the Starter Prompt block (which carries the
+ * 5-step paste-into-Lovable instructions). When there's no Blueprint
+ * yet we suppress the Starter Prompt entirely; otherwise the user sees
+ * a misleading "Preparing your Starter Prompt…" spinner.
+ *
+ * Blocks 05 and 06 are continuation sessions. The kickoff already
+ * happened in 04, so we drop the Starter Prompt block here and show
+ * a lighter shell: encouragement + collapsed Blueprint + an optional
+ * team-chat reminder when a Slack URL is configured.
  */
 export function BuildSession({
   eventId,
@@ -53,9 +56,11 @@ export function BuildSession({
   ideaId,
   blueprintMarkdown,
   starterPromptText,
+  slackUrl,
 }: BuildSessionProps) {
   const tone = ENCOURAGEMENT[sessionKey];
   const planHref = buildPlanHref(eventId, ideaId);
+  const isKickoff = sessionKey === "04";
 
   return (
     <div className="space-y-6">
@@ -67,33 +72,14 @@ export function BuildSession({
       </Card>
 
       {blueprintMarkdown ? (
-        <details className="rounded-lg border bg-background">
-          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium hover:bg-muted/40">
-            <span className="inline-flex items-center gap-2">
-              <span aria-hidden>📋</span>
-              <span>Your Blueprint</span>
-              <span className="text-xs font-normal text-muted-foreground">
-                (click to expand)
-              </span>
-            </span>
-          </summary>
-          <div className="border-t px-4 py-4">
-            <pre className="whitespace-pre-wrap font-serif text-[15px] leading-relaxed text-foreground">
-              {blueprintMarkdown}
-            </pre>
-            <div className="mt-4">
-              <Button asChild variant="outline" size="sm">
-                <Link href={planHref}>Edit Blueprint</Link>
-              </Button>
-            </div>
-          </div>
-        </details>
+        <BlueprintDetails markdown={blueprintMarkdown} planHref={planHref} />
       ) : (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">No Blueprint yet</CardTitle>
             <CardDescription>
-              Head back to The Blueprint block to shape your idea before you build.
+              Head back to The Blueprint block to shape your idea before you
+              build.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -104,8 +90,72 @@ export function BuildSession({
         </Card>
       )}
 
-      <StarterPrompt prompt={starterPromptText} />
+      {isKickoff && blueprintMarkdown && (
+        <StarterPrompt prompt={starterPromptText} />
+      )}
+
+      {!isKickoff && slackUrl && <TeamChatReminder slackUrl={slackUrl} />}
     </div>
+  );
+}
+
+function BlueprintDetails({
+  markdown,
+  planHref,
+}: {
+  markdown: string;
+  planHref: string;
+}) {
+  return (
+    <details className="rounded-lg border bg-background">
+      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium hover:bg-muted/40">
+        <span className="inline-flex items-center gap-2">
+          <span>Your Blueprint</span>
+          <span className="text-xs font-normal text-muted-foreground">
+            (click to expand)
+          </span>
+        </span>
+      </summary>
+      <div className="border-t px-4 py-4">
+        <pre className="whitespace-pre-wrap font-serif text-[15px] leading-relaxed text-foreground">
+          {markdown}
+        </pre>
+        <div className="mt-4">
+          <Button asChild variant="outline" size="sm">
+            <Link href={planHref}>Edit Blueprint</Link>
+          </Button>
+        </div>
+      </div>
+    </details>
+  );
+}
+
+function TeamChatReminder({ slackUrl }: { slackUrl: string }) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start gap-3 space-y-0">
+        <div
+          aria-hidden
+          className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted text-foreground"
+        >
+          <MessageSquare className="size-5" />
+        </div>
+        <div className="flex-1">
+          <CardTitle className="text-base">Stuck? Ask the room.</CardTitle>
+          <CardDescription>
+            Drop a question in the team chat. Someone else has probably hit the
+            same wall.
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Button asChild variant="outline">
+          <a href={slackUrl} target="_blank" rel="noopener noreferrer">
+            Open team chat
+          </a>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 

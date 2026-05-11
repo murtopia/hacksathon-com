@@ -137,7 +137,7 @@ export default async function VanityCompanyPage({ params }: PageProps) {
           <CardTitle className="text-lg">Welcome.</CardTitle>
           <CardDescription>
             {event.welcome_message?.trim() ||
-              "Sign in to jump back into your hackathon."}
+              "Sign in to jump back into your Hacks-a-Thon."}
           </CardDescription>
         </CardHeader>
         <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-center">

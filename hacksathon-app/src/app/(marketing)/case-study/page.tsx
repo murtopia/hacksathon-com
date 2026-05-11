@@ -33,7 +33,7 @@ export default function CaseStudyPage() {
           <section>
             <h2 className="text-2xl font-bold">The Structure</h2>
             <p className="mt-3 text-muted-foreground">
-              The hackathon was structured into 8 time-blocked phases over 2-3
+              The Hacks-a-Thon was structured into 8 time-blocked phases over 2-3
               weeks: kickoff, ideation, pitching, documentation, three build
               sessions, and a final showcase. Every phase had a clear purpose and
               checklist. Daily status check-ins maintained momentum.
@@ -99,7 +99,7 @@ export default function CaseStudyPage() {
 
           <div className="pt-8 text-center">
             <Button size="lg" asChild>
-              <Link href="/signup">Run Your Own Hackathon</Link>
+              <Link href="/signup">Run Your Own Hacks-a-Thon</Link>
             </Button>
           </div>
         </div>

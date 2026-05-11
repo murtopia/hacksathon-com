@@ -5,7 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Pricing — Hacksathon.com",
   description:
-    "$995 for up to 25 people. The complete hackathon platform — no feature gates, no subscriptions.",
+    "$995 for up to 25 people. The complete Hacks-a-Thon platform — no feature gates, no subscriptions.",
 };
 
 const included = [
@@ -163,7 +163,7 @@ export default function PricingPage() {
 
         {/* Bottom CTA */}
         <div className="text-center pt-8 border-t border-[var(--border-default)]">
-          <h2 className="mb-3">Ready to run your hackathon?</h2>
+          <h2 className="mb-3">Ready to run your Hacks-a-Thon?</h2>
           <p className="text-[var(--text-secondary)] mb-6">
             Set up your event in minutes. Pay when you&apos;re ready to launch.
           </p>

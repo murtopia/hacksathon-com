@@ -12,7 +12,7 @@ export default function LoginPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-xl">Welcome back</CardTitle>
-        <CardDescription>Log in to your Hacksathon account</CardDescription>
+        <CardDescription>Log in to your Hacksathon.com account</CardDescription>
       </CardHeader>
       <CardContent>
         <Suspense fallback={<div className="h-64" aria-hidden />}>

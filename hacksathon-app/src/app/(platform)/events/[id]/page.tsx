@@ -14,8 +14,12 @@ import {
 import {
   BlockChecklist,
   type BlockChecklistItem,
-  type BlockStatus,
 } from "@/components/event-home/block-checklist";
+import {
+  deriveWindowStatus,
+  isMineDone,
+  nextOpenBlock,
+} from "@/lib/blocks/status";
 
 export const metadata: Metadata = {
   title: "Event",
@@ -49,10 +53,14 @@ interface BlockRow {
   block_key: string;
   title: string;
   subtitle: string | null;
-  status: BlockStatus;
   scheduled_date: string | null;
   duration_minutes: number;
   sort_order: number;
+}
+
+interface IdeaRow {
+  id: string;
+  status: string;
 }
 
 /**
@@ -61,9 +69,16 @@ interface BlockRow {
  *
  * Surfaces:
  *   - Header with logo + event title + optional welcome copy / video.
- *   - "Next open block" CTA — the first block whose status !== completed.
+ *   - "Next open block" CTA — first block where mineDone is false,
+ *     preferring active.
  *   - Full block checklist routing to /events/[id]/blocks/[blockKey].
- *   - Slack invite card (placeholder until M6 collects events.settings.slack_url).
+ *   - Slack invite card — only when settings.slack_url is set.
+ *
+ * Block state is derived at read time:
+ *   windowStatus  — clock-based (organizer's scheduled_date + duration).
+ *   mineDone      — time fallback OR auto-derived (idea row, Blueprint
+ *                   row, idea Completed) OR explicit block_completions
+ *                   row.
  *
  * RLS already filters non-members at the events SELECT layer, so a 404
  * here means either the event doesn't exist or the user isn't a member.
@@ -87,54 +102,102 @@ export default async function EventHomePage({ params }: PageProps) {
 
   if (!eventRow) notFound();
 
-  const [{ data: orgRow }, { data: blockRows }, { data: ideaRow }] =
-    await Promise.all([
-      supabase
-        .from("organizations")
-        .select("id, name, logo_url")
-        .eq("id", eventRow.organization_id)
-        .single<OrgRow>(),
-      supabase
-        .from("blocks")
-        .select(
-          "id, block_key, title, subtitle, status, scheduled_date, duration_minutes, sort_order",
-        )
-        .eq("event_id", eventId)
-        .order("sort_order", { ascending: true })
-        .returns<BlockRow[]>(),
-      supabase
-        .from("ideas")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq("user_id", user.id)
-        .maybeSingle<{ id: string }>(),
-    ]);
+  const [
+    { data: orgRow },
+    { data: blockRows },
+    { data: ideaRow },
+    { data: briefRows },
+    { data: completionRows },
+  ] = await Promise.all([
+    supabase
+      .from("organizations")
+      .select("id, name, logo_url")
+      .eq("id", eventRow.organization_id)
+      .single<OrgRow>(),
+    supabase
+      .from("blocks")
+      .select(
+        "id, block_key, title, subtitle, scheduled_date, duration_minutes, sort_order",
+      )
+      .eq("event_id", eventId)
+      .order("sort_order", { ascending: true })
+      .returns<BlockRow[]>(),
+    supabase
+      .from("ideas")
+      .select("id, status")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .maybeSingle<IdeaRow>(),
+    supabase
+      .from("project_briefs")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .limit(1),
+    supabase
+      .from("block_completions")
+      .select("block_key")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .returns<{ block_key: string }[]>(),
+  ]);
 
-  const blocks: BlockChecklistItem[] = (blockRows ?? []).map((b) => ({
-    id: b.id,
-    blockKey: b.block_key,
-    title: b.title,
-    subtitle: b.subtitle,
-    status: b.status,
-    scheduledDate: b.scheduled_date,
-    durationMinutes: b.duration_minutes,
-  }));
+  const now = new Date();
+  const hasIdea = Boolean(ideaRow);
+  const hasBrief = Array.isArray(briefRows) && briefRows.length > 0;
+  const ideaCompleted = ideaRow?.status === "completed";
+  const completionsSet = new Set<string>(
+    (completionRows ?? []).map((r) => r.block_key),
+  );
 
-  const nextBlock =
-    blocks.find((b) => b.status === "active") ??
-    blocks.find((b) => b.status === "upcoming") ??
-    null;
+  const blocks: BlockChecklistItem[] = (blockRows ?? []).map((b) => {
+    const windowStatus = deriveWindowStatus(
+      b.scheduled_date,
+      b.duration_minutes,
+      now,
+    );
+    const mineDone = isMineDone({
+      blockKey: b.block_key,
+      windowStatus,
+      completionsSet,
+      hasIdea,
+      hasBrief,
+      ideaCompleted,
+    });
+    return {
+      id: b.id,
+      blockKey: b.block_key,
+      title: b.title,
+      subtitle: b.subtitle,
+      windowStatus,
+      mineDone,
+      scheduledDate: b.scheduled_date,
+      durationMinutes: b.duration_minutes,
+    };
+  });
+
+  const next = nextOpenBlock(
+    blocks.map((b, i) => ({
+      blockKey: b.blockKey,
+      windowStatus: b.windowStatus,
+      mineDone: b.mineDone,
+      sortOrder: i,
+      data: b,
+    })),
+  );
+  const nextBlock = next?.data ?? null;
 
   const logoUrl = eventRow.logo_url ?? orgRow?.logo_url ?? null;
   const orgName = orgRow?.name ?? "";
   const welcomeMessage =
     eventRow.welcome_message?.trim() ||
-    "Welcome to your hackathon. Pick up wherever you left off.";
+    "Welcome to your Hacks-a-Thon. Pick up wherever you left off.";
 
   const slackUrl =
     typeof eventRow.settings === "object" &&
     eventRow.settings !== null &&
-    typeof (eventRow.settings as Record<string, unknown>).slack_url === "string"
+    typeof (eventRow.settings as Record<string, unknown>).slack_url ===
+      "string"
       ? ((eventRow.settings as Record<string, unknown>).slack_url as string)
       : null;
 
@@ -184,7 +247,7 @@ export default async function EventHomePage({ params }: PageProps) {
         <Card className="border-foreground/20 bg-foreground/[0.02]">
           <CardHeader>
             <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              {nextBlock.status === "active" ? "Happening now" : "Up next"}
+              {nextBlock.windowStatus === "active" ? "Happening now" : "Up next"}
             </p>
             <CardTitle className="flex items-center gap-3 text-2xl">
               <span className="inline-flex h-8 min-w-12 items-center justify-center rounded-md border border-foreground bg-foreground px-2 text-xs font-semibold text-background">
@@ -201,7 +264,9 @@ export default async function EventHomePage({ params }: PageProps) {
               <Link
                 href={`/events/${eventId}/blocks/${encodeURIComponent(nextBlock.blockKey)}`}
               >
-                {nextBlock.status === "active" ? "Jump in" : "Open this block"}
+                {nextBlock.windowStatus === "active"
+                  ? "Jump in"
+                  : "Open this block"}
                 <ArrowRight />
               </Link>
             </Button>
@@ -211,7 +276,9 @@ export default async function EventHomePage({ params }: PageProps) {
 
       <section className="space-y-3">
         <div className="flex items-end justify-between">
-          <h2 className="text-xl font-semibold tracking-tight">Your timeline</h2>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Your timeline
+          </h2>
           {ideaRow && (
             <Button asChild variant="ghost" size="sm">
               <Link href={`/events/${eventId}/idealab/${ideaRow.id}`}>
@@ -223,33 +290,31 @@ export default async function EventHomePage({ params }: PageProps) {
         <BlockChecklist eventId={eventId} blocks={blocks} />
       </section>
 
-      <Card>
-        <CardHeader className="flex flex-row items-start gap-3 space-y-0">
-          <div
-            aria-hidden
-            className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted text-foreground"
-          >
-            <MessageSquare className="size-5" />
-          </div>
-          <div className="flex-1">
-            <CardTitle className="text-base">Team chat</CardTitle>
-            <CardDescription>
-              {slackUrl
-                ? "Hop into the team Slack channel for help and energy."
-                : "A Slack invite will appear here once your organizer adds it."}
-            </CardDescription>
-          </div>
-        </CardHeader>
-        {slackUrl && (
+      {slackUrl && (
+        <Card>
+          <CardHeader className="flex flex-row items-start gap-3 space-y-0">
+            <div
+              aria-hidden
+              className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted text-foreground"
+            >
+              <MessageSquare className="size-5" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-base">Team chat</CardTitle>
+              <CardDescription>
+                Hop into the team channel for help and energy.
+              </CardDescription>
+            </div>
+          </CardHeader>
           <CardContent>
             <Button asChild variant="outline">
               <a href={slackUrl} target="_blank" rel="noopener noreferrer">
-                Open Slack
+                Open team chat
               </a>
             </Button>
           </CardContent>
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }
@@ -303,7 +368,6 @@ function toYoutubeEmbed(url: string): string | null {
     ) {
       const id = u.searchParams.get("v");
       if (id) return `https://www.youtube.com/embed/${id}`;
-      // /embed/{id} already
       const parts = u.pathname.split("/").filter(Boolean);
       if (parts[0] === "embed" && parts[1]) {
         return `https://www.youtube.com/embed/${parts[1]}`;

@@ -23,7 +23,7 @@ export function buildSystemPrompt(ctx: ParticipantContext): string {
   const toolLabel = BUILD_TOOL_LABELS[ctx.buildTool] ?? ctx.buildTool;
 
   const audience = ctx.eventName
-    ? `They're a participant in "${ctx.eventName}" — a company hackathon where non-technical people build real products in a vibe coding tool over a couple of weeks.`
+    ? `They're a participant in "${ctx.eventName}" — a company Hacks-a-Thon where non-technical people build real products in a vibe coding tool over a couple of weeks.`
     : `They're using this conversation to plan a personal build before opening their build tool.`;
 
   const ideaContext =

@@ -50,19 +50,19 @@ export default function HomePage() {
       <section className="py-24 md:py-32">
         <div className="container mx-auto px-4 text-center">
           <Badge variant="secondary" className="mb-6">
-            Built from a real hackathon. Tested on real non-technical teams.
+            Built from a real Hacks-a-Thon. Tested on real non-technical teams.
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-tight">
-            Run a world-class hackathon at your company
+            Run a world-class Hacks-a-Thon at your company
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            The turnkey platform for structured, AI-powered hackathons. From
+            The turnkey platform for structured, AI-powered Hacks-a-Thons. From
             ideation to showcase, everything your team needs to build something
             real — no coding experience required.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
-              <Link href="/signup">Start Your Hackathon</Link>
+              <Link href="/signup">Start your Hacks-a-Thon</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/case-study">See the Seven2 Story</Link>
@@ -160,7 +160,7 @@ export default function HomePage() {
       {/* CTA */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold">Ready to run your hackathon?</h2>
+          <h2 className="text-3xl font-bold">Ready to run your Hacks-a-Thon?</h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
             Set up your event in minutes. Invite your team. Watch them build
             things they never thought possible.

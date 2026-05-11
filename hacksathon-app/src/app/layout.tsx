@@ -25,16 +25,16 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hacksathon.com — Run Your Own Company Hackathon",
+    default: "Hacksathon.com — Run Your Own Hacks-a-Thon",
     template: "%s | Hacksathon.com",
   },
   description:
-    "The turnkey platform for running structured, AI-powered hackathons at your company. From ideation to showcase, everything your non-technical team needs to build something real.",
+    "The turnkey platform for running structured, AI-powered Hacks-a-Thons at your company. From ideation to showcase, everything your non-technical team needs to build something real.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   openGraph: {
-    title: "Hacksathon.com — Run Your Own Company Hackathon",
+    title: "Hacksathon.com — Run Your Own Hacks-a-Thon",
     description:
-      "The turnkey platform for running structured, AI-powered hackathons at your company.",
+      "The turnkey platform for running structured, AI-powered Hacks-a-Thons at your company.",
     type: "website",
   },
 };

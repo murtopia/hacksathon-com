@@ -90,7 +90,7 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Create a Hackathon</CardTitle>
+            <CardTitle>Create a Hacks-a-Thon</CardTitle>
             <CardDescription>
               Set up a new event for your team with the proven playbook structure.
             </CardDescription>
@@ -106,7 +106,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>Your Events</CardTitle>
             <CardDescription>
-              Manage your active and past hackathon events.
+              Manage your active and past Hacks-a-Thons.
             </CardDescription>
           </CardHeader>
           <CardContent>

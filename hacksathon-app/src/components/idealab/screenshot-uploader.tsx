@@ -99,31 +99,54 @@ export function ScreenshotUploader({
   }, [heroCropY]);
 
   /**
-   * Viewport band half-height as a percentage of the full image.
-   * Derived from the natural image dimensions so the highlighted band
-   * in the crop tool matches what `object-cover` will actually reveal
-   * on the 16:9 card. Falls back to a reasonable default before the
-   * image loads.
+   * Visible slice height as a percentage of the full image. This is
+   * what `object-cover` will reveal on the 16:9 card given the
+   * image's natural aspect ratio. Falls back to a reasonable default
+   * before the image loads. Capped at 100 — for images already wider
+   * than 16:9, the full vertical range is visible and Y is a no-op.
    */
-  const viewportHalf = useMemo(() => {
-    if (!heroNaturalSize) return 15;
+  const sliceH = useMemo(() => {
+    if (!heroNaturalSize) return 30;
     const pct =
       (9 / 16) * (heroNaturalSize.w / heroNaturalSize.h) * 100;
-    return Math.min(50, pct / 2);
+    return Math.min(100, pct);
   }, [heroNaturalSize]);
 
-  const updateCropFromPointer = useCallback((clientY: number) => {
-    const container = cropContainerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    const pct = Math.round(
-      Math.max(
-        0,
-        Math.min(100, ((clientY - rect.top) / rect.height) * 100)
-      )
-    );
-    setLocalCropY(pct);
-  }, []);
+  /**
+   * Band geometry on the source image. As Y goes 0..100, the band's
+   * top edge linearly slides from 0% to (100 - sliceH)%, so the band
+   * always stays fully inside the image bounds — and `bandTop` /
+   * `bandHeight` map exactly to the slice that `object-cover` shows
+   * at `object-position: center {Y}%`.
+   */
+  const bandTop = (localCropY * (100 - sliceH)) / 100;
+  const bandHeight = sliceH;
+
+  const updateCropFromPointer = useCallback(
+    (clientY: number) => {
+      const container = cropContainerRef.current;
+      if (!container) return;
+      // Wide-or-16:9 image: there's nothing to crop vertically. Lock
+      // the focal point at center; the band already covers the whole
+      // image so dragging would be a visual no-op.
+      if (sliceH >= 100) {
+        setLocalCropY(50);
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      const pointerPct =
+        ((clientY - rect.top) / rect.height) * 100;
+      // Solve for Y such that the band CENTER follows the pointer,
+      // then clamp to [0, 100]. The clamp is what keeps the band from
+      // overhanging the top or bottom of the image: pointer positions
+      // closer than sliceH/2 to an edge map to Y=0 or Y=100, parking
+      // the band flush against that edge.
+      const y =
+        ((pointerPct - sliceH / 2) * 100) / (100 - sliceH);
+      setLocalCropY(Math.round(Math.max(0, Math.min(100, y))));
+    },
+    [sliceH]
+  );
 
   // Bind pointer move/up to the window while dragging so the drag
   // continues even if the pointer leaves the container.
@@ -362,27 +385,23 @@ export function ScreenshotUploader({
         {/* Dim the area outside the viewport band */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 bg-background/55"
-          style={{
-            height: `${Math.max(0, localCropY - viewportHalf)}%`,
-          }}
+          style={{ height: `${bandTop}%` }}
         />
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 bg-background/55"
-          style={{
-            height: `${Math.max(0, 100 - (localCropY + viewportHalf))}%`,
-          }}
+          style={{ height: `${Math.max(0, 100 - (bandTop + bandHeight))}%` }}
         />
         {/* The viewport band itself */}
         <div
           className="pointer-events-none absolute inset-x-0 border-y-2 border-foreground/80 shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
           style={{
-            top: `${localCropY - viewportHalf}%`,
-            height: `${viewportHalf * 2}%`,
+            top: `${bandTop}%`,
+            height: `${bandHeight}%`,
           }}
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <Button
           type="button"
           variant="outline"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = safeNextPath(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -62,17 +64,20 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(nextPath ?? "/dashboard");
       router.refresh();
     }
   }
 
   async function handleGoogleLogin() {
     const supabase = createClient();
+    const redirectTo = nextPath
+      ? `${window.location.origin}/callback?next=${encodeURIComponent(nextPath)}`
+      : `${window.location.origin}/callback`;
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/callback`,
+        redirectTo,
       },
     });
   }
@@ -203,14 +208,20 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         {mode === "login" ? (
           <>
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline hover:text-foreground">
+            <Link
+              href={nextPath ? `/signup?next=${encodeURIComponent(nextPath)}` : "/signup"}
+              className="underline hover:text-foreground"
+            >
               Sign up
             </Link>
           </>
         ) : (
           <>
             Already have an account?{" "}
-            <Link href="/login" className="underline hover:text-foreground">
+            <Link
+              href={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"}
+              className="underline hover:text-foreground"
+            >
               Log in
             </Link>
           </>
@@ -218,4 +229,16 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       </p>
     </div>
   );
+}
+
+/**
+ * Sanitize the `next` query param so it only ever sends users to a
+ * relative path inside this site. Strips anything that could be used as
+ * an open-redirect.
+ */
+function safeNextPath(value: string | null): string | null {
+  if (!value) return null;
+  if (!value.startsWith("/")) return null;
+  if (value.startsWith("//")) return null;
+  return value;
 }

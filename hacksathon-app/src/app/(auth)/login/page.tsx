@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthForm } from "@/components/auth/auth-form";
@@ -14,7 +15,9 @@ export default function LoginPage() {
         <CardDescription>Log in to your Hacksathon account</CardDescription>
       </CardHeader>
       <CardContent>
-        <AuthForm mode="login" />
+        <Suspense fallback={<div className="h-64" aria-hidden />}>
+          <AuthForm mode="login" />
+        </Suspense>
       </CardContent>
     </Card>
   );

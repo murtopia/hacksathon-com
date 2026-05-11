@@ -125,5 +125,51 @@ export async function createMinimalEvent(formData: FormData): Promise<
     return { error: eventError?.message ?? "Failed to create event." };
   }
 
-  redirect(`/events/${eventRow.id}/idealab`);
+  // 4. Seed timeline blocks from the default event template so the
+  // participant event home has a full 10-block checklist from day one.
+  // Failure here doesn't block the redirect — the event home renders
+  // gracefully with zero blocks. M6's organizer wizard will let the
+  // organizer edit and reschedule these.
+  try {
+    const { data: template } = await admin
+      .from("event_templates")
+      .select("blocks")
+      .eq("is_default", true)
+      .maybeSingle();
+
+    const templateBlocks = Array.isArray(template?.blocks)
+      ? (template.blocks as TemplateBlock[])
+      : [];
+
+    if (templateBlocks.length > 0) {
+      const blockRows = templateBlocks.map((b, index) => ({
+        event_id: eventRow.id,
+        block_key: b.block_key,
+        title: b.title,
+        subtitle: b.subtitle ?? null,
+        duration_minutes: b.duration_minutes ?? 30,
+        description: b.description ?? null,
+        purpose: b.purpose ?? null,
+        status: "upcoming" as const,
+        sort_order: index,
+        checklists: b.checklists ?? [],
+      }));
+
+      await admin.from("blocks").insert(blockRows);
+    }
+  } catch {
+    // Swallow — the event home tolerates an empty block list.
+  }
+
+  redirect(`/events/${eventRow.id}`);
 }
+
+type TemplateBlock = {
+  block_key: string;
+  title: string;
+  subtitle?: string;
+  duration_minutes?: number;
+  description?: string;
+  purpose?: string;
+  checklists?: unknown[];
+};

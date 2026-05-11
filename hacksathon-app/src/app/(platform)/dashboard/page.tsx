@@ -12,6 +12,19 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Primary event surfacing: the most-recent event in any org the user
+  // is an active member of. RLS already gates `events` on
+  // `is_org_member`, so this query is a no-op for users with no events
+  // and returns the right slice for everyone else.
+  const { data: primaryEvent } = user
+    ? await supabase
+        .from("events")
+        .select("id, title, status")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle<{ id: string; title: string; status: string }>()
+    : { data: null };
+
   return (
     <div className="space-y-8">
       <div>
@@ -22,16 +35,40 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {primaryEvent && (
+          <Card className="border-foreground/20 bg-foreground/[0.02]">
+            <CardHeader>
+              <CardTitle>{primaryEvent.title}</CardTitle>
+              <CardDescription>
+                Your event home — pick up wherever you left off.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild>
+                <Link href={`/events/${primaryEvent.id}`}>Open event</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>IdeaLab</CardTitle>
             <CardDescription>
-              Submit your idea and browse what your team is building.
+              Drop your idea and browse what your team is building.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild>
-              <Link href="/idealab">Open IdeaLab</Link>
+            <Button asChild variant={primaryEvent ? "outline" : "default"}>
+              <Link
+                href={
+                  primaryEvent
+                    ? `/events/${primaryEvent.id}/idealab`
+                    : "/idealab"
+                }
+              >
+                Open IdeaLab
+              </Link>
             </Button>
           </CardContent>
         </Card>

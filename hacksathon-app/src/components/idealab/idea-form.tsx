@@ -6,34 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CATEGORIES, type IdeaCategory } from "@/lib/idealab/types";
+import { IDEA_FIELD_LIMITS } from "@/lib/idealab/types";
+import { CharCounter } from "./char-counter";
 
 interface IdeaFormProps {
   eventId: string;
 }
-
-const NO_CATEGORY = "__none__";
 
 /**
  * IdeaLab submission form. Posts to /api/ideas; on success redirects
  * to the detail/edit page so the participant can immediately keep
  * editing or kick off the Blueprint.
  *
- * Status is intentionally not exposed here — fresh submissions default
- * to In Progress and the detail view handles transitions.
+ * Copy is intentionally playful — lifted from the original IdeaLab to
+ * keep the IdeaLab feeling like the most fun room in the building.
+ * Status is not exposed here; fresh submissions default to In Progress
+ * and the detail view handles transitions.
  */
 export function IdeaForm({ eventId }: IdeaFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [pitch, setPitch] = useState("");
-  const [category, setCategory] = useState<IdeaCategory | null>(null);
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,11 +37,11 @@ export function IdeaForm({ eventId }: IdeaFormProps) {
     setError(null);
 
     if (!title.trim()) {
-      setError("Project name is required.");
+      setError("Give your idea a name first.");
       return;
     }
     if (!pitch.trim()) {
-      setError("Tell us what it does (one sentence) is required.");
+      setError("Drop a one-liner teaser before you submit.");
       return;
     }
 
@@ -61,7 +54,6 @@ export function IdeaForm({ eventId }: IdeaFormProps) {
           eventId,
           title: title.trim(),
           pitch: pitch.trim(),
-          category,
           description: description.trim() || null,
         }),
       });
@@ -102,68 +94,46 @@ export function IdeaForm({ eventId }: IdeaFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="title">Project name *</Label>
+      <div className="space-y-1">
+        <Label htmlFor="title">What should we call it? *</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="What's it called?"
+          placeholder="e.g., AI-powered customer support that actually gets it"
           required
           disabled={submitting}
-          maxLength={120}
+          maxLength={IDEA_FIELD_LIMITS.title}
         />
+        <CharCounter value={title} max={IDEA_FIELD_LIMITS.title} />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="pitch">What does it do? *</Label>
+      <div className="space-y-1">
+        <Label htmlFor="pitch">Give us the teaser &mdash; 140 characters or less *</Label>
         <Input
           id="pitch"
           value={pitch}
           onChange={(e) => setPitch(e.target.value)}
-          placeholder="One sentence."
+          placeholder="The one-liner that'll make everyone go 'wait, what?!'"
           required
           disabled={submitting}
-          maxLength={200}
+          maxLength={IDEA_FIELD_LIMITS.pitch}
         />
-        <p className="text-xs text-muted-foreground">
-          One sentence is plenty. You can flesh it out below.
-        </p>
+        <CharCounter value={pitch} max={IDEA_FIELD_LIMITS.pitch} />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="category">Category</Label>
-        <Select
-          value={category ?? NO_CATEGORY}
-          onValueChange={(v) =>
-            setCategory(v === NO_CATEGORY ? null : (v as IdeaCategory))
-          }
-          disabled={submitting}
-        >
-          <SelectTrigger id="category">
-            <SelectValue placeholder="Pick one (optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NO_CATEGORY}>No category</SelectItem>
-            {CATEGORIES.map((c) => (
-              <SelectItem key={c.key} value={c.key}>
-                {c.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description">Tell us more</Label>
+      <div className="space-y-1">
+        <Label htmlFor="description">Got more to say? Spill it here.</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional. Who's it for, what problem it solves, anything else."
+          placeholder="Dive deeper into your wild idea. What problem does it solve? How would it work? Why would it be amazing?"
           disabled={submitting}
-          rows={4}
+          rows={5}
+          maxLength={IDEA_FIELD_LIMITS.description}
         />
+        <CharCounter value={description} max={IDEA_FIELD_LIMITS.description} />
       </div>
 
       {error && (
@@ -177,7 +147,7 @@ export function IdeaForm({ eventId }: IdeaFormProps) {
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={submitting}>
-          {submitting ? "Submitting…" : "Submit idea"}
+          {submitting ? "Dropping it…" : "Drop my idea"}
         </Button>
         <Button
           type="button"

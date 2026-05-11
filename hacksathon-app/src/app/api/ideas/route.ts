@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { rowToIdea, type IdeaCategory } from "@/lib/idealab/types";
-
-const VALID_CATEGORIES: IdeaCategory[] = [
-  "for_fun",
-  "solve_problem",
-  "work_tool",
-  "something_weird",
-];
+import { rowToIdea } from "@/lib/idealab/types";
 
 /**
  * POST /api/ideas
@@ -37,13 +30,11 @@ export async function POST(req: Request) {
     eventId,
     title,
     pitch,
-    category,
     description,
   }: {
     eventId?: string;
     title?: string;
     pitch?: string;
-    category?: string | null;
     description?: string | null;
   } = body;
 
@@ -63,17 +54,7 @@ export async function POST(req: Request) {
 
   if (!pitch?.trim()) {
     return NextResponse.json(
-      { error: "Tell us what it does (one sentence) is required" },
-      { status: 400 }
-    );
-  }
-
-  if (
-    category != null &&
-    !VALID_CATEGORIES.includes(category as IdeaCategory)
-  ) {
-    return NextResponse.json(
-      { error: "Invalid category" },
+      { error: "The teaser line is required" },
       { status: 400 }
     );
   }
@@ -106,7 +87,6 @@ export async function POST(req: Request) {
       title: title.trim(),
       pitch: pitch.trim(),
       description: description?.trim() || null,
-      category: category ?? null,
       // status defaults to 'in_progress' per migration 00006
     })
     .select("*")

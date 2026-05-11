@@ -1,18 +1,12 @@
 /**
  * IdeaLab — types, constants, and small helpers.
  *
- * The Idea type mirrors the `ideas` table after the 00006 migration.
- * Status is the Postgres enum (`idea_status`); user-facing labels are
- * derived through STATUS_LABELS to keep the UI consistent.
+ * The Idea type mirrors the `ideas` table after the 00006 + 00009
+ * migrations. Status is the Postgres enum (`idea_status`); user-facing
+ * labels are derived through STATUS_LABELS to keep the UI consistent.
  */
 
 export type IdeaStatus = "idea_stage" | "in_progress" | "completed";
-
-export type IdeaCategory =
-  | "for_fun"
-  | "solve_problem"
-  | "work_tool"
-  | "something_weird";
 
 export interface Idea {
   id: string;
@@ -23,7 +17,6 @@ export interface Idea {
   description: string | null;
   targetAudience: string | null;
   problem: string | null;
-  category: IdeaCategory | null;
   status: IdeaStatus;
   projectUrl: string | null;
   liveUrl: string | null;
@@ -42,24 +35,15 @@ export interface IdeaWithAuthor extends Idea {
 }
 
 /**
- * Single source of truth for the category list. Order is the order they
- * render in the submission form. `key` is what's persisted; `label` is
- * what the participant sees.
+ * Character limits enforced at the input layer and surfaced by the
+ * CharCounter UI. Single source of truth so the API, form, and detail
+ * view all stay aligned.
  */
-export const CATEGORIES: { key: IdeaCategory; label: string }[] = [
-  { key: "for_fun", label: "For fun" },
-  { key: "solve_problem", label: "Solve a real problem" },
-  { key: "work_tool", label: "Work tool" },
-  { key: "something_weird", label: "Something weird" },
-];
-
-const CATEGORY_LABEL_MAP = Object.fromEntries(
-  CATEGORIES.map((c) => [c.key, c.label])
-) as Record<IdeaCategory, string>;
-
-export function categoryLabel(category: IdeaCategory | null): string | null {
-  return category ? CATEGORY_LABEL_MAP[category] : null;
-}
+export const IDEA_FIELD_LIMITS = {
+  title: 80,
+  pitch: 140,
+  description: 500,
+} as const;
 
 /**
  * User-facing status labels. The legacy `idea_stage` value rolls up to
@@ -92,7 +76,6 @@ export function rowToIdea(row: any): Idea {
     description: row.description ?? null,
     targetAudience: row.target_audience ?? null,
     problem: row.problem ?? null,
-    category: row.category ?? null,
     status: row.status,
     projectUrl: row.project_url ?? null,
     liveUrl: row.live_url ?? null,

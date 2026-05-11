@@ -7,11 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  categoryLabel,
-  statusLabel,
-  type IdeaWithAuthor,
-} from "@/lib/idealab/types";
+import { statusLabel, type IdeaWithAuthor } from "@/lib/idealab/types";
 
 interface IdeaCardProps {
   idea: IdeaWithAuthor;
@@ -27,7 +23,6 @@ interface IdeaCardProps {
  */
 export function IdeaCard({ idea, eventId, isOwner }: IdeaCardProps) {
   const href = `/events/${eventId}/idealab/${idea.id}`;
-  const catLabel = categoryLabel(idea.category);
   const isCompleted = idea.status === "completed";
 
   return (
@@ -51,11 +46,6 @@ export function IdeaCard({ idea, eventId, isOwner }: IdeaCardProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            {catLabel && (
-              <Badge variant="secondary" className="font-normal">
-                {catLabel}
-              </Badge>
-            )}
             <span>{idea.authorName ?? "Anonymous"}</span>
             {isOwner && (
               <span className="text-foreground/70 font-medium">· You</span>

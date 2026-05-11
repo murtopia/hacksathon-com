@@ -16,11 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScreenshotUploader } from "./screenshot-uploader";
+import { CharCounter } from "./char-counter";
 import {
-  CATEGORIES,
-  categoryLabel,
+  IDEA_FIELD_LIMITS,
   statusLabel,
-  type IdeaCategory,
   type IdeaStatus,
   type IdeaWithAuthor,
 } from "@/lib/idealab/types";
@@ -30,8 +29,6 @@ interface IdeaDetailProps {
   eventId: string;
   isOwner: boolean;
 }
-
-const NO_CATEGORY = "__none__";
 
 /**
  * IdeaDetail — owner-editable detail view.
@@ -47,6 +44,9 @@ const NO_CATEGORY = "__none__";
  *     upload feels atomic and we don't lose state if the user navigates
  *     away mid-edit.
  *
+ * Field labels and character limits mirror the submit form so the
+ * IdeaLab experience reads consistently end to end.
+ *
  * Non-owners see a read-only view + the gallery's back link.
  */
 export function IdeaDetail({
@@ -60,9 +60,6 @@ export function IdeaDetail({
   const [pitch, setPitch] = useState(initialIdea.pitch);
   const [description, setDescription] = useState(
     initialIdea.description ?? ""
-  );
-  const [category, setCategory] = useState<IdeaCategory | null>(
-    initialIdea.category
   );
   const [liveUrl, setLiveUrl] = useState(initialIdea.liveUrl ?? "");
   const [saving, setSaving] = useState(false);
@@ -86,7 +83,6 @@ export function IdeaDetail({
     if (pitch.trim() !== idea.pitch) patch.pitch = pitch.trim();
     const nextDescription = description.trim() || null;
     if (nextDescription !== idea.description) patch.description = nextDescription;
-    if (category !== idea.category) patch.category = category;
     const nextLiveUrl = liveUrl.trim() || null;
     if (nextLiveUrl !== idea.liveUrl) patch.liveUrl = nextLiveUrl;
     return patch;
@@ -201,18 +197,12 @@ export function IdeaDetail({
           </div>
           <p className="text-muted-foreground">
             {idea.authorName ?? "Anonymous"}
-            {idea.category && (
-              <>
-                {" · "}
-                {categoryLabel(idea.category)}
-              </>
-            )}
           </p>
         </header>
 
         <section className="space-y-2">
           <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-            One-line pitch
+            The teaser
           </h2>
           <p className="text-lg">{idea.pitch}</p>
         </section>
@@ -220,7 +210,7 @@ export function IdeaDetail({
         {idea.description && (
           <section className="space-y-2">
             <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              Details
+              More about it
             </h2>
             <p className="whitespace-pre-wrap text-base leading-relaxed">
               {idea.description}
@@ -283,7 +273,7 @@ export function IdeaDetail({
 
       <div className="flex flex-wrap items-center gap-3">
         <Button asChild>
-          <Link href={planHref}>Plan this build →</Link>
+          <Link href={planHref}>Plan this build &rarr;</Link>
         </Button>
         <p className="text-sm text-muted-foreground">
           Launches the Blueprint with this idea pre-loaded.
@@ -293,59 +283,45 @@ export function IdeaDetail({
       <section className="space-y-5 rounded-lg border p-6">
         <h2 className="text-lg font-semibold">Idea details</h2>
 
-        <div className="space-y-2">
-          <Label htmlFor="title">Project name</Label>
+        <div className="space-y-1">
+          <Label htmlFor="title">What should we call it? *</Label>
           <Input
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            maxLength={120}
+            maxLength={IDEA_FIELD_LIMITS.title}
             disabled={saving}
           />
+          <CharCounter value={title} max={IDEA_FIELD_LIMITS.title} />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="pitch">What does it do?</Label>
+        <div className="space-y-1">
+          <Label htmlFor="pitch">
+            Give us the teaser &mdash; 140 characters or less *
+          </Label>
           <Input
             id="pitch"
             value={pitch}
             onChange={(e) => setPitch(e.target.value)}
-            maxLength={200}
+            maxLength={IDEA_FIELD_LIMITS.pitch}
             disabled={saving}
           />
+          <CharCounter value={pitch} max={IDEA_FIELD_LIMITS.pitch} />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select
-            value={category ?? NO_CATEGORY}
-            onValueChange={(v) =>
-              setCategory(v === NO_CATEGORY ? null : (v as IdeaCategory))
-            }
-            disabled={saving}
-          >
-            <SelectTrigger id="category">
-              <SelectValue placeholder="Pick one (optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NO_CATEGORY}>No category</SelectItem>
-              {CATEGORIES.map((c) => (
-                <SelectItem key={c.key} value={c.key}>
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Tell us more</Label>
+        <div className="space-y-1">
+          <Label htmlFor="description">Got more to say? Spill it here.</Label>
           <Textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={5}
+            maxLength={IDEA_FIELD_LIMITS.description}
             disabled={saving}
+          />
+          <CharCounter
+            value={description}
+            max={IDEA_FIELD_LIMITS.description}
           />
         </div>
 

@@ -1,17 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import {
-  rowToIdea,
-  type IdeaCategory,
-  type IdeaStatus,
-} from "@/lib/idealab/types";
-
-const VALID_CATEGORIES: IdeaCategory[] = [
-  "for_fun",
-  "solve_problem",
-  "work_tool",
-  "something_weird",
-];
+import { rowToIdea, type IdeaStatus } from "@/lib/idealab/types";
 
 const VALID_STATUSES: IdeaStatus[] = [
   "idea_stage",
@@ -79,7 +68,7 @@ export async function PATCH(
   if (typeof body.pitch === "string") {
     if (!body.pitch.trim()) {
       return NextResponse.json(
-        { error: "Tell us what it does can't be empty" },
+        { error: "The teaser line can't be empty" },
         { status: 400 }
       );
     }
@@ -91,22 +80,6 @@ export async function PATCH(
       typeof body.description === "string" && body.description.trim()
         ? body.description.trim()
         : null;
-  }
-
-  if ("category" in body) {
-    if (body.category === null) {
-      updates.category = null;
-    } else if (
-      typeof body.category === "string" &&
-      VALID_CATEGORIES.includes(body.category as IdeaCategory)
-    ) {
-      updates.category = body.category;
-    } else {
-      return NextResponse.json(
-        { error: "Invalid category" },
-        { status: 400 }
-      );
-    }
   }
 
   if ("liveUrl" in body) {

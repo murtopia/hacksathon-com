@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rowToIdea, type IdeaStatus } from "@/lib/idealab/types";
+import { isValidHttpUrl } from "@/lib/idealab/url";
 
 const VALID_STATUSES: IdeaStatus[] = [
   "idea_stage",
@@ -83,10 +84,15 @@ export async function PATCH(
   }
 
   if ("liveUrl" in body) {
-    updates.live_url =
-      typeof body.liveUrl === "string" && body.liveUrl.trim()
-        ? body.liveUrl.trim()
-        : null;
+    const trimmed =
+      typeof body.liveUrl === "string" ? body.liveUrl.trim() : "";
+    if (trimmed && !isValidHttpUrl(trimmed)) {
+      return NextResponse.json(
+        { error: "Live URL must start with http:// or https://" },
+        { status: 400 }
+      );
+    }
+    updates.live_url = trimmed || null;
   }
 
   if ("finalScreenshotUrl" in body) {
@@ -95,6 +101,22 @@ export async function PATCH(
       body.finalScreenshotUrl.trim()
         ? body.finalScreenshotUrl.trim()
         : null;
+  }
+
+  if ("heroCropY" in body) {
+    const raw = body.heroCropY;
+    if (
+      typeof raw !== "number" ||
+      !Number.isInteger(raw) ||
+      raw < 0 ||
+      raw > 100
+    ) {
+      return NextResponse.json(
+        { error: "heroCropY must be an integer between 0 and 100" },
+        { status: 400 }
+      );
+    }
+    updates.hero_crop_y = raw;
   }
 
   if ("status" in body) {

@@ -52,12 +52,17 @@ export function IdeaCard({ idea, eventId, isOwner }: IdeaCardProps) {
             )}
           </div>
           {isCompleted && idea.finalScreenshotUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={idea.finalScreenshotUrl}
-              alt={`${idea.title} screenshot`}
-              className="aspect-video w-full rounded-md border object-cover"
-            />
+            <div className="aspect-video w-full overflow-hidden rounded-md border bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={idea.finalScreenshotUrl}
+                alt={`${idea.title} screenshot`}
+                className="h-full w-full object-cover"
+                style={{
+                  objectPosition: `center ${idea.heroCropY ?? 50}%`,
+                }}
+              />
+            </div>
           )}
         </CardContent>
       </Card>

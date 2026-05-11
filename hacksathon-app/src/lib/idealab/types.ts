@@ -21,6 +21,12 @@ export interface Idea {
   projectUrl: string | null;
   liveUrl: string | null;
   finalScreenshotUrl: string | null;
+  /**
+   * Vertical focal-point (0..100) for the hero screenshot. Applied as
+   * `object-position: center {y}%` on the 16:9 card thumbnail so the
+   * owner can choose what shows in the crop. 50 = center.
+   */
+  heroCropY: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -80,6 +86,10 @@ export function rowToIdea(row: any): Idea {
     projectUrl: row.project_url ?? null,
     liveUrl: row.live_url ?? null,
     finalScreenshotUrl: row.final_screenshot_url ?? null,
+    heroCropY:
+      typeof row.hero_crop_y === "number"
+        ? row.hero_crop_y
+        : Number(row.hero_crop_y ?? 50),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

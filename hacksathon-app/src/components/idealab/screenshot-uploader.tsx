@@ -1,147 +1,447 @@
 "use client";
 
-import { useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+} from "react";
+import { Loader2, UploadCloud, X } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 const BUCKET = "idea-screenshots";
-const MAX_BYTES = 8 * 1024 * 1024; // 8 MB; arbitrary cap, plenty for a screenshot
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const ACCEPTED_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+];
+const PUBLIC_URL_PREFIX = "/storage/v1/object/public/idea-screenshots/";
 
 interface ScreenshotUploaderProps {
-  eventId: string;
-  userId: string;
+  /** Parent ideas.id — drives the storage path and RLS check. */
+  ideaId: string;
+  /** Current persisted screenshot URL, or null when empty. */
   currentUrl: string | null;
+  /**
+   * Vertical focal-point (0..100). Used both for the live mini-preview
+   * here and on the gallery card. 50 = center.
+   */
+  heroCropY: number;
   /** Called with the new public URL after a successful upload. */
   onUploaded: (url: string) => Promise<void> | void;
+  /**
+   * Called on drag-end (not on every move) to persist the new crop
+   * value. Avoids one PATCH per pixel.
+   */
+  onCropChanged: (cropY: number) => Promise<void> | void;
+  /**
+   * Called after the storage file is deleted. Parent is responsible
+   * for clearing the URL + crop in a single PATCH and (if the idea
+   * was Completed) flipping status back to In Progress.
+   */
+  onRemoved: () => Promise<void> | void;
   disabled?: boolean;
 }
 
 /**
- * ScreenshotUploader — direct client → Supabase Storage upload using
- * the authenticated user's session. The path convention is
+ * ScreenshotUploader — direct client → Supabase Storage upload with a
+ * focal-point crop tool.
  *
- *     {eventId}/{userId}/screenshot.{ext}
+ * Storage layout: `{ideaId}/{uuid}.{ext}` in the public `idea-screenshots`
+ * bucket. RLS (00011) gates writes by `ideas.user_id`. UUID filenames
+ * make every upload unique by construction, so we never need `upsert`
+ * or a cache-buster query param.
  *
- * which is enforced by the bucket's RLS policies (see 00007 migration).
- * The same path is reused on re-upload (`upsert: true`) so each user
- * only ever has one file per event, keeping storage tidy.
+ * "Cropping" is intentionally CSS-only — we save a `hero_crop_y`
+ * percentage and let `object-position` move the visible 16:9 window on
+ * the original image at render time. No image processing pipeline, no
+ * Sharp, no edge function.
  *
- * After upload, the parent persists the public URL to
- * `ideas.final_screenshot_url` via the PATCH /api/ideas/[id] route.
+ * Remove flow: delete the storage object, then call `onRemoved()` so
+ * the parent can clear `final_screenshot_url`, reset `hero_crop_y` to
+ * 50, and roll status back to `in_progress` if needed (the DB CHECK
+ * constraint would otherwise block the screenshot clear on a Completed
+ * idea).
  */
 export function ScreenshotUploader({
-  eventId,
-  userId,
+  ideaId,
   currentUrl,
+  heroCropY,
   onUploaded,
+  onCropChanged,
+  onRemoved,
   disabled,
 }: ScreenshotUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cropContainerRef = useRef<HTMLDivElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [localCropY, setLocalCropY] = useState(heroCropY);
+  const [isDragging, setIsDragging] = useState(false);
+  const [heroNaturalSize, setHeroNaturalSize] = useState<{
+    w: number;
+    h: number;
+  } | null>(null);
+
+  // Keep local crop in sync with the persisted value when the parent
+  // pushes a new one (e.g. after a refresh or on a freshly-uploaded
+  // screenshot that resets to 50).
+  useEffect(() => {
+    setLocalCropY(heroCropY);
+  }, [heroCropY]);
+
+  /**
+   * Viewport band half-height as a percentage of the full image.
+   * Derived from the natural image dimensions so the highlighted band
+   * in the crop tool matches what `object-cover` will actually reveal
+   * on the 16:9 card. Falls back to a reasonable default before the
+   * image loads.
+   */
+  const viewportHalf = useMemo(() => {
+    if (!heroNaturalSize) return 15;
+    const pct =
+      (9 / 16) * (heroNaturalSize.w / heroNaturalSize.h) * 100;
+    return Math.min(50, pct / 2);
+  }, [heroNaturalSize]);
+
+  const updateCropFromPointer = useCallback((clientY: number) => {
+    const container = cropContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const pct = Math.round(
+      Math.max(
+        0,
+        Math.min(100, ((clientY - rect.top) / rect.height) * 100)
+      )
+    );
+    setLocalCropY(pct);
+  }, []);
+
+  // Bind pointer move/up to the window while dragging so the drag
+  // continues even if the pointer leaves the container.
+  useEffect(() => {
+    if (!isDragging) return;
+    function onMove(e: PointerEvent) {
+      updateCropFromPointer(e.clientY);
+    }
+    async function onUp() {
+      setIsDragging(false);
+      try {
+        await onCropChanged(localCropY);
+      } catch (err) {
+        toast.error("Couldn't save the crop position.", {
+          description:
+            err instanceof Error ? err.message : "Try again?",
+        });
+      }
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+  }, [isDragging, localCropY, onCropChanged, updateCropFromPointer]);
 
   async function handleFile(file: File) {
-    setError(null);
-
-    if (file.size > MAX_BYTES) {
-      setError("Screenshot must be 8 MB or smaller.");
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description: `${file.name} is not a supported image format.`,
+      });
       return;
     }
-    if (!file.type.startsWith("image/")) {
-      setError("Only image files are supported.");
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File too large", {
+        description: `${file.name} exceeds the 5 MB limit.`,
+      });
       return;
     }
 
     setUploading(true);
     try {
       const supabase = createClient();
-      // Normalize extension; fall back to .png if MIME doesn't carry one.
-      const extFromName = file.name.split(".").pop()?.toLowerCase();
+      // Always use a UUID + the file's real extension so two uploads
+      // never collide and URLs are immutable per upload.
       const ext =
-        extFromName && extFromName.length <= 5
-          ? extFromName
-          : file.type.split("/")[1] || "png";
-      const path = `${eventId}/${userId}/screenshot.${ext}`;
+        file.name.split(".").pop()?.toLowerCase() ||
+        file.type.split("/")[1] ||
+        "png";
+      const path = `${ideaId}/${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
         .upload(path, file, {
-          upsert: true,
-          contentType: file.type,
           cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
         });
 
       if (uploadError) {
-        setError(uploadError.message);
+        toast.error("Upload failed", {
+          description: uploadError.message,
+        });
         return;
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from(BUCKET)
-        .getPublicUrl(path);
-
-      // Append a cache-buster so the freshly-uploaded image actually
-      // shows up. Browsers will otherwise serve the previous file from
-      // cache because the URL is unchanged.
-      const url = `${publicUrlData.publicUrl}?v=${Date.now()}`;
-      await onUploaded(url);
+      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      await onUploaded(data.publicUrl);
     } catch (err) {
       console.error("[ScreenshotUploader] upload failed", err);
-      setError("Upload failed. Try again?");
+      toast.error("Upload failed", {
+        description: err instanceof Error ? err.message : "Try again?",
+      });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
+  async function handleRemove() {
+    if (!currentUrl) return;
+    setRemoving(true);
+    try {
+      const supabase = createClient();
+      const idx = currentUrl.indexOf(PUBLIC_URL_PREFIX);
+      if (idx !== -1) {
+        const storagePath = currentUrl.substring(
+          idx + PUBLIC_URL_PREFIX.length
+        );
+        // Strip any query string just in case (older URLs had ?v=…).
+        const cleanPath = storagePath.split("?")[0];
+        await supabase.storage.from(BUCKET).remove([cleanPath]);
+      }
+      await onRemoved();
+    } catch (err) {
+      console.error("[ScreenshotUploader] remove failed", err);
+      toast.error("Couldn't remove the screenshot.", {
+        description: err instanceof Error ? err.message : "Try again?",
+      });
+    } finally {
+      setRemoving(false);
+    }
+  }
+
+  function handleDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) void handleFile(file);
+  }
+
+  // ============================================================
+  // Empty state — drop zone
+  // ============================================================
+  if (!currentUrl) {
+    return (
+      <div className="space-y-3">
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Upload a screenshot"
+          aria-disabled={disabled || uploading}
+          onClick={() => {
+            if (!disabled && !uploading) fileInputRef.current?.click();
+          }}
+          onKeyDown={(e) => {
+            if (
+              (e.key === "Enter" || e.key === " ") &&
+              !disabled &&
+              !uploading
+            ) {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (!disabled && !uploading) setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => {
+            if (disabled || uploading) return;
+            handleDrop(e);
+          }}
+          className={cn(
+            "flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed bg-muted/30 px-6 py-10 text-center transition-colors",
+            dragOver && "border-foreground/60 bg-muted/60",
+            (disabled || uploading) &&
+              "cursor-not-allowed opacity-60"
+          )}
+        >
+          {uploading ? (
+            <>
+              <Loader2
+                className="h-8 w-8 animate-spin text-muted-foreground"
+                aria-hidden="true"
+              />
+              <p className="text-sm font-medium">Uploading…</p>
+            </>
+          ) : (
+            <>
+              <UploadCloud
+                className="h-8 w-8 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <div>
+                <p className="text-sm font-medium">
+                  Drop image here or click to browse
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  PNG, JPG, WebP or GIF &mdash; max 5 MB
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPTED_TYPES.join(",")}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void handleFile(file);
+          }}
+          disabled={disabled || uploading}
+          className="hidden"
+        />
+      </div>
+    );
+  }
+
+  // ============================================================
+  // Loaded state — thumbnail + crop tool + mini preview
+  // ============================================================
   return (
-    <div className="space-y-3">
-      {currentUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
+    <div className="space-y-5">
+      {/* Hero thumbnail with hover-only remove button */}
+      <div className="group relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={currentUrl}
-          alt="Final screenshot"
-          className="aspect-video w-full rounded-md border object-cover"
+          alt="Screenshot"
+          className="h-full w-full object-cover"
+          style={{ objectPosition: `center ${heroCropY}%` }}
         />
-      )}
+        <button
+          type="button"
+          aria-label="Remove screenshot"
+          onClick={handleRemove}
+          disabled={disabled || removing}
+          className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-background/90 text-foreground opacity-0 shadow-sm transition-opacity hover:bg-background focus-visible:opacity-100 group-hover:opacity-100 disabled:cursor-not-allowed"
+        >
+          {removing ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <X className="h-4 w-4" aria-hidden="true" />
+          )}
+        </button>
+      </div>
+
+      {/* Crop tool: full image + draggable viewport band */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium">Pick what shows on the card</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || uploading || removing}
+          >
+            {uploading ? "Uploading…" : "Replace"}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Drag the highlighted strip up or down to choose the focal point.
+        </p>
+
+        <div
+          ref={cropContainerRef}
+          onPointerDown={(e) => {
+            if (disabled) return;
+            e.preventDefault();
+            setIsDragging(true);
+            updateCropFromPointer(e.clientY);
+          }}
+          className={cn(
+            "relative w-full select-none overflow-hidden rounded-lg border bg-muted",
+            disabled ? "cursor-not-allowed" : "cursor-ns-resize"
+          )}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={currentUrl}
+            alt="Crop source"
+            className="block w-full"
+            draggable={false}
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              setHeroNaturalSize({
+                w: img.naturalWidth,
+                h: img.naturalHeight,
+              });
+            }}
+          />
+          {/* Dim the area outside the viewport band */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 bg-background/55"
+            style={{
+              height: `${Math.max(0, localCropY - viewportHalf)}%`,
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 bg-background/55"
+            style={{
+              height: `${Math.max(0, 100 - (localCropY + viewportHalf))}%`,
+            }}
+          />
+          {/* The viewport band itself */}
+          <div
+            className="pointer-events-none absolute inset-x-0 border-y-2 border-foreground/80 shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
+            style={{
+              top: `${localCropY - viewportHalf}%`,
+              height: `${viewportHalf * 2}%`,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Mini card preview */}
+      <div className="space-y-2">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Card preview
+        </p>
+        <div className="aspect-video w-full max-w-xs overflow-hidden rounded-md border bg-muted">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={currentUrl}
+            alt="Card crop preview"
+            className="h-full w-full object-cover"
+            style={{ objectPosition: `center ${localCropY}%` }}
+          />
+        </div>
+      </div>
 
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
+        accept={ACCEPTED_TYPES.join(",")}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) void handleFile(file);
         }}
-        disabled={disabled || uploading}
+        disabled={disabled || uploading || removing}
         className="hidden"
       />
-
-      <div className="flex items-center gap-3">
-        <Button
-          type="button"
-          variant={currentUrl ? "outline" : "default"}
-          disabled={disabled || uploading}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {uploading
-            ? "Uploading…"
-            : currentUrl
-              ? "Replace screenshot"
-              : "Upload screenshot"}
-        </Button>
-        {!currentUrl && (
-          <p className="text-xs text-muted-foreground">
-            PNG / JPG / WebP, up to 8 MB.
-          </p>
-        )}
-      </div>
-
-      {error && (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
     </div>
   );
 }

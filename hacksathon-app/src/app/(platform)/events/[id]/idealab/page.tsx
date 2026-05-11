@@ -83,7 +83,7 @@ export default async function EventIdeaLabPage({ params }: PageProps) {
         </div>
         {!myIdea && (
           <Button asChild>
-            <Link href={`/events/${eventId}/idealab/new`}>Submit your idea</Link>
+            <Link href={`/events/${eventId}/idealab/new`}>Drop your idea</Link>
           </Button>
         )}
         {myIdea && (
@@ -102,7 +102,7 @@ export default async function EventIdeaLabPage({ params }: PageProps) {
             What are you going to build? Drop your idea in and kick this thing off.
           </p>
           <Button asChild className="mt-6">
-            <Link href={`/events/${eventId}/idealab/new`}>Submit your idea</Link>
+            <Link href={`/events/${eventId}/idealab/new`}>Drop your idea</Link>
           </Button>
         </div>
       ) : (

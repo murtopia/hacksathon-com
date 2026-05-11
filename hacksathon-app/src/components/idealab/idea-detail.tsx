@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import {
   type IdeaStatus,
   type IdeaWithAuthor,
 } from "@/lib/idealab/types";
+import { isValidHttpUrl } from "@/lib/idealab/url";
 
 interface IdeaDetailProps {
   initialIdea: IdeaWithAuthor;
@@ -34,20 +36,19 @@ interface IdeaDetailProps {
  * IdeaDetail — owner-editable detail view.
  *
  * Editing model:
- *   - All editable fields live in local state. The owner edits inline,
- *     and a single "Save changes" button PATCHes the diff.
- *   - Status toggle is its own action because the demo-ready
- *     validation (live_url + final_screenshot_url required for
- *     "Completed") is best surfaced as a dedicated affordance with
- *     contextual error messaging.
- *   - The screenshot uploader writes the URL via its own PATCH so the
- *     upload feels atomic and we don't lose state if the user navigates
- *     away mid-edit.
+ *   - The "What's the idea?" section (title / teaser / description) is
+ *     a single editable block with a "Save changes" button at the
+ *     bottom. PATCHes only the changed fields.
+ *   - The "Show it off" section owns the live URL with its own
+ *     "Save link" button — URL validation belongs next to the URL.
+ *   - The screenshot uploader writes its URL + crop via its own
+ *     PATCHes so the upload feels atomic and we don't lose state if
+ *     the user navigates away mid-edit.
+ *   - Status flip is its own action because the demo-ready validation
+ *     (live_url + final_screenshot_url required for "Completed") needs
+ *     a dedicated affordance with contextual error messaging.
  *
- * Field labels and character limits mirror the submit form so the
- * IdeaLab experience reads consistently end to end.
- *
- * Non-owners see a read-only view + the gallery's back link.
+ * Non-owners get a read-only view + the gallery's back link.
  */
 export function IdeaDetail({
   initialIdea,
@@ -63,10 +64,13 @@ export function IdeaDetail({
   );
   const [liveUrl, setLiveUrl] = useState(initialIdea.liveUrl ?? "");
   const [saving, setSaving] = useState(false);
+  const [savingUrl, setSavingUrl] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [urlSavedFlash, setUrlSavedFlash] = useState(false);
 
   const planHref = `/plan?idea=${idea.id}&event=${eventId}&tool=lovable`;
 
@@ -74,17 +78,17 @@ export function IdeaDetail({
   const isCompleted = idea.status === "completed";
 
   /**
-   * Build a patch with only the fields that actually changed. Avoids
-   * sending no-op fields and keeps the PATCH small.
+   * Build a patch with only the changed core fields (title, pitch,
+   * description). Live URL has its own save button and is not part of
+   * this patch.
    */
   function buildPatch(): Record<string, unknown> {
     const patch: Record<string, unknown> = {};
     if (title.trim() !== idea.title) patch.title = title.trim();
     if (pitch.trim() !== idea.pitch) patch.pitch = pitch.trim();
     const nextDescription = description.trim() || null;
-    if (nextDescription !== idea.description) patch.description = nextDescription;
-    const nextLiveUrl = liveUrl.trim() || null;
-    if (nextLiveUrl !== idea.liveUrl) patch.liveUrl = nextLiveUrl;
+    if (nextDescription !== idea.description)
+      patch.description = nextDescription;
     return patch;
   }
 
@@ -108,13 +112,22 @@ export function IdeaDetail({
     return { ...json.idea, authorName: idea.authorName };
   }
 
+  function flashSaved() {
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1500);
+  }
+
+  function flashUrlSaved() {
+    setUrlSavedFlash(true);
+    setTimeout(() => setUrlSavedFlash(false), 1500);
+  }
+
   async function handleSave() {
     if (!isOwner) return;
     setError(null);
     const patch = buildPatch();
     if (Object.keys(patch).length === 0) {
-      setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 1500);
+      flashSaved();
       return;
     }
 
@@ -123,14 +136,41 @@ export function IdeaDetail({
       const updated = await patchIdea(patch);
       if (updated) {
         setIdea(updated);
-        setSavedFlash(true);
-        setTimeout(() => setSavedFlash(false), 1500);
+        flashSaved();
         router.refresh();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSaveLiveUrl() {
+    if (!isOwner) return;
+    setUrlError(null);
+    const trimmed = liveUrl.trim();
+    if (trimmed && !isValidHttpUrl(trimmed)) {
+      setUrlError(
+        "That doesn't look like a valid URL. Try something like https://your-build.lovable.app"
+      );
+      return;
+    }
+
+    setSavingUrl(true);
+    try {
+      const updated = await patchIdea({ liveUrl: trimmed || null });
+      if (updated) {
+        setIdea(updated);
+        flashUrlSaved();
+        router.refresh();
+      }
+    } catch (err) {
+      setUrlError(
+        err instanceof Error ? err.message : "Couldn't save your link."
+      );
+    } finally {
+      setSavingUrl(false);
     }
   }
 
@@ -163,17 +203,63 @@ export function IdeaDetail({
 
   async function handleScreenshotUploaded(url: string) {
     try {
-      const updated = await patchIdea({ finalScreenshotUrl: url });
+      // Reset the crop on a fresh upload — old focal-point on a new
+      // image is meaningless.
+      const updated = await patchIdea({
+        finalScreenshotUrl: url,
+        heroCropY: 50,
+      });
       if (updated) {
         setIdea(updated);
         router.refresh();
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to save screenshot URL."
-      );
+      toast.error("Couldn't save your screenshot.", {
+        description:
+          err instanceof Error ? err.message : "Try again?",
+      });
+    }
+  }
+
+  async function handleCropChanged(cropY: number) {
+    try {
+      const updated = await patchIdea({ heroCropY: cropY });
+      if (updated) {
+        setIdea(updated);
+        // No router.refresh here — crop changes are cheap and the
+        // local mini-preview already reflects the change.
+      }
+    } catch (err) {
+      toast.error("Couldn't save the crop position.", {
+        description:
+          err instanceof Error ? err.message : "Try again?",
+      });
+    }
+  }
+
+  async function handleScreenshotRemoved() {
+    try {
+      // Single PATCH: clear the URL + crop, and roll back the status
+      // if it was Completed (otherwise the DB CHECK constraint blocks
+      // the update because a Completed idea must have both assets).
+      const wasCompleted = idea.status === "completed";
+      const updated = await patchIdea({
+        finalScreenshotUrl: null,
+        heroCropY: 50,
+        ...(wasCompleted ? { status: "in_progress" as IdeaStatus } : {}),
+      });
+      if (updated) {
+        setIdea(updated);
+        if (wasCompleted) {
+          toast.info("Your idea is back to In Progress.");
+        }
+        router.refresh();
+      }
+    } catch (err) {
+      toast.error("Couldn't remove the screenshot.", {
+        description:
+          err instanceof Error ? err.message : "Try again?",
+      });
     }
   }
 
@@ -239,12 +325,17 @@ export function IdeaDetail({
             <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
               Final screenshot
             </h2>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={idea.finalScreenshotUrl}
-              alt={`${idea.title} screenshot`}
-              className="aspect-video w-full rounded-md border object-cover"
-            />
+            <div className="aspect-video w-full overflow-hidden rounded-md border bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={idea.finalScreenshotUrl}
+                alt={`${idea.title} screenshot`}
+                className="h-full w-full object-cover"
+                style={{
+                  objectPosition: `center ${idea.heroCropY ?? 50}%`,
+                }}
+              />
+            </div>
           </section>
         )}
       </div>
@@ -267,7 +358,7 @@ export function IdeaDetail({
           </Badge>
         </div>
         <p className="text-muted-foreground">
-          Keep this card up to date as your build evolves.
+          Keep it fresh. Edit anything any time.
         </p>
       </header>
 
@@ -276,12 +367,18 @@ export function IdeaDetail({
           <Link href={planHref}>Plan this build &rarr;</Link>
         </Button>
         <p className="text-sm text-muted-foreground">
-          Launches the Blueprint with this idea pre-loaded.
+          We&apos;ll hand it off to the Blueprint with your idea already
+          loaded.
         </p>
       </div>
 
       <section className="space-y-5 rounded-lg border p-6">
-        <h2 className="text-lg font-semibold">Idea details</h2>
+        <div>
+          <h2 className="text-lg font-semibold">What&apos;s the idea?</h2>
+          <p className="text-sm text-muted-foreground">
+            The basics. Change anything any time.
+          </p>
+        </div>
 
         <div className="space-y-1">
           <Label htmlFor="title">What should we call it? *</Label>
@@ -339,43 +436,68 @@ export function IdeaDetail({
             {saving ? "Saving…" : "Save changes"}
           </Button>
           {savedFlash && (
-            <span className="text-sm text-muted-foreground">Saved.</span>
+            <span className="text-sm text-muted-foreground">Saved it.</span>
           )}
         </div>
       </section>
 
       <section className="space-y-5 rounded-lg border p-6">
         <div>
-          <h2 className="text-lg font-semibold">Demo assets</h2>
+          <h2 className="text-lg font-semibold">Show it off</h2>
           <p className="text-sm text-muted-foreground">
-            You need both a live URL and a final screenshot before this idea can
-            be marked Completed.
+            Your live link and a final screenshot. You need both before you
+            can mark this Completed.
           </p>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="liveUrl">Live URL</Label>
-          <Input
-            id="liveUrl"
-            type="url"
-            inputMode="url"
-            value={liveUrl}
-            onChange={(e) => setLiveUrl(e.target.value)}
-            placeholder="https://your-build.lovable.app"
-            disabled={saving}
-          />
-          <p className="text-xs text-muted-foreground">
-            Click <em>Save changes</em> above to persist your URL.
-          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+            <Input
+              id="liveUrl"
+              type="url"
+              inputMode="url"
+              value={liveUrl}
+              onChange={(e) => {
+                setLiveUrl(e.target.value);
+                if (urlError) setUrlError(null);
+              }}
+              placeholder="https://your-build.lovable.app"
+              disabled={savingUrl}
+              className="sm:flex-1"
+            />
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                onClick={handleSaveLiveUrl}
+                disabled={savingUrl}
+                variant="outline"
+              >
+                {savingUrl ? "Saving…" : "Save link"}
+              </Button>
+              {urlSavedFlash && (
+                <span className="text-sm text-muted-foreground">
+                  Saved it.
+                </span>
+              )}
+            </div>
+          </div>
+          {urlError && (
+            <p className="text-sm text-destructive" role="alert">
+              {urlError}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label>Final screenshot</Label>
           <ScreenshotUploader
-            eventId={eventId}
-            userId={idea.userId}
+            ideaId={idea.id}
             currentUrl={idea.finalScreenshotUrl}
+            heroCropY={idea.heroCropY ?? 50}
             onUploaded={handleScreenshotUploaded}
+            onCropChanged={handleCropChanged}
+            onRemoved={handleScreenshotRemoved}
             disabled={saving}
           />
         </div>
@@ -383,10 +505,10 @@ export function IdeaDetail({
 
       <section className="space-y-4 rounded-lg border p-6">
         <div>
-          <h2 className="text-lg font-semibold">Status</h2>
+          <h2 className="text-lg font-semibold">Where&apos;s it at?</h2>
           <p className="text-sm text-muted-foreground">
-            Flip to <strong>Completed</strong> once your live URL and screenshot
-            are in place.
+            Flip to <strong>Completed</strong> once your link and screenshot
+            are in.
           </p>
         </div>
 

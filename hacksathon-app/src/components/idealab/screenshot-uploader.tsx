@@ -91,16 +91,27 @@ export function ScreenshotUploader({
 }: ScreenshotUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cropContainerRef = useRef<HTMLDivElement>(null);
+  const savedFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [localCropX, setLocalCropX] = useState(heroCropX);
   const [localCropY, setLocalCropY] = useState(heroCropY);
   const [isDragging, setIsDragging] = useState(false);
+  const [savingCrop, setSavingCrop] = useState(false);
+  const [cropSavedFlash, setCropSavedFlash] = useState(false);
   const [heroNaturalSize, setHeroNaturalSize] = useState<{
     w: number;
     h: number;
   } | null>(null);
+
+  // Clear any pending "Saved." flash on unmount so we don't poke an
+  // unmounted component if the user navigates away mid-flash.
+  useEffect(() => {
+    return () => {
+      if (savedFlashTimer.current) clearTimeout(savedFlashTimer.current);
+    };
+  }, []);
 
   // Keep local crop in sync with the persisted values when the parent
   // pushes new ones (refresh, fresh upload that resets to 50, etc.).
@@ -196,17 +207,32 @@ export function ScreenshotUploader({
     async function onUp() {
       setIsDragging(false);
       if (!cropAxis) return;
+      // Surface the save in the UI so the user has something to look
+      // at — silent auto-save reads as "did anything happen?".
+      setSavingCrop(true);
+      setCropSavedFlash(false);
+      if (savedFlashTimer.current) {
+        clearTimeout(savedFlashTimer.current);
+        savedFlashTimer.current = null;
+      }
       try {
         await onCropChanged(
           cropAxis === "y"
             ? { heroCropY: localCropY }
             : { heroCropX: localCropX }
         );
+        setCropSavedFlash(true);
+        savedFlashTimer.current = setTimeout(() => {
+          setCropSavedFlash(false);
+          savedFlashTimer.current = null;
+        }, 1500);
       } catch (err) {
         toast.error("Couldn't save the crop position.", {
           description:
             err instanceof Error ? err.message : "Try again?",
         });
+      } finally {
+        setSavingCrop(false);
       }
     }
     window.addEventListener("pointermove", onMove);
@@ -407,7 +433,27 @@ export function ScreenshotUploader({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">{helperCopy}</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">{helperCopy}</p>
+        {hasCrop && (savingCrop || cropSavedFlash) && (
+          <span
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+            aria-live="polite"
+          >
+            {savingCrop ? (
+              <>
+                <Loader2
+                  className="h-3 w-3 animate-spin"
+                  aria-hidden="true"
+                />
+                Saving&hellip;
+              </>
+            ) : (
+              "Saved."
+            )}
+          </span>
+        )}
+      </div>
 
       <div
         ref={cropContainerRef}

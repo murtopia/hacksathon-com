@@ -24,6 +24,20 @@ export default async function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
+            <CardTitle>IdeaLab</CardTitle>
+            <CardDescription>
+              Submit your idea and browse what your team is building.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/idealab">Open IdeaLab</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Plan a Build</CardTitle>
             <CardDescription>
               Talk through your idea with a thinking partner. End with a clear

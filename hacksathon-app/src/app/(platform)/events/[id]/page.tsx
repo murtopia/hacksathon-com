@@ -40,6 +40,8 @@ interface EventRow {
   vanity_slug: string | null;
   organization_id: string;
   settings: Record<string, unknown> | null;
+  voting_status: "closed" | "open" | "revealed";
+  is_locked: boolean;
 }
 
 interface OrgRow {
@@ -95,7 +97,7 @@ export default async function EventHomePage({ params }: PageProps) {
   const { data: eventRow } = await supabase
     .from("events")
     .select(
-      "id, title, description, status, welcome_message, welcome_video_url, logo_url, vanity_slug, organization_id, settings",
+      "id, title, description, status, welcome_message, welcome_video_url, logo_url, vanity_slug, organization_id, settings, voting_status, is_locked",
     )
     .eq("id", eventId)
     .single<EventRow>();
@@ -108,6 +110,9 @@ export default async function EventHomePage({ params }: PageProps) {
     { data: ideaRow },
     { data: briefRows },
     { data: completionRows },
+    { data: voteRows },
+    { data: reflectionRows },
+    { data: isAdminFlag },
   ] = await Promise.all([
     supabase
       .from("organizations")
@@ -140,12 +145,31 @@ export default async function EventHomePage({ params }: PageProps) {
       .eq("event_id", eventId)
       .eq("user_id", user.id)
       .returns<{ block_key: string }[]>(),
+    supabase
+      .from("votes")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .limit(1),
+    supabase
+      .from("reflections")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .limit(1),
+    supabase.rpc("is_event_admin", { p_event_id: eventId }),
   ]);
+
+  const isAdmin = Boolean(isAdminFlag);
 
   const now = new Date();
   const hasIdea = Boolean(ideaRow);
   const hasBrief = Array.isArray(briefRows) && briefRows.length > 0;
   const ideaCompleted = ideaRow?.status === "completed";
+  const hasVote = Array.isArray(voteRows) && voteRows.length > 0;
+  const hasReflection =
+    Array.isArray(reflectionRows) && reflectionRows.length > 0;
+  const votingRevealed = eventRow.voting_status === "revealed";
   const completionsSet = new Set<string>(
     (completionRows ?? []).map((r) => r.block_key),
   );
@@ -163,6 +187,9 @@ export default async function EventHomePage({ params }: PageProps) {
       hasIdea,
       hasBrief,
       ideaCompleted,
+      hasVote,
+      hasReflection,
+      votingRevealed,
     });
     return {
       id: b.id,
@@ -247,7 +274,11 @@ export default async function EventHomePage({ params }: PageProps) {
         <Card className="border-foreground/20 bg-foreground/[0.02]">
           <CardHeader>
             <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              {nextBlock.windowStatus === "active" ? "Happening now" : "Up next"}
+              {nextBlock.blockKey === "+01" && eventRow.voting_status === "open"
+                ? "Voting is open"
+                : nextBlock.windowStatus === "active"
+                  ? "Happening now"
+                  : "Up next"}
             </p>
             <CardTitle className="flex items-center gap-3 text-2xl">
               <span className="inline-flex h-8 min-w-12 items-center justify-center rounded-md border border-foreground bg-foreground px-2 text-xs font-semibold text-background">
@@ -264,9 +295,11 @@ export default async function EventHomePage({ params }: PageProps) {
               <Link
                 href={`/events/${eventId}/blocks/${encodeURIComponent(nextBlock.blockKey)}`}
               >
-                {nextBlock.windowStatus === "active"
-                  ? "Jump in"
-                  : "Open this block"}
+                {nextBlock.blockKey === "+01" && eventRow.voting_status === "open"
+                  ? "Cast your votes"
+                  : nextBlock.windowStatus === "active"
+                    ? "Jump in"
+                    : "Open this block"}
                 <ArrowRight />
               </Link>
             </Button>
@@ -279,13 +312,22 @@ export default async function EventHomePage({ params }: PageProps) {
           <h2 className="text-xl font-semibold tracking-tight">
             Your timeline
           </h2>
-          {ideaRow && (
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/events/${eventId}/idealab/${ideaRow.id}`}>
-                Edit your idea
-              </Link>
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {ideaRow && (
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/events/${eventId}/idealab/${ideaRow.id}`}>
+                  Edit your idea
+                </Link>
+              </Button>
+            )}
+            {isAdmin && (
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/events/${eventId}/admin`}>
+                  Event admin
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
         <BlockChecklist eventId={eventId} blocks={blocks} />
       </section>

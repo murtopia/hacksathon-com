@@ -83,6 +83,9 @@ export interface MineDoneInputs {
   hasIdea: boolean;
   hasBrief: boolean;
   ideaCompleted: boolean;
+  hasVote: boolean;
+  hasReflection: boolean;
+  votingRevealed: boolean;
 }
 
 /**
@@ -90,6 +93,14 @@ export interface MineDoneInputs {
  *
  * The order matters: time fallback first (cheap, applies to all blocks),
  * then auto-derive rules, then explicit completion-table membership.
+ *
+ * M4 adds three additional auto-derive triggers:
+ *   - `+01` (Hacky Awards) → user has cast at least one vote, OR voting
+ *     has been revealed (post-reveal there's no action left to take).
+ *   - `+02` (Reflections) → user has at least one reflection row.
+ *   - `FINAL` retains its M3 trigger (idea Completed); voting reveal
+ *     does NOT auto-mark FINAL as done because participants still need
+ *     to actually show up to the showcase.
  */
 export function isMineDone({
   blockKey,
@@ -98,6 +109,9 @@ export function isMineDone({
   hasIdea,
   hasBrief,
   ideaCompleted,
+  hasVote,
+  hasReflection,
+  votingRevealed,
 }: MineDoneInputs): boolean {
   if (windowStatus === "completed") return true;
   if (completionsSet.has(blockKey)) return true;
@@ -109,6 +123,10 @@ export function isMineDone({
       return hasBrief;
     case "FINAL":
       return ideaCompleted;
+    case "+01":
+      return hasVote || votingRevealed;
+    case "+02":
+      return hasReflection;
     default:
       return false;
   }

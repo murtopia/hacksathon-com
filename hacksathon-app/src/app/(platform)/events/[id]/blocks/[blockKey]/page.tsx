@@ -11,8 +11,21 @@ import {
   type BuildSessionKey,
 } from "@/components/blocks/build-session";
 import { ShowcasePrep } from "@/components/blocks/showcase-prep";
-import { AwardsPlaceholder } from "@/components/blocks/awards-placeholder";
-import { ReflectionsPlaceholder } from "@/components/blocks/reflections-placeholder";
+import {
+  HackyAwardsScreen,
+  type VotingStatus,
+  type RevealedWinner,
+} from "@/components/blocks/hacky-awards-screen";
+import type {
+  BallotCategory,
+  BallotIdea,
+  BallotInitialPick,
+} from "@/components/blocks/award-ballot";
+import { ReflectionsScreen } from "@/components/blocks/reflections-screen";
+import type {
+  ReflectionQuestion,
+  ReflectionAnswer,
+} from "@/components/blocks/reflection-form";
 import {
   deriveWindowStatus,
   formatScheduledDate,
@@ -68,6 +81,7 @@ interface EventSettingsRow {
   id: string;
   title: string;
   settings: Record<string, unknown> | null;
+  voting_status: VotingStatus;
 }
 
 /**
@@ -119,7 +133,7 @@ export default async function BlockPage({ params }: PageProps) {
   ] = await Promise.all([
     supabase
       .from("events")
-      .select("id, title, settings")
+      .select("id, title, settings, voting_status")
       .eq("id", eventId)
       .single<EventSettingsRow>(),
     supabase
@@ -199,6 +213,7 @@ export default async function BlockPage({ params }: PageProps) {
         ideaStatus={(ideaRow?.status as string | null) ?? null}
         completedByUser={completedByUser}
         slackUrl={slackUrl}
+        votingStatus={eventRow.voting_status}
       />
     </div>
   );
@@ -237,6 +252,7 @@ async function BlockBody({
   ideaStatus,
   completedByUser,
   slackUrl,
+  votingStatus,
 }: {
   blockKey: BlockKey;
   block: BlockRow;
@@ -248,6 +264,7 @@ async function BlockBody({
   ideaStatus: string | null;
   completedByUser: boolean;
   slackUrl: string | null;
+  votingStatus: VotingStatus;
 }) {
   if (blockKey === "ZERO") {
     return (
@@ -293,10 +310,166 @@ async function BlockBody({
     );
   }
 
-  if (blockKey === "+01") return <AwardsPlaceholder />;
-  if (blockKey === "+02") return <ReflectionsPlaceholder />;
+  if (blockKey === "+01") {
+    return (
+      <HackyAwardsBody
+        eventId={eventId}
+        userId={userId}
+        votingStatus={votingStatus}
+      />
+    );
+  }
+  if (blockKey === "+02") {
+    return <ReflectionsBody eventId={eventId} userId={userId} />;
+  }
 
   return null;
+}
+
+async function HackyAwardsBody({
+  eventId,
+  userId,
+  votingStatus,
+}: {
+  eventId: string;
+  userId: string;
+  votingStatus: VotingStatus;
+}) {
+  const supabase = await createClient();
+
+  // Load categories + ideas + my picks in parallel. When voting is
+  // revealed we also load the snapshot from `awards`. The ballot needs
+  // ideas regardless of mode so the closed state can render the empty
+  // case cleanly.
+  const [
+    { data: categoryRows },
+    { data: ideaRows },
+    { data: voteRows },
+    { data: awardRows },
+  ] = await Promise.all([
+    supabase
+      .from("award_categories")
+      .select("id, name, description, sort_order")
+      .eq("event_id", eventId)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("ideas")
+      .select("id, title, user_id, profiles(full_name, email)")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("votes")
+      .select("category_id, idea_id")
+      .eq("event_id", eventId)
+      .eq("user_id", userId),
+    votingStatus === "revealed"
+      ? supabase
+          .from("awards")
+          .select(
+            "category_id, winner_idea_id, winner_name, project_title, project_url",
+          )
+          .eq("event_id", eventId)
+      : Promise.resolve({ data: [] as const }),
+  ]);
+
+  const categories: BallotCategory[] = (categoryRows ?? []).map((c) => ({
+    id: c.id as string,
+    name: c.name as string,
+    description: (c.description as string | null) ?? null,
+    sort_order: (c.sort_order as number) ?? 0,
+  }));
+
+  const ideas: BallotIdea[] = (ideaRows ?? []).map((i) => {
+    const profileRel = i.profiles as
+      | { full_name: string | null; email: string | null }
+      | { full_name: string | null; email: string | null }[]
+      | null;
+    const profile = Array.isArray(profileRel) ? profileRel[0] : profileRel;
+    const ownerName =
+      profile?.full_name?.trim() ||
+      profile?.email?.split("@")[0] ||
+      null;
+    return {
+      id: i.id as string,
+      title: i.title as string,
+      ownerName,
+      isMine: (i.user_id as string) === userId,
+    };
+  });
+
+  const myPicks: BallotInitialPick[] = (voteRows ?? []).map((v) => ({
+    categoryId: v.category_id as string,
+    ideaId: v.idea_id as string,
+  }));
+
+  const winners: RevealedWinner[] = (awardRows ?? []).map((a) => {
+    const cat = categories.find((c) => c.id === (a.category_id as string));
+    return {
+      categoryId: a.category_id as string,
+      categoryName: cat?.name ?? "Award",
+      ideaTitle:
+        (a.project_title as string | null) ??
+        (a.winner_idea_id
+          ? ideas.find((i) => i.id === a.winner_idea_id)?.title ?? null
+          : null),
+      ownerName: (a.winner_name as string | null) ?? null,
+      projectUrl: (a.project_url as string | null) ?? null,
+    };
+  });
+
+  return (
+    <HackyAwardsScreen
+      eventId={eventId}
+      votingStatus={votingStatus}
+      categories={categories}
+      ideas={ideas}
+      myPicks={myPicks}
+      winners={winners}
+    />
+  );
+}
+
+async function ReflectionsBody({
+  eventId,
+  userId,
+}: {
+  eventId: string;
+  userId: string;
+}) {
+  const supabase = await createClient();
+
+  const [{ data: questionRows }, { data: reflectionRows }] = await Promise.all([
+    supabase
+      .from("reflection_questions")
+      .select("id, question_text, sort_order, is_required")
+      .eq("event_id", eventId)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("reflections")
+      .select("question_id, answer")
+      .eq("event_id", eventId)
+      .eq("user_id", userId),
+  ]);
+
+  const questions: ReflectionQuestion[] = (questionRows ?? []).map((q) => ({
+    id: q.id as string,
+    question_text: q.question_text as string,
+    sort_order: (q.sort_order as number) ?? 0,
+    is_required: Boolean(q.is_required),
+  }));
+
+  const initialAnswers: ReflectionAnswer[] = (reflectionRows ?? []).map((r) => ({
+    questionId: r.question_id as string,
+    answer: (r.answer as string) ?? "",
+  }));
+
+  return (
+    <ReflectionsScreen
+      eventId={eventId}
+      questions={questions}
+      initialAnswers={initialAnswers}
+    />
+  );
 }
 
 /**

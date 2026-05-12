@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { seedAwardCategories } from "@/lib/awards/categories";
+import { seedReflectionQuestions } from "@/lib/reflections/questions";
 
 /**
  * Slug helper — lowercase, ASCII, hyphenated. Suffix logic happens at
@@ -159,6 +161,22 @@ export async function createMinimalEvent(formData: FormData): Promise<
     }
   } catch {
     // Swallow — the event home tolerates an empty block list.
+  }
+
+  // 5. Seed M4 surfaces: 6 award categories (with org-name interpolation)
+  // and 7 default reflection questions. Both helpers are idempotent and
+  // fail-soft — a participant who never hits +01 or +02 is fine if these
+  // didn't seed; the M6 wizard will let organizers customize either set.
+  try {
+    await Promise.all([
+      seedAwardCategories(admin, {
+        eventId: eventRow.id,
+        orgName,
+      }),
+      seedReflectionQuestions(admin, { eventId: eventRow.id }),
+    ]);
+  } catch {
+    // Swallow — M4 surfaces tolerate missing seeds.
   }
 
   redirect(`/events/${eventRow.id}`);

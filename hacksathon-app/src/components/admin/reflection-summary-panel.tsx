@@ -133,7 +133,15 @@ export function ReflectionSummaryPanel({
           </p>
         </CardContent>
         <CardFooter>
-          <Button onClick={generate} disabled={pending}>
+          <Button
+            onClick={generate}
+            disabled={pending || reflectionResponseCount === 0}
+            title={
+              reflectionResponseCount === 0
+                ? "Wait until at least one participant has answered a reflection question."
+                : undefined
+            }
+          >
             <Sparkles className="mr-2 size-4" />
             {pending ? "Generating…" : "Generate summary"}
           </Button>

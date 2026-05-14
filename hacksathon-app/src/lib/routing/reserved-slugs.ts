@@ -32,6 +32,7 @@ export const RESERVED_SLUGS = new Set<string>([
   "terms",
   "admin",
   "callback",
+  "accept-invite",
 ]);
 
 export function isReservedSlug(slug: string): boolean {

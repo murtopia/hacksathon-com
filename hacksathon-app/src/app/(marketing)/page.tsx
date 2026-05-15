@@ -62,7 +62,7 @@ export default function HomePage() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
-              <Link href="/signup">Start your Hacks-a-Thon</Link>
+              <Link href="/waitlist">Join the Waitlist</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/case-study">See the Seven2 Story</Link>
@@ -166,7 +166,7 @@ export default function HomePage() {
             things they never thought possible.
           </p>
           <Button size="lg" className="mt-8" asChild>
-            <Link href="/signup">Set Up Your Event</Link>
+            <Link href="/waitlist">Join the Waitlist</Link>
           </Button>
         </div>
       </section>

@@ -3,15 +3,15 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Pricing — Hacksathon.com",
+  title: "Pricing - Hacksathon.com",
   description:
-    "$995 for up to 25 people. The complete Hacks-a-Thon platform — no feature gates, no subscriptions.",
+    "$995 for up to 25 people. The complete Hacks-a-Thon platform - no feature gates, no subscriptions.",
 };
 
 const included = [
   "Full 10-block event format",
   "Organizer Dashboard with event setup, block controls, and participant management",
-  "IdeaLab — idea submission and gallery",
+  "IdeaLab - idea submission and gallery",
   "AI planning conversation with a consolidated Blueprint output",
   "Shark Tank Pitch session structure",
   "Build sessions with time-blocked structure and Add to Calendar links",
@@ -27,17 +27,22 @@ const faqs = [
   {
     question: "What's included in every event?",
     answer:
-      "Everything. Every event gets the complete platform — all 10 blocks, AI tools, awards, reflections, coaching layer, branding, and reporting. The only variable is how many people you invite.",
+      "Everything. Every event gets the complete platform - all 10 blocks, AI tools, awards, reflections, coaching layer, branding, and reporting. The only variable is how many people you invite.",
   },
   {
-    question: "Can I try it before buying?",
+    question: "How does buying work?",
     answer:
-      "Yes. The Organizer Demo Environment lets you create a free account, configure a complete event, and preview every participant-facing screen — with no time limit and no credit card required. You pay when you're ready to invite participants and launch your event.",
+      "You purchase your event up front, then set everything up - the Hacky Helper walks you through identity, schedule, your team, awards, and reflections step by step. Have a promo code? Enter it at checkout.",
   },
   {
     question: "Is facilitation included?",
     answer:
       "The platform is the facilitator. Every block includes built-in coaching tips for the Organizer, participant-facing instructions, and a structured format designed to run without outside help. You run it. That's the point.",
+  },
+  {
+    question: "Is the AI build tool included?",
+    answer:
+      "No. Your price covers the Hacksathon platform. The AI build tools your team uses to actually build - Lovable, Cursor, v0, Replit, Google AI Studio, and others - are separate products, and many teams already have one through their company plan. You pick a default (or let participants choose their own) during setup.",
   },
 ];
 
@@ -70,11 +75,11 @@ export default function PricingPage() {
 
         {/* Primary CTA */}
         <div className="flex flex-col items-center gap-3 mb-16">
-          <Button size="lg" className="px-8 text-base" asChild>
-            <Link href="/signup">Set Up Your Event</Link>
+          <Button variant="pill" size="pill" className="px-8 text-base" asChild>
+            <Link href="/checkout">Buy Your Hacks-a-Thon</Link>
           </Button>
           <p className="text-sm text-[var(--text-tertiary)]">
-            Configure your event free. Pay when you&apos;re ready to launch.
+            Purchase now, then set everything up with the Hacky Helper.
           </p>
         </div>
 
@@ -84,11 +89,11 @@ export default function PricingPage() {
             Running this for more than 50 people?
           </p>
           <Button variant="outline" asChild>
-            <Link href="mailto:nick@murtopolis.com">Let&apos;s talk</Link>
+            <Link href="mailto:support@hacksathon.com">Let&apos;s talk</Link>
           </Button>
         </div>
 
-        {/* Price breakpoints — small supporting note */}
+        {/* Price breakpoints - small supporting note */}
         <div className="mb-20">
           <h4 className="mb-4 text-center">Team size breakpoints</h4>
           <div className="max-w-sm mx-auto">
@@ -165,11 +170,11 @@ export default function PricingPage() {
         <div className="text-center pt-8 border-t border-[var(--border-default)]">
           <h2 className="mb-3">Ready to run your Hacks-a-Thon?</h2>
           <p className="text-[var(--text-secondary)] mb-6">
-            Set up your event in minutes. Pay when you&apos;re ready to launch.
+            Buy your event, then set it up in minutes with the Hacky Helper.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button size="lg" className="px-8" asChild>
-              <Link href="/signup">Set Up Your Event</Link>
+            <Button variant="pill" size="pill" className="px-8" asChild>
+              <Link href="/checkout">Buy Your Hacks-a-Thon</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/case-study">See the Seven2 Story</Link>

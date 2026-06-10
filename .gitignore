@@ -13,3 +13,7 @@ node_modules/
 .env
 .env.local
 .env.*.local
+
+# Design source files (large binaries, not versioned in git)
+Hacks Art Files/
+*.psd

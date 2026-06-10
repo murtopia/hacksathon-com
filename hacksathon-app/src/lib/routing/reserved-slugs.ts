@@ -24,6 +24,7 @@ export const RESERVED_SLUGS = new Set<string>([
   "idealab",
   "settings",
   "pricing",
+  "checkout",
   "case-study",
   "showcase",
   "forgot-password",

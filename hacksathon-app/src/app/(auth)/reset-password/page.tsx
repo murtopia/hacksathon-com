@@ -86,7 +86,7 @@ export default function ResetPasswordPage() {
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" variant="pill" size="pill" className="w-full" disabled={loading}>
             {loading ? "Updating..." : "Update password"}
           </Button>
         </form>

@@ -85,7 +85,7 @@ export default async function AcceptInvitePage({ params }: PageProps) {
 
   // Pull event + org context for the page header. The relationship
   // types come back as either a single object or an array depending on
-  // the response shape — handle both.
+  // the response shape - handle both.
   const eventRel = invite.events as
     | EventWithOrg
     | EventWithOrg[]
@@ -118,7 +118,7 @@ export default async function AcceptInvitePage({ params }: PageProps) {
 
   if (user) {
     // If the signed-in account's email matches the invite, render a
-    // one-click join. If it doesn't match, warn them — accepting will
+    // one-click join. If it doesn't match, warn them - accepting will
     // bind THIS account, not the invited email's.
     return (
       <SignedInJoin
@@ -141,7 +141,7 @@ export default async function AcceptInvitePage({ params }: PageProps) {
           <img
             src={logoUrl}
             alt={`${orgName || eventRow.title} logo`}
-            className="h-10 w-10 rounded-md border bg-muted object-contain"
+            className="h-10 w-auto max-w-[160px] rounded-md border bg-muted object-contain"
           />
         ) : null}
         <div className="min-w-0">
@@ -150,7 +150,7 @@ export default async function AcceptInvitePage({ params }: PageProps) {
               {orgName}
             </p>
           )}
-          <h1 className="truncate text-lg font-semibold tracking-tight">
+          <h1 className="truncate text-lg tracking-tight">
             {eventRow.title}
           </h1>
         </div>
@@ -208,7 +208,7 @@ function InviteError({
         </CardHeader>
         {showSignIn && (
           <CardContent>
-            <Button asChild className="w-full">
+            <Button asChild variant="pill" size="pill" className="w-full">
               <Link href="/login">Sign in</Link>
             </Button>
           </CardContent>
@@ -242,7 +242,7 @@ function SignedInJoin({
           <img
             src={logoUrl}
             alt={`${orgName || eventTitle} logo`}
-            className="h-10 w-10 rounded-md border bg-muted object-contain"
+            className="h-10 w-auto max-w-[160px] rounded-md border bg-muted object-contain"
           />
         ) : null}
         <div className="min-w-0">
@@ -251,7 +251,7 @@ function SignedInJoin({
               {orgName}
             </p>
           )}
-          <h1 className="truncate text-lg font-semibold tracking-tight">
+          <h1 className="truncate text-lg tracking-tight">
             {eventTitle}
           </h1>
         </div>
@@ -266,7 +266,7 @@ function SignedInJoin({
             . We&apos;ll add this account to {eventTitle}.
             {signedInEmail.toLowerCase() !== inviteEmail.toLowerCase() && (
               <span className="mt-2 block rounded-md border border-amber-300/60 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/40 dark:text-amber-200">
-                Heads up — the invite was sent to {inviteEmail}. Joining will
+                Heads up - the invite was sent to {inviteEmail}. Joining will
                 bind the event to your current account, not that address.
               </span>
             )}

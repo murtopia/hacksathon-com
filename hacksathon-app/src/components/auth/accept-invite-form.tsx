@@ -103,7 +103,7 @@ export function AcceptInviteForm({
           <span className="font-medium text-foreground">{email}</span>. Sign in
           and we&apos;ll automatically add you to {eventTitle}.
         </p>
-        <Button asChild className="w-full">
+        <Button asChild variant="pill" size="pill" className="w-full">
           <Link href={signInHref}>Sign in to accept</Link>
         </Button>
       </div>
@@ -155,7 +155,7 @@ export function AcceptInviteForm({
         </p>
       )}
 
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" variant="pill" size="pill" disabled={loading} className="w-full">
         {loading ? "Accepting…" : "Accept and start"}
       </Button>
     </form>
@@ -187,7 +187,7 @@ export function AcceptInviteSignedInButton({ token }: { token: string }) {
   }
 
   return (
-    <Button onClick={handleClick} disabled={pending} className="w-full">
+    <Button onClick={handleClick} variant="pill" size="pill" disabled={pending} className="w-full">
       {pending ? "Joining…" : "Yes, join this event"}
     </Button>
   );

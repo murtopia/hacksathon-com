@@ -10,14 +10,13 @@ export const metadata: Metadata = {
 
 const included = [
   "Full 10-block event format",
-  "Organizer Dashboard with event setup, block controls, and participant management",
+  "Hacksathon admin with event setup, block controls, and participant management",
   "IdeaLab - idea submission and gallery",
-  "AI planning conversation with a consolidated Blueprint output",
+  "Guided Blueprint - AI planning conversation that produces a build-ready plan",
   "Shark Tank Pitch session structure",
   "Build sessions with time-blocked structure and Add to Calendar links",
-  "Reflections form with AI-generated event summary",
+  "Reflections with AI-generated recap",
   "Hacky Awards ceremony auto-generated from voting data",
-  "Event Summary Report",
   "Resource Library with Design Direction Guide, Scope Guardian worksheet, and Starter Prompt templates",
   "Organizer coaching tips at every block",
   "Custom branding with your company logo and primary color",
@@ -37,7 +36,7 @@ const faqs = [
   {
     question: "Is facilitation included?",
     answer:
-      "The platform is the facilitator. Every block includes built-in coaching tips for the Organizer, participant-facing instructions, and a structured format designed to run without outside help. You run it. That's the point.",
+      "The platform is the facilitator. Every block includes built-in coaching tips for the organizer, participant-facing instructions, and a structured format designed to run without outside help. You run it. That's the point.",
   },
   {
     question: "Is the AI build tool included?",

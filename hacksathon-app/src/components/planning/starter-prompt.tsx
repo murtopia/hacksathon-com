@@ -54,7 +54,7 @@ export function StarterPrompt({
   const ctaLabel = !prompt
     ? error
       ? "Starter Prompt unavailable"
-      : "Preparing Starter Prompt…"
+      : "Preparing your Starter Prompt…"
     : copiedCta
       ? "Copied!"
       : "Copy Starter Prompt";
@@ -68,7 +68,7 @@ export function StarterPrompt({
       }}
     >
       <div className="mb-5">
-        <span className="mono-label">Next Steps - Build It</span>
+        <span className="mono-label">Next Steps</span>
         <p
           className="font-serif text-[16px] leading-relaxed mt-3"
           style={{ color: "var(--text-secondary)" }}

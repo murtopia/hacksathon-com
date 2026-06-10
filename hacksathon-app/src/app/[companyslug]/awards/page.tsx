@@ -134,7 +134,7 @@ export default async function SlugAwardsPage({ params }: PageProps) {
             : votingStatus === "revealed"
               ? resultsPublished
                 ? "And the winners are…"
-                : "Voting's closed - the winners are being revealed live."
+                : "Voting is closed - the winners are being revealed live."
               : "The ballot will open once your organizer flips the switch."}
         </p>
       </header>

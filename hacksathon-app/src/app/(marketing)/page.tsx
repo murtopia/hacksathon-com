@@ -26,14 +26,14 @@ const features = [
       "A guided AI conversation that turns a rough idea into a build-ready Blueprint and a copy-paste starter prompt - everything they need to start building in the AI tool of their choice.",
   },
   {
-    title: "Voting & Awards",
+    title: "Hacky Awards",
     description:
       "Custom award categories and a team vote where the winners stay hidden until you reveal them live in a full-screen awards ceremony.",
   },
   {
     title: "Reflections & Recap",
     description:
-      "Collect structured reflections, then let AI synthesize them into an approved recap - published on a shareable wrap-up page alongside the winners, every project, and standout quotes.",
+      "Collect structured reflections, then let AI synthesize them into an approved recap - published on the public showcase alongside the winners, every project, and standout quotes.",
   },
 ];
 

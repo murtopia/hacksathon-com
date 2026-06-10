@@ -38,6 +38,7 @@ import {
   isRecognizedBuildTool,
   isByoBuildTool,
 } from "@/lib/build-tool/labels";
+import { statusLabel, type IdeaStatus } from "@/lib/idealab/types";
 
 interface PageProps {
   params: Promise<{ companyslug: string }>;
@@ -602,8 +603,8 @@ function YourIdeaCard({
     <Card>
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="capitalize">
-            {idea.status === "completed" ? "Shipped" : idea.status}
+          <Badge variant="outline">
+            {statusLabel(idea.status as IdeaStatus)}
           </Badge>
           {planningDocCount > 0 && (
             <Badge variant="secondary">

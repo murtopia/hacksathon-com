@@ -159,7 +159,7 @@ export function EventBuildToolSection({
       <p className="max-w-[640px] text-sm text-muted-foreground">
         Build tools are third-party products and{" "}
         <span className="font-medium text-foreground">
-          aren&apos;t included in your Hacksathon purchase
+          aren&apos;t included in your Hacks-a-Thon
         </span>
         . Some may already be part of your company&apos;s plan, or your team
         may prefer to bring their own. Pick a default below, or let

@@ -47,14 +47,13 @@ These conversations typically lead to a large single-event rate, an annual licen
 ### What's included in every tier
 
 - Full 10-block event format
-- Organizer Dashboard (event setup, block controls, participant management)
-- IdeaLab (idea submission, AI-assisted PRD generation, competitive analysis)
-- ZERO.Prmptr (planning documentation module)
-- Shark Tank Pitch module
-- Build Blocks (time-blocked session structure)
-- Reflection module (7-question post-event survey)
+- Hacksathon admin (event setup, block controls, participant management)
+- IdeaLab (idea submission and gallery)
+- Guided Blueprint (AI planning conversation that produces a build-ready plan)
+- Shark Tank Pitch session structure
+- Build sessions (time-blocked structure with Add to Calendar links)
+- Reflections with AI-generated recap
 - Hacky Awards ceremony (auto-generated from voting data)
-- Event Summary Report
 - Resource Library (Design Direction Guide, Scope Guardian worksheet, Starter Prompt templates)
 - Organizer coaching tips at every block
 

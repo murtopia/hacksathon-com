@@ -306,7 +306,6 @@ Used throughout the participant experience and Org Admin to communicate state.
 | In progress | Outline | `--white` | `--text-primary` | `--border-strong` |
 | Complete | Solid fill | `--black` | `--white` | none |
 | Locked | Muted outline + lock icon | `--bg-tertiary` | `--text-tertiary` | `--border-color` |
-| Shipped | Solid fill | `--black` | `--white` | none |
 | Behind | Outline | `--gray-50` | `--text-primary` | `--border-strong` |
 | Submitted | Solid fill | `--black` | `--white` | none |
 | Pitching | Outline | `--white` | `--text-primary` | `--border-strong` |
@@ -315,15 +314,15 @@ Used throughout the participant experience and Org Admin to communicate state.
 **All badges:** JetBrains Mono, 10px, uppercase, wide tracking, 4px border-radius, padding 3px 8px.
 
 **The three tiers of visual weight communicate urgency/completion:**
-- **Solid black fill** = terminal positive state (done, shipped, submitted, voted)
+- **Solid black fill** = terminal positive state (done, complete, submitted, voted)
 - **Outlined** = active state (in progress, in build, currently pitching)
 - **Muted gray** = inactive state (not started, locked, waiting)
 
-This hierarchy works without any color at all. A "Shipped" badge in solid black reads as clearly positive. A "Not started" badge in muted gray reads as clearly inactive. No green or red needed.
+This hierarchy works without any color at all. A "Complete" badge in solid black reads as clearly positive. A "Not started" badge in muted gray reads as clearly inactive. No green or red needed.
 
-**Soft outline on editorial surfaces.** When an Outline-tier badge appears on a content surface (gallery card author row, idea details modal header, showcase tiles), render it with `border-[var(--gray-400)] text-[var(--gray-400)]` instead of the default `border-foreground text-foreground`. Same hierarchy — non-terminal state — but it stops competing with the body type and matches the gray-400 outline buttons that share these surfaces. Solid Fill badges (Complete, Shipped, Submitted) still use the full `--black` fill everywhere; the soft-outline rule only relaxes the *non-terminal* outline tier.
+**Soft outline on editorial surfaces.** When an Outline-tier badge appears on a content surface (gallery card author row, idea details modal header, showcase tiles), render it with `border-[var(--gray-400)] text-[var(--gray-400)]` instead of the default `border-foreground text-foreground`. Same hierarchy — non-terminal state — but it stops competing with the body type and matches the gray-400 outline buttons that share these surfaces. Solid Fill badges (Complete, Submitted) still use the full `--black` fill everywhere; the soft-outline rule only relaxes the *non-terminal* outline tier.
 
-**Admin badges follow the same rule.** No amber Locked pill, no green "Approved" pill, no red destructive callout — ever. The Org Admin dashboard inherits the same grayscale-only contract as the participant surfaces. Locked uses the Muted tier (`--bg-tertiary` / `--text-tertiary` / `--border-color`) plus the `Lock` icon. Approved is terminal-positive — solid `--black` fill with `--white` text, same as Complete/Shipped/Submitted on participant surfaces. Caution callouts (e.g. "revealing locks the event") are rendered as gray-400 outlined containers with serif italic body, not amber alert boxes.
+**Admin badges follow the same rule.** No amber Locked pill, no green "Approved" pill, no red destructive callout — ever. The Org Admin dashboard inherits the same grayscale-only contract as the participant surfaces. Locked uses the Muted tier (`--bg-tertiary` / `--text-tertiary` / `--border-color`) plus the `Lock` icon. Approved is terminal-positive — solid `--black` fill with `--white` text, same as Complete/Submitted on participant surfaces. Caution callouts (e.g. "revealing locks the event") are rendered as gray-400 outlined containers with serif italic body, not amber alert boxes.
 
 ---
 

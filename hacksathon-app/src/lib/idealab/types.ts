@@ -67,7 +67,7 @@ export const IDEA_FIELD_LIMITS = {
 export const STATUS_LABELS: Record<IdeaStatus, string> = {
   idea_stage: "In Progress",
   in_progress: "In Progress",
-  completed: "Completed",
+  completed: "Complete",
 };
 
 export function statusLabel(status: IdeaStatus): string {

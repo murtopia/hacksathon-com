@@ -76,7 +76,7 @@ export function HackyAwardsScreen({
         </p>
         <Button asChild variant="ghost" size="sm" className="-ml-3">
           <Link href={backToShowcaseHref}>
-            Back to the showcase
+            Back to the Showcase
             <ArrowRight className="ml-1.5" />
           </Link>
         </Button>
@@ -112,7 +112,7 @@ export function HackyAwardsScreen({
         </p>
         <Button asChild variant="ghost" size="sm" className="-ml-3">
           <Link href={backToShowcaseHref}>
-            Back to the showcase
+            Back to the Showcase
             <ArrowRight className="ml-1.5" />
           </Link>
         </Button>

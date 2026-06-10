@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
  * 180×180 PNG generated at build time for the iOS Safari home-screen
  * icon (`<link rel="apple-touch-icon">`). iOS adds its own rounded
  * corner mask when the icon is added to the home screen, so the
- * source is a flat black square with a white H — same geometry as
+ * source is a flat black square with a white H - same geometry as
  * `icon.svg`, scaled up.
  */
 

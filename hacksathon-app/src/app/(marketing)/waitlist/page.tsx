@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
   description:
     "Be the first to know when Hacksathon.com is ready to run your team's structured, AI-powered Hacks-a-Thon.",
   openGraph: {
-    title: "Hacksathon.com — Join the Waitlist",
+    title: "Hacksathon.com - Join the Waitlist",
     description:
       "Be the first to know when Hacksathon.com is ready to run your team's structured, AI-powered Hacks-a-Thon.",
     type: "website",
@@ -43,11 +42,11 @@ export default function WaitlistPage() {
   return (
     <div className="flex flex-col">
       <section className="py-16 sm:py-20">
-        <div className="container mx-auto max-w-3xl px-4 text-center">
+        <div className="mx-auto w-full max-w-[var(--container-narrow)] px-4 text-center">
           <Badge variant="secondary" className="mb-5">
             Early access
           </Badge>
-          <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+          <h1 className="text-balance text-4xl tracking-tight sm:text-5xl">
             Be first when Hacksathon.com opens up.
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-balance text-base text-muted-foreground sm:text-lg">
@@ -59,14 +58,10 @@ export default function WaitlistPage() {
       </section>
 
       <section className="pb-16">
-        <div className="container mx-auto max-w-xl px-4">
+        <div className="mx-auto w-full max-w-xl px-4">
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="text-xl">Join the waitlist</CardTitle>
-              <CardDescription>
-                Tell us a little about you and your team. It takes about
-                fifteen seconds.
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <WaitlistForm />
@@ -76,7 +71,7 @@ export default function WaitlistPage() {
       </section>
 
       <section className="border-y bg-muted/30 py-12">
-        <div className="container mx-auto px-4">
+        <div className="mx-auto w-full max-w-[var(--container-default)] px-4">
           <p className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             From a real Hacks-a-Thon at Seven2
           </p>

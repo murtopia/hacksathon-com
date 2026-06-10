@@ -1,4 +1,6 @@
-import { ExternalLink, Lightbulb } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+
+export type IdeaStatus = "completed" | "in_progress" | "idea_stage";
 
 export interface IdeaGalleryEntry {
   ideaId: string;
@@ -9,37 +11,45 @@ export interface IdeaGalleryEntry {
   screenshotUrl: string | null;
   heroCropX: number;
   isWinner: boolean;
+  status?: IdeaStatus | null;
 }
 
 interface IdeaGalleryProps {
   ideas: IdeaGalleryEntry[];
+  /** Override the section eyebrow/heading/blurb (defaults suit a finished showcase). */
+  eyebrow?: string;
+  heading?: string;
+  blurb?: string;
 }
+
+const STATUS_LABEL: Record<IdeaStatus, string> = {
+  completed: "Complete",
+  in_progress: "Building",
+  idea_stage: "Ideating",
+};
 
 /**
  * Browsable grid of every idea submitted to the event. Winners get a
  * subtle ribbon (the marquee winner cards live above in WinnersGrid).
  *
- * No pagination yet — typical event size is 5–30 ideas, which renders
+ * No pagination yet - typical event size is 5–30 ideas, which renders
  * comfortably. If we ever support 100+ idea events, we'll swap this for
  * a virtualized list.
  */
-export function IdeaGallery({ ideas }: IdeaGalleryProps) {
+export function IdeaGallery({ ideas, eyebrow, heading, blurb }: IdeaGalleryProps) {
   if (ideas.length === 0) return null;
 
   return (
     <section id="ideas" className="border-b">
-      <div className="container mx-auto max-w-6xl px-4 py-16 sm:py-20">
+      <div className="mx-auto w-full max-w-[var(--container-default)] px-4 py-16 sm:py-20">
         <header className="mb-10 space-y-2 text-center">
-          <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            <Lightbulb className="size-3.5" aria-hidden />
-            Every idea
-          </p>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            What our team built
+          <p className="mono-label">{eyebrow ?? "Every idea"}</p>
+          <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
+            {heading ?? "What our team built"}
           </h2>
-          <p className="mx-auto max-w-xl text-sm text-muted-foreground">
-            {ideas.length} {ideas.length === 1 ? "idea" : "ideas"} shipped.
-            Click through to see the live demos.
+          <p className="lead mx-auto">
+            {blurb ??
+              `${ideas.length} ${ideas.length === 1 ? "idea" : "ideas"} shipped. Click through to see the live demos.`}
           </p>
         </header>
 
@@ -82,9 +92,9 @@ function IdeaCard({ idea }: { idea: IdeaGalleryEntry }) {
       ) : (
         <div
           aria-hidden
-          className="relative flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-muted to-muted/40 text-muted-foreground"
+          className="relative flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-muted to-muted/40 font-serif text-4xl text-muted-foreground"
         >
-          <Lightbulb className="size-8" />
+          {idea.title.slice(0, 1).toUpperCase()}
           {idea.isWinner && (
             <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-amber-500/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-50 shadow-sm">
               Winner
@@ -94,7 +104,12 @@ function IdeaCard({ idea }: { idea: IdeaGalleryEntry }) {
       )}
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight">
+        {idea.status && (
+          <span className="mono-label w-fit text-muted-foreground">
+            {STATUS_LABEL[idea.status]}
+          </span>
+        )}
+        <h3 className="line-clamp-2 text-base leading-snug tracking-tight">
           {idea.title}
         </h3>
         {idea.pitch && (

@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
+const heroMeta = [
+  { label: "Duration", value: "1-3 Weeks" },
+  { label: "Platform", value: "You Choose" },
+  { label: "Format", value: "Solo Builds" },
+  { label: "Participation", value: "Anyone" },
+];
 
 const features = [
   {
@@ -10,59 +16,94 @@ const features = [
       "A structured, time-blocked format from kickoff to showcase. Every phase is designed to move participants from idea to live demo.",
   },
   {
-    title: "AI-Powered Ideation",
+    title: "IdeaLab",
     description:
-      "Built-in IdeaLab where participants brainstorm, submit, and refine ideas with AI assistance for competitive analysis and feature prioritization.",
+      "One shared space where everyone submits their idea, tracks its progress from concept to live link, and sees what the rest of the team is building.",
   },
   {
-    title: "Documentation Assistant",
+    title: "Guided Blueprint",
     description:
-      "A conversational AI guide that walks participants through creating project briefs, features, user flows, design guides, and tech stack docs.",
+      "A guided AI conversation that turns a rough idea into a build-ready Blueprint and a copy-paste starter prompt - everything they need to start building in the AI tool of their choice.",
   },
   {
-    title: "Rich Document Editor",
+    title: "Voting & Awards",
     description:
-      "A WYSIWYG markdown editor for polishing documentation, with auto-save, export to multiple formats, and shareable public links.",
+      "Custom award categories and a team vote where the winners stay hidden until you reveal them live in a full-screen awards ceremony.",
   },
   {
-    title: "Blind Voting & Awards",
+    title: "Reflections & Recap",
     description:
-      "Configurable award categories with a blind ballot system. Fair, transparent, and exciting. Announce winners live from the admin dashboard.",
+      "Collect structured reflections, then let AI synthesize them into an approved recap - published on a shareable wrap-up page alongside the winners, every project, and standout quotes.",
   },
-  {
-    title: "Reflections & Case Study",
-    description:
-      "Capture participant learnings with structured reflection questions. Feature the best quotes. Auto-generate a case study from your event.",
-  },
-];
-
-const stats = [
-  { value: "13", label: "Live Prototypes Built" },
-  { value: "2-3", label: "Weeks, Start to Finish" },
-  { value: "100%", label: "Participation Rate" },
-  { value: '12/12', label: "Said It Was Easier Than Expected" },
 ];
 
 export default function HomePage() {
   return (
     <div className="flex flex-col">
-      {/* Hero */}
-      <section className="py-24 md:py-32">
-        <div className="container mx-auto px-4 text-center">
-          <Badge variant="secondary" className="mb-6">
+      {/* Hero - editorial port of hacks.murtopolis.com */}
+      <section className="border-b py-20 md:py-28">
+        <div className="mx-auto w-full max-w-[var(--container-default)] px-4">
+          <p className="mono-label mb-5">
             Built from a real Hacks-a-Thon. Tested on real non-technical teams.
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-tight">
+          </p>
+          <h1 className="max-w-4xl font-serif text-5xl font-normal leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
             Run a world-class Hacks-a-Thon at your company
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            The turnkey platform for structured, AI-powered Hacks-a-Thons. From
-            ideation to showcase, everything your team needs to build something
-            real — no coding experience required.
+          <p className="mt-6 max-w-2xl font-serif text-xl italic leading-snug text-[var(--text-secondary)] sm:text-2xl lg:text-3xl">
+            A turnkey platform for running a structured, AI-powered Hacks-a-Thon.
+            It takes your team from idea to a real, working app in short,
+            time-blocked sessions over a few weeks, not one long day, so it fits
+            around everyone&apos;s schedule. No coding experience required.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link href="/waitlist">Join the Waitlist</Link>
+
+          <div className="mt-10 grid grid-cols-2 gap-4 border-y py-5 sm:grid-cols-4">
+            {heroMeta.map((item) => (
+              <div key={item.label}>
+                <span className="block font-mono text-xs font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
+                  {item.label}
+                </span>
+                <span className="mt-1 block font-serif text-lg">
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 max-w-[640px] space-y-5">
+            <p className="font-serif text-2xl italic leading-snug text-foreground sm:text-3xl">
+              We&apos;re all just hacks. And that&apos;s kind of the point.
+            </p>
+            <p className="font-serif text-lg leading-relaxed text-[var(--text-secondary)]">
+              We&apos;re calling this a Hacks-a-Thon for a reason: nobody&apos;s
+              pretending to be an expert developer (except the few who actually
+              are), and it&apos;s okay to be a hack. Our Hacks-a-Thon is a focused,
+              time-blocked program that helps everyone on your team learn to build
+              with AI. It runs in short sessions that you define, spread across a
+              few weeks, so it fits around real work instead of taking over a whole
+              day.
+            </p>
+            <p className="font-serif text-lg leading-relaxed text-[var(--text-secondary)]">
+              All you need is an idea, curiosity, and a willingness to try.
+              Hacksathon.com is designed for everyone across your whole
+              organization, from marketing to operations to HR, who has never
+              written a line of code.
+            </p>
+          </div>
+
+          <figure className="mt-10 max-w-[640px] border-l-2 border-primary/40 pl-6">
+            <blockquote className="font-serif text-xl italic leading-snug text-foreground sm:text-2xl">
+              &ldquo;The single most impactful thing we&apos;ve done for AI
+              literacy. Now my team approaches everything with an AI-first
+              mindset.&rdquo;
+            </blockquote>
+            <figcaption className="mono-label mt-3">
+              Nick Murto, Co-Founder of Seven2
+            </figcaption>
+          </figure>
+
+          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+            <Button variant="pill" size="pill" asChild>
+              <Link href="/checkout">Get Started</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/case-study">See the Seven2 Story</Link>
@@ -71,47 +112,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-16 border-y bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold">{stat.value}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Philosophy */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 text-center max-w-3xl">
-          <blockquote className="text-2xl md:text-3xl font-serif italic text-muted-foreground">
-            &ldquo;We&apos;re all just hacks. And that&apos;s kind of the point.&rdquo;
-          </blockquote>
-          <p className="mt-6 text-muted-foreground">
-            Success is defined by participation, momentum, and growth — not
-            perfection. Hacksathon.com is designed for creative teams, project
-            managers, designers, and strategists who have never written a line of
-            code.
-          </p>
-        </div>
-      </section>
-
       {/* Features */}
       <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
+        <div className="mx-auto w-full max-w-[var(--container-default)] px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold">Everything you need, integrated</h2>
+            <h2 className="text-3xl">Everything you need, integrated</h2>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
               Five purpose-built tools woven into one seamless experience.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-6">
             {features.map((feature) => (
-              <Card key={feature.title}>
+              <Card
+                key={feature.title}
+                className="w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
+              >
                 <CardHeader>
                   <CardTitle className="text-lg">{feature.title}</CardTitle>
                 </CardHeader>
@@ -128,14 +143,14 @@ export default function HomePage() {
 
       {/* Testimonial */}
       <section className="py-20">
-        <div className="container mx-auto px-4 text-center max-w-3xl">
-          <h2 className="text-3xl font-bold mb-10">What participants said</h2>
+        <div className="mx-auto w-full max-w-[var(--container-narrow)] px-4 text-center">
+          <h2 className="text-3xl mb-10">What participants said</h2>
           <div className="space-y-8">
             <blockquote className="text-lg italic text-muted-foreground">
               &ldquo;Hacks-a-thon definitely proved that anyone can make an app or
               website using current AI and vibe coding platforms.&rdquo;
               <footer className="mt-2 text-sm font-medium text-foreground not-italic">
-                — Adam Simons, Seven2
+                - Adam Simons, Seven2
               </footer>
             </blockquote>
             <blockquote className="text-lg italic text-muted-foreground">
@@ -143,14 +158,14 @@ export default function HomePage() {
               problem I have recently, &apos;oh I could make a solution for
               that&apos; rather than &apos;someone should make an app for that.&apos;&rdquo;
               <footer className="mt-2 text-sm font-medium text-foreground not-italic">
-                — Sena Lauer, Seven2
+                - Sena Lauer, Seven2
               </footer>
             </blockquote>
             <blockquote className="text-lg italic text-muted-foreground">
               &ldquo;If you have a vision, you can build it. This is such an easy
               process.&rdquo;
               <footer className="mt-2 text-sm font-medium text-foreground not-italic">
-                — Christina Williams, Seven2
+                - Christina Williams, Seven2
               </footer>
             </blockquote>
           </div>
@@ -159,14 +174,14 @@ export default function HomePage() {
 
       {/* CTA */}
       <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold">Ready to run your Hacks-a-Thon?</h2>
+        <div className="mx-auto w-full max-w-[var(--container-default)] px-4 text-center">
+          <h2 className="text-3xl">Ready to run your Hacks-a-Thon?</h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
             Set up your event in minutes. Invite your team. Watch them build
             things they never thought possible.
           </p>
-          <Button size="lg" className="mt-8" asChild>
-            <Link href="/waitlist">Join the Waitlist</Link>
+          <Button variant="pill" size="pill" className="mt-8" asChild>
+            <Link href="/checkout">Get Started</Link>
           </Button>
         </div>
       </section>

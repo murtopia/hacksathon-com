@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Sparkles, Trophy } from "lucide-react";
 
 export interface ShowcaseHeroProps {
   logoUrl: string | null;
@@ -20,8 +19,8 @@ export interface ShowcaseHeroProps {
  *   - jump links to the three main sections (Winners, Ideas, Recap)
  *
  * This is the unit a marketer screenshots for a case-study link, so we
- * keep it visually punchy: large type, generous whitespace, a single
- * subtle accent (the trophy icon next to the title).
+ * keep it visually punchy: large type, generous whitespace, and quiet
+ * typographic styling (no decorative iconography per the design system).
  */
 export function ShowcaseHero({
   logoUrl,
@@ -34,15 +33,15 @@ export function ShowcaseHero({
 }: ShowcaseHeroProps) {
   return (
     <section className="relative overflow-hidden border-b bg-gradient-to-b from-muted/60 to-background">
-      <div className="container mx-auto max-w-5xl px-4 py-16 sm:py-24">
+      <div className="mx-auto w-full max-w-[var(--container-default)] px-4 py-16 sm:py-24">
         <div className="flex flex-col items-center gap-6 text-center">
           {logoUrl ? (
-            <div className="h-20 w-20 overflow-hidden rounded-lg border bg-background shadow-sm">
+            <div className="h-20 w-auto min-w-[80px] max-w-[320px] overflow-hidden rounded-lg border bg-background shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={logoUrl}
                 alt={`${orgName ?? eventTitle} logo`}
-                className="h-full w-full object-contain"
+                className="h-full w-auto object-contain"
               />
             </div>
           ) : (
@@ -60,8 +59,7 @@ export function ShowcaseHero({
                 {orgName} Hacks-a-Thon
               </p>
             )}
-            <h1 className="flex flex-wrap items-center justify-center gap-3 text-4xl font-bold tracking-tight sm:text-5xl">
-              <Trophy className="size-8 text-amber-500 sm:size-9" aria-hidden />
+            <h1 className="font-serif text-4xl tracking-tight sm:text-5xl">
               {eventTitle}
             </h1>
             {dateRangeLabel && (
@@ -98,9 +96,8 @@ export function ShowcaseHero({
             {hasRecap && (
               <Link
                 href="#recap"
-                className="inline-flex items-center gap-1.5 rounded-full border bg-background px-4 py-1.5 font-medium transition-colors hover:bg-muted"
+                className="rounded-full border bg-background px-4 py-1.5 font-medium transition-colors hover:bg-muted"
               >
-                <Sparkles className="size-3.5" aria-hidden />
                 The recap
               </Link>
             )}
@@ -135,6 +132,6 @@ function summarize({
     );
   }
   const lead = parts.join(" · ");
-  const tail = hasRecap ? " — here's the recap." : ".";
+  const tail = hasRecap ? " - here's the recap." : ".";
   return `${lead}${tail}`;
 }

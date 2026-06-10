@@ -1,4 +1,4 @@
-import { Award, ExternalLink } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 
 export interface WinnerEntry {
   awardId: string;
@@ -17,6 +17,8 @@ export interface WinnerEntry {
 
 interface WinnersGridProps {
   winners: WinnerEntry[];
+  /** Vanity slug - used to build shareable winner-card download links. */
+  slug?: string;
 }
 
 /**
@@ -30,24 +32,22 @@ interface WinnersGridProps {
  * tally writes exactly one winner per category. Showing only that
  * matches the spec (no vote counts) and keeps the page focused.
  */
-export function WinnersGrid({ winners }: WinnersGridProps) {
+export function WinnersGrid({ winners, slug }: WinnersGridProps) {
   if (winners.length === 0) return null;
 
   return (
     <section id="winners" className="border-b">
-      <div className="container mx-auto max-w-5xl px-4 py-16 sm:py-20">
+      <div className="mx-auto w-full max-w-[var(--container-default)] px-4 py-16 sm:py-20">
         <header className="mb-10 space-y-2 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Hacky Awards
-          </p>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <p className="mono-label">Hacky Awards</p>
+          <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
             The winners
           </h2>
         </header>
 
         <div className="grid gap-6 sm:grid-cols-2">
           {winners.map((winner) => (
-            <WinnerCard key={winner.awardId} winner={winner} />
+            <WinnerCard key={winner.awardId} winner={winner} slug={slug} />
           ))}
         </div>
       </div>
@@ -55,10 +55,20 @@ export function WinnersGrid({ winners }: WinnersGridProps) {
   );
 }
 
-function WinnerCard({ winner }: { winner: WinnerEntry }) {
+function WinnerCard({
+  winner,
+  slug,
+}: {
+  winner: WinnerEntry;
+  slug?: string;
+}) {
   const demoUrl = winner.liveUrl ?? winner.projectUrl ?? null;
   const description =
     winner.ideaPitch?.trim() || winner.ideaDescription?.trim() || null;
+  const cardSlugBase = winner.categoryName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md">
@@ -77,16 +87,15 @@ function WinnerCard({ winner }: { winner: WinnerEntry }) {
       ) : (
         <div
           aria-hidden
-          className="flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-muted to-muted/40 text-muted-foreground"
+          className="flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-muted to-muted/40 font-serif text-5xl text-muted-foreground"
         >
-          <Award className="size-10" />
+          {winner.ideaTitle.slice(0, 1).toUpperCase()}
         </div>
       )}
 
       <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
         <div className="space-y-1">
-          <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-400">
-            <Award className="size-3.5" aria-hidden />
+          <p className="mono-label text-amber-700 dark:text-amber-400">
             {winner.categoryName}
           </p>
           {winner.categoryDescription && (
@@ -96,7 +105,7 @@ function WinnerCard({ winner }: { winner: WinnerEntry }) {
           )}
         </div>
 
-        <h3 className="text-xl font-semibold leading-tight tracking-tight">
+        <h3 className="text-xl leading-tight tracking-tight">
           {winner.ideaTitle}
         </h3>
 
@@ -113,17 +122,29 @@ function WinnerCard({ winner }: { winner: WinnerEntry }) {
               <span className="font-medium">{winner.authorName}</span>
             </p>
           )}
-          {demoUrl && (
-            <a
-              href={demoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-            >
-              Visit
-              <ExternalLink className="size-3.5" aria-hidden />
-            </a>
-          )}
+          <div className="flex shrink-0 items-center gap-3">
+            {slug && (
+              <a
+                href={`/${slug}/awards/card/${winner.awardId}`}
+                download={`hacky-award-${cardSlugBase || "winner"}.png`}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground hover:underline"
+              >
+                <Download className="size-3.5" aria-hidden />
+                Card
+              </a>
+            )}
+            {demoUrl && (
+              <a
+                href={demoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              >
+                Visit
+                <ExternalLink className="size-3.5" aria-hidden />
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </article>

@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 /**
  * Invite-token primitives.
  *
- * Tokens are 32 random bytes encoded base64url — 256 bits of entropy,
+ * Tokens are 32 random bytes encoded base64url - 256 bits of entropy,
  * URL-safe with no padding. They live in `event_invitations.token` and
  * are looked up via the (already-indexed) UNIQUE constraint there.
  *

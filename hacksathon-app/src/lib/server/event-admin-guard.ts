@@ -15,7 +15,7 @@ export interface EventAdminContext {
  * failure (401 / 403 / 404) that the caller can short-circuit return
  * directly. Internally calls the `is_event_admin` SECURITY DEFINER
  * function to avoid recursing through events/organization_members
- * RLS — same pattern the existing RLS policies use.
+ * RLS - same pattern the existing RLS policies use.
  */
 export async function requireEventAdmin(
   eventId: string,

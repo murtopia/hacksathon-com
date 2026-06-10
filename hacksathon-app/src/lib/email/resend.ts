@@ -16,7 +16,7 @@ import type { ReactElement } from "react";
  * data integrity. The invitation row in the database is the source of
  * truth; the email is just the delivery mechanism. If `sendEmail`
  * returns `{ ok: false }`, the caller should surface a recoverable
- * "we couldn't email them just now — copy this link instead" UX.
+ * "we couldn't email them just now - copy this link instead" UX.
  */
 
 const apiKey = process.env.RESEND_API_KEY;
@@ -58,7 +58,7 @@ export async function sendEmail(
 
   if (!client) {
     console.warn(
-      "[email] RESEND_API_KEY is not set — email not actually sent. Subject:",
+      "[email] RESEND_API_KEY is not set - email not actually sent. Subject:",
       params.subject,
       "To:",
       params.to,

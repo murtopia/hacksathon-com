@@ -18,7 +18,7 @@ export interface WaitlistConfirmationEmailProps {
 /**
  * Plain-text-friendly confirmation email sent after a waitlist signup.
  *
- * Deliberately quiet copy: no CTAs, no marketing chrome — just an
+ * Deliberately quiet copy: no CTAs, no marketing chrome - just an
  * acknowledgement that the signup landed, so the user knows we have
  * their address and what happens next. Shares the visual system with
  * `[src/emails/participant-invite.tsx](hacksathon-app/src/emails/participant-invite.tsx)`
@@ -43,7 +43,7 @@ export function WaitlistConfirmationEmail({
           <Section>
             <Text style={heading}>You&apos;re on the list, {firstName}.</Text>
             <Text style={paragraph}>
-              Thanks for raising your hand — we&apos;ll be in touch when
+              Thanks for raising your hand - we&apos;ll be in touch when
               Hacksathon.com is ready for your team to run its first
               Hacks-a-Thon.
             </Text>

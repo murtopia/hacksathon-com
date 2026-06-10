@@ -1,29 +1,13 @@
-import { Metadata } from "next";
-import { createMinimalEvent } from "./actions";
-import { NewEventForm } from "./new-event-form";
-
-export const metadata: Metadata = {
-  title: "Create Event",
-};
+import { redirect } from "next/navigation";
 
 /**
- * Minimal event create form — intentionally a stub to unblock IdeaLab
- * testing in M2. The full organizer wizard (timeline blocks, awards,
- * reflection questions, branding, payment) lands in M6 and will
- * replace this entire page.
+ * Legacy free event-creation entry point.
+ *
+ * Superseded by the purchase-first flow: events are now provisioned only
+ * after a successful Stripe Checkout (see `/checkout` + the webhook).
+ * This route stays as a permanent redirect so any old bookmarks/links
+ * land on checkout instead of a now-removed free form.
  */
 export default function NewEventPage() {
-  return (
-    <div className="max-w-xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Create Event</h1>
-        <p className="text-muted-foreground mt-1">
-          A two-field setup to get you into the IdeaLab. The full event
-          configuration (timeline, awards, branding) is on its way.
-        </p>
-      </div>
-
-      <NewEventForm action={createMinimalEvent} />
-    </div>
-  );
+  redirect("/checkout");
 }

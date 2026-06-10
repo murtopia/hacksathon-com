@@ -80,7 +80,7 @@ export function ParticipantInviteEmail({
           <Section>
             <Text style={footer}>
               This invite was sent to {recipientEmail}. If you weren&apos;t
-              expecting it, you can ignore this email — nothing happens until
+              expecting it, you can ignore this email - nothing happens until
               you accept.
             </Text>
             <Text style={footer}>Hacksathon.com</Text>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Replit">
+  <rect width="48" height="48" rx="11" fill="#F26207"/>
+  <g fill="#fff">
+    <rect x="13" y="12.5" width="10" height="10" rx="2.2"/>
+    <rect x="25" y="12.5" width="10" height="10" rx="2.2"/>
+    <rect x="13" y="25" width="10" height="10" rx="2.2"/>
+  </g>
+</svg>

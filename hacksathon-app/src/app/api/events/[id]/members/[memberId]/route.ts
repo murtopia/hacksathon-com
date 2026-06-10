@@ -15,11 +15,11 @@ export const maxDuration = 10;
  * status='active' for membership checks, so a removed user loses
  * access immediately on the next request.
  *
- * Refuses to remove admins or the last admin — a future M6 follow-on
+ * Refuses to remove admins or the last admin - a future M6 follow-on
  * (transfer ownership) handles those cases. For now, organizers can
  * only remove participants.
  *
- * Refuses to remove yourself — orgs always need at least one admin
+ * Refuses to remove yourself - orgs always need at least one admin
  * present; if you really want out, you'd hand off to another admin
  * first.
  */

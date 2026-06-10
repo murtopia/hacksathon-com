@@ -12,7 +12,7 @@ export const maxDuration = 15;
 /**
  * Update event basics + branding + settings. Admin-only.
  *
- * Accepts a partial payload — any provided fields are validated and
+ * Accepts a partial payload - any provided fields are validated and
  * written, omitted fields are left alone. `settings` merges with the
  * existing JSONB (shallow) so callers don't have to round-trip the
  * whole object.
@@ -20,7 +20,7 @@ export const maxDuration = 15;
  * Vanity-slug validation:
  *   - Lowercased + URL-shape checked (^[a-z0-9-]{3,40}$).
  *   - Reserved slugs (api, login, etc.) refused.
- *   - Uniqueness checked against events.vanity_slug — case-insensitive.
+ *   - Uniqueness checked against events.vanity_slug - case-insensitive.
  *
  * Lock guard: if events.is_locked = true, every field except the
  * settings.slack_url update is blocked. Organizers can still adjust the
@@ -29,6 +29,12 @@ export const maxDuration = 15;
 
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/;
 
+// Free-form text. The DB constraint (00023_event_build_tool_freeform.sql)
+// enforces non-empty + length <= 50; we mirror that here so the admin
+// gets a friendly error before the round-trip. Recognized vs.
+// unrecognized handling lives in src/lib/build-tool/labels.ts.
+const BUILD_TOOL_MAX_LENGTH = 50;
+
 interface UpdatePayload {
   title?: string;
   description?: string | null;
@@ -36,7 +42,34 @@ interface UpdatePayload {
   welcome_video_url?: string | null;
   vanity_slug?: string | null;
   public_showcase?: boolean;
+  build_tool?: string;
   settings?: Record<string, unknown> | null;
+  voting_open_at?: string | null;
+  voting_close_at?: string | null;
+  reflections_open_at?: string | null;
+  reflections_close_at?: string | null;
+}
+
+const DATE_COLUMNS: (keyof UpdatePayload)[] = [
+  "voting_open_at",
+  "voting_close_at",
+  "reflections_open_at",
+  "reflections_close_at",
+];
+
+function parseIsoTimestamp(
+  value: string | null,
+  field: string,
+): { ok: true; value: string | null } | { ok: false; error: string } {
+  if (value === null || value === "") return { ok: true, value: null };
+  if (typeof value !== "string") {
+    return { ok: false, error: `${field} must be an ISO timestamp string.` };
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return { ok: false, error: `${field} isn't a valid date.` };
+  }
+  return { ok: true, value: parsed.toISOString() };
 }
 
 export async function PATCH(
@@ -82,7 +115,7 @@ export async function PATCH(
     }
     if (current.is_locked) {
       return NextResponse.json(
-        { error: "Event is locked — title can't be changed." },
+        { error: "Event is locked - title can't be changed." },
         { status: 409 },
       );
     }
@@ -92,7 +125,7 @@ export async function PATCH(
   if (body.description !== undefined) {
     if (current.is_locked) {
       return NextResponse.json(
-        { error: "Event is locked — description can't be changed." },
+        { error: "Event is locked - description can't be changed." },
         { status: 409 },
       );
     }
@@ -105,7 +138,7 @@ export async function PATCH(
   if (body.welcome_message !== undefined) {
     if (current.is_locked) {
       return NextResponse.json(
-        { error: "Event is locked — welcome message can't be changed." },
+        { error: "Event is locked - welcome message can't be changed." },
         { status: 409 },
       );
     }
@@ -118,7 +151,7 @@ export async function PATCH(
   if (body.welcome_video_url !== undefined) {
     if (current.is_locked) {
       return NextResponse.json(
-        { error: "Event is locked — welcome video can't be changed." },
+        { error: "Event is locked - welcome video can't be changed." },
         { status: 409 },
       );
     }
@@ -140,7 +173,7 @@ export async function PATCH(
   if (body.vanity_slug !== undefined) {
     if (current.is_locked) {
       return NextResponse.json(
-        { error: "Event is locked — vanity URL can't be changed." },
+        { error: "Event is locked - vanity URL can't be changed." },
         { status: 409 },
       );
     }
@@ -181,6 +214,55 @@ export async function PATCH(
 
   if (typeof body.public_showcase === "boolean") {
     updates.public_showcase = body.public_showcase;
+  }
+
+  if (body.build_tool !== undefined) {
+    if (current.is_locked) {
+      return NextResponse.json(
+        { error: "Event is locked - build tool can't be changed." },
+        { status: 409 },
+      );
+    }
+    if (typeof body.build_tool !== "string") {
+      return NextResponse.json(
+        { error: "Build tool must be a string." },
+        { status: 400 },
+      );
+    }
+    const trimmed = body.build_tool.trim();
+    if (trimmed.length === 0) {
+      return NextResponse.json(
+        { error: "Build tool can't be blank." },
+        { status: 400 },
+      );
+    }
+    if (trimmed.length > BUILD_TOOL_MAX_LENGTH) {
+      return NextResponse.json(
+        {
+          error: `Build tool name is too long (max ${BUILD_TOOL_MAX_LENGTH} characters).`,
+        },
+        { status: 400 },
+      );
+    }
+    updates.build_tool = trimmed;
+  }
+
+  for (const field of DATE_COLUMNS) {
+    if (body[field] === undefined) continue;
+    if (current.is_locked && field.startsWith("voting_")) {
+      return NextResponse.json(
+        { error: "Event is locked - voting window can't be changed." },
+        { status: 409 },
+      );
+    }
+    const parsed = parseIsoTimestamp(
+      (body[field] as string | null) ?? null,
+      field,
+    );
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+    updates[field] = parsed.value;
   }
 
   if (body.settings !== undefined) {
@@ -228,6 +310,18 @@ export async function PATCH(
     .single();
 
   if (error) {
+    if (error.message?.includes("voting_close_after_open")) {
+      return NextResponse.json(
+        { error: "Voting must close after it opens." },
+        { status: 400 },
+      );
+    }
+    if (error.message?.includes("reflections_close_after_open")) {
+      return NextResponse.json(
+        { error: "Reflections must close after they open." },
+        { status: 400 },
+      );
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

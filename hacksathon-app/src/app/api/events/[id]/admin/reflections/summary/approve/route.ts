@@ -7,7 +7,7 @@ export const maxDuration = 10;
 /**
  * Stamp the reflection summary as approved.
  *
- * For M4 the approval is internal-only — it doesn't gate any public
+ * For M4 the approval is internal-only - it doesn't gate any public
  * surface yet. M5 (Public Results) will use approved_at to decide
  * whether to render the recap on the vanity URL.
  */

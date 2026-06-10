@@ -11,6 +11,7 @@ import {
 } from "@/lib/invites/tokens";
 import { sendEmail } from "@/lib/email/resend";
 import { ParticipantInviteEmail } from "@/emails/participant-invite";
+import { stampSetting } from "@/lib/events/settings";
 
 export const maxDuration = 30;
 
@@ -172,6 +173,10 @@ export async function POST(
       recipientEmail: email,
     }),
   });
+
+  // Stamp the "team invited" milestone so the Hacky Helper can flip
+  // the Phase 1 step done. Idempotent - only the first invite writes.
+  await stampSetting(eventId, "team_invited_at");
 
   return NextResponse.json({
     ok: true,

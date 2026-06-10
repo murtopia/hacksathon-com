@@ -5,16 +5,9 @@ import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AdminSection, AdminField } from "@/components/admin/admin-section";
 
 export interface AwardCategoryRow {
   id: string;
@@ -27,6 +20,7 @@ interface AwardCategoriesEditorProps {
   eventId: string;
   categories: AwardCategoryRow[];
   isLocked: boolean;
+  number?: string;
 }
 
 /**
@@ -38,86 +32,82 @@ interface AwardCategoriesEditorProps {
  *   - "Add category" expands an inline new-row form at the bottom.
  *
  * Sort order is implicit (server returns ordered, editor preserves that
- * order). Reordering UI is deferred — organizers usually accept the
+ * order). Reordering UI is deferred - organizers usually accept the
  * defaults.
  */
 export function AwardCategoriesEditor({
   eventId,
   categories,
   isLocked,
+  number = "02",
 }: AwardCategoriesEditorProps) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
   return (
-    <Card id="awards">
-      <CardHeader>
-        <CardTitle className="text-base">Hacky Awards categories</CardTitle>
-        <CardDescription>
-          Voting categories shown to participants when you open voting.
-          Defaults are seeded automatically — edit or remove what you don&apos;t
-          want.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {categories.length === 0 && !adding && (
-          <p className="text-sm text-muted-foreground">
-            No categories yet. Add one below.
-          </p>
-        )}
+    <AdminSection
+      id="categories"
+      number={number}
+      title="Award categories"
+      intent="The categories your team will vote in after the showcase. Defaults are seeded automatically - edit or remove anything you don't want."
+    >
+      {categories.length === 0 && !adding && (
+        <p className="font-serif text-sm italic text-muted-foreground">
+          No categories yet. Add one below.
+        </p>
+      )}
 
-        {categories.map((cat) =>
-          editingId === cat.id ? (
-            <CategoryEditForm
-              key={cat.id}
-              category={cat}
-              onCancel={() => setEditingId(null)}
-              onSaved={() => {
-                setEditingId(null);
-                router.refresh();
-              }}
-            />
-          ) : (
-            <CategoryReadRow
-              key={cat.id}
-              category={cat}
-              disabled={isLocked}
-              onEdit={() => setEditingId(cat.id)}
-              onDeleted={() => router.refresh()}
-            />
-          ),
-        )}
-
-        {adding ? (
-          <CategoryNewForm
-            eventId={eventId}
-            onCancel={() => setAdding(false)}
+      {categories.map((cat) =>
+        editingId === cat.id ? (
+          <CategoryEditForm
+            key={cat.id}
+            category={cat}
+            onCancel={() => setEditingId(null)}
             onSaved={() => {
-              setAdding(false);
+              setEditingId(null);
               router.refresh();
             }}
           />
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
+          <CategoryReadRow
+            key={cat.id}
+            category={cat}
             disabled={isLocked}
-            onClick={() => setAdding(true)}
-          >
-            <Plus className="mr-2 size-4" />
-            Add category
-          </Button>
-        )}
+            onEdit={() => setEditingId(cat.id)}
+            onDeleted={() => router.refresh()}
+          />
+        ),
+      )}
 
-        {isLocked && (
-          <p className="text-xs text-muted-foreground">
-            Event is locked — categories can&apos;t be changed.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      {adding ? (
+        <CategoryNewForm
+          eventId={eventId}
+          onCancel={() => setAdding(false)}
+          onSaved={() => {
+            setAdding(false);
+            router.refresh();
+          }}
+        />
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isLocked}
+          onClick={() => setAdding(true)}
+        >
+          <Plus className="mr-2 size-4" />
+          Add category
+        </Button>
+      )}
+
+      {isLocked && (
+        <p className="font-serif text-xs italic text-muted-foreground">
+          Event is locked - categories can&apos;t be changed.
+        </p>
+      )}
+    </AdminSection>
   );
 }
 
@@ -159,7 +149,7 @@ function CategoryReadRow({
   return (
     <div className="flex items-start justify-between gap-3 rounded-md border bg-card p-3">
       <div className="min-w-0">
-        <p className="text-sm font-semibold">{category.name}</p>
+        <p className="font-serif text-base text-foreground">{category.name}</p>
         {category.description && (
           <p className="mt-0.5 text-xs text-muted-foreground">
             {category.description}
@@ -228,11 +218,11 @@ function CategoryEditForm({
   }
 
   return (
-    <div className="space-y-3 rounded-md border bg-muted/40 p-3">
-      <div className="space-y-1.5">
-        <Label htmlFor={`cat-${category.id}-name`} className="text-xs">
-          Name
-        </Label>
+    <div
+      className="space-y-3 rounded-md border p-3"
+      style={{ backgroundColor: "var(--bg-tertiary)" }}
+    >
+      <AdminField label="Name" htmlFor={`cat-${category.id}-name`}>
         <Input
           id={`cat-${category.id}-name`}
           value={name}
@@ -240,14 +230,11 @@ function CategoryEditForm({
           disabled={pending}
           onChange={(e) => setName(e.target.value)}
         />
-      </div>
-      <div className="space-y-1.5">
-        <Label
-          htmlFor={`cat-${category.id}-description`}
-          className="text-xs"
-        >
-          Description
-        </Label>
+      </AdminField>
+      <AdminField
+        label="Description"
+        htmlFor={`cat-${category.id}-description`}
+      >
         <Textarea
           id={`cat-${category.id}-description`}
           value={description}
@@ -256,9 +243,9 @@ function CategoryEditForm({
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
         />
-      </div>
+      </AdminField>
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={handleSave} disabled={pending}>
+        <Button variant="pill" size="pill" onClick={handleSave} disabled={pending}>
           {pending ? "Saving…" : "Save"}
         </Button>
         <Button
@@ -314,11 +301,11 @@ function CategoryNewForm({
   }
 
   return (
-    <div className="space-y-3 rounded-md border bg-muted/40 p-3">
-      <div className="space-y-1.5">
-        <Label htmlFor="cat-new-name" className="text-xs">
-          Name
-        </Label>
+    <div
+      className="space-y-3 rounded-md border p-3"
+      style={{ backgroundColor: "var(--bg-tertiary)" }}
+    >
+      <AdminField label="Name" htmlFor="cat-new-name">
         <Input
           id="cat-new-name"
           value={name}
@@ -328,11 +315,12 @@ function CategoryNewForm({
           onChange={(e) => setName(e.target.value)}
           placeholder="Most Likely to Ship This Monday"
         />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="cat-new-description" className="text-xs">
-          Description (optional)
-        </Label>
+      </AdminField>
+      <AdminField
+        label="Description"
+        htmlFor="cat-new-description"
+        hint="Optional. Shown under the category name when voters pick."
+      >
         <Textarea
           id="cat-new-description"
           value={description}
@@ -342,9 +330,9 @@ function CategoryNewForm({
           rows={2}
           placeholder="Quick blurb shown under the category name when voters pick."
         />
-      </div>
+      </AdminField>
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={handleSave} disabled={pending}>
+        <Button variant="pill" size="pill" onClick={handleSave} disabled={pending}>
           {pending ? "Adding…" : "Add category"}
         </Button>
         <Button

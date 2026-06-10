@@ -5,16 +5,9 @@ import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { AdminSection, AdminField } from "@/components/admin/admin-section";
 
 export interface ReflectionQuestionRow {
   id: string;
@@ -26,13 +19,14 @@ export interface ReflectionQuestionRow {
 interface ReflectionQuestionsEditorProps {
   eventId: string;
   questions: ReflectionQuestionRow[];
+  number?: string;
 }
 
 /**
  * Manage the reflection questions shown in the +02 block.
  *
  * Same edit-in-place pattern as award categories. Required toggle lives
- * on each row — the AI summary route just feeds whatever answers exist,
+ * on each row - the AI summary route just feeds whatever answers exist,
  * so "required" is a UX hint rather than a hard constraint.
  *
  * Note: reflection questions stay editable even after the event is
@@ -42,70 +36,67 @@ interface ReflectionQuestionsEditorProps {
 export function ReflectionQuestionsEditor({
   eventId,
   questions,
+  number = "02",
 }: ReflectionQuestionsEditorProps) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
   return (
-    <Card id="reflections">
-      <CardHeader>
-        <CardTitle className="text-base">Reflection questions</CardTitle>
-        <CardDescription>
-          Prompts participants answer in the Reflections block. The AI recap
-          synthesizes these into a markdown summary you can edit.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {questions.length === 0 && !adding && (
-          <p className="text-sm text-muted-foreground">
-            No questions yet. Add one below.
-          </p>
-        )}
+    <AdminSection
+      id="questions"
+      number={number}
+      title="Reflection questions"
+      intent="Prompts participants answer in the Reflections block. The AI recap synthesizes their answers into the summary above."
+    >
+      {questions.length === 0 && !adding && (
+        <p className="font-serif text-sm italic text-muted-foreground">
+          No questions yet. Add one below.
+        </p>
+      )}
 
-        {questions.map((q) =>
-          editingId === q.id ? (
-            <QuestionEditForm
-              key={q.id}
-              question={q}
-              onCancel={() => setEditingId(null)}
-              onSaved={() => {
-                setEditingId(null);
-                router.refresh();
-              }}
-            />
-          ) : (
-            <QuestionReadRow
-              key={q.id}
-              question={q}
-              onEdit={() => setEditingId(q.id)}
-              onDeleted={() => router.refresh()}
-            />
-          ),
-        )}
-
-        {adding ? (
-          <QuestionNewForm
-            eventId={eventId}
-            onCancel={() => setAdding(false)}
+      {questions.map((q) =>
+        editingId === q.id ? (
+          <QuestionEditForm
+            key={q.id}
+            question={q}
+            onCancel={() => setEditingId(null)}
             onSaved={() => {
-              setAdding(false);
+              setEditingId(null);
               router.refresh();
             }}
           />
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setAdding(true)}
-          >
-            <Plus className="mr-2 size-4" />
-            Add question
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+          <QuestionReadRow
+            key={q.id}
+            question={q}
+            onEdit={() => setEditingId(q.id)}
+            onDeleted={() => router.refresh()}
+          />
+        ),
+      )}
+
+      {adding ? (
+        <QuestionNewForm
+          eventId={eventId}
+          onCancel={() => setAdding(false)}
+          onSaved={() => {
+            setAdding(false);
+            router.refresh();
+          }}
+        />
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setAdding(true)}
+        >
+          <Plus className="mr-2 size-4" />
+          Add question
+        </Button>
+      )}
+    </AdminSection>
   );
 }
 
@@ -147,7 +138,9 @@ function QuestionReadRow({
       <div className="min-w-0">
         <p className="text-sm">{question.question_text}</p>
         {!question.is_required && (
-          <p className="mt-0.5 text-xs text-muted-foreground">Optional</p>
+          <p className="mt-0.5 font-serif text-xs italic text-muted-foreground">
+            Optional
+          </p>
         )}
       </div>
       <div className="flex shrink-0 items-center gap-1">
@@ -212,11 +205,11 @@ function QuestionEditForm({
   }
 
   return (
-    <div className="space-y-3 rounded-md border bg-muted/40 p-3">
-      <div className="space-y-1.5">
-        <Label htmlFor={`q-${question.id}-text`} className="text-xs">
-          Question
-        </Label>
+    <div
+      className="space-y-3 rounded-md border p-3"
+      style={{ backgroundColor: "var(--bg-tertiary)" }}
+    >
+      <AdminField label="Question" htmlFor={`q-${question.id}-text`}>
         <Input
           id={`q-${question.id}-text`}
           value={text}
@@ -224,14 +217,15 @@ function QuestionEditForm({
           disabled={pending}
           onChange={(e) => setText(e.target.value)}
         />
-      </div>
+      </AdminField>
       <div className="flex items-center justify-between">
-        <Label
+        <label
           htmlFor={`q-${question.id}-required`}
-          className="text-sm font-normal"
+          className="mono-label"
+          style={{ color: "var(--text-tertiary)" }}
         >
           Required
-        </Label>
+        </label>
         <Switch
           id={`q-${question.id}-required`}
           checked={required}
@@ -240,7 +234,7 @@ function QuestionEditForm({
         />
       </div>
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={handleSave} disabled={pending}>
+        <Button variant="pill" size="pill" onClick={handleSave} disabled={pending}>
           {pending ? "Saving…" : "Save"}
         </Button>
         <Button
@@ -296,11 +290,11 @@ function QuestionNewForm({
   }
 
   return (
-    <div className="space-y-3 rounded-md border bg-muted/40 p-3">
-      <div className="space-y-1.5">
-        <Label htmlFor="q-new-text" className="text-xs">
-          Question
-        </Label>
+    <div
+      className="space-y-3 rounded-md border p-3"
+      style={{ backgroundColor: "var(--bg-tertiary)" }}
+    >
+      <AdminField label="Question" htmlFor="q-new-text">
         <Input
           id="q-new-text"
           value={text}
@@ -310,11 +304,15 @@ function QuestionNewForm({
           onChange={(e) => setText(e.target.value)}
           placeholder="What surprised you?"
         />
-      </div>
+      </AdminField>
       <div className="flex items-center justify-between">
-        <Label htmlFor="q-new-required" className="text-sm font-normal">
+        <label
+          htmlFor="q-new-required"
+          className="mono-label"
+          style={{ color: "var(--text-tertiary)" }}
+        >
           Required
-        </Label>
+        </label>
         <Switch
           id="q-new-required"
           checked={required}
@@ -323,7 +321,7 @@ function QuestionNewForm({
         />
       </div>
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={handleSave} disabled={pending}>
+        <Button variant="pill" size="pill" onClick={handleSave} disabled={pending}>
           {pending ? "Adding…" : "Add question"}
         </Button>
         <Button

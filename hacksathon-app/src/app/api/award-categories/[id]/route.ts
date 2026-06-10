@@ -4,6 +4,7 @@ import {
   requireEventAdmin,
   isErrorResponse,
 } from "@/lib/server/event-admin-guard";
+import { stampSetting } from "@/lib/events/settings";
 
 export const maxDuration = 10;
 
@@ -63,7 +64,7 @@ export async function PATCH(
   if ("error" in gated) return gated.error;
   if (gated.isLocked) {
     return NextResponse.json(
-      { error: "Event is locked — categories can't be changed." },
+      { error: "Event is locked - categories can't be changed." },
       { status: 409 },
     );
   }
@@ -126,6 +127,9 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Editing a category counts as "awards reviewed" for Helper purposes.
+  await stampSetting(gated.eventId, "awards_reviewed_at");
+
   return NextResponse.json({ ok: true, category: data });
 }
 
@@ -138,14 +142,14 @@ export async function DELETE(
   if ("error" in gated) return gated.error;
   if (gated.isLocked) {
     return NextResponse.json(
-      { error: "Event is locked — categories can't be removed." },
+      { error: "Event is locked - categories can't be removed." },
       { status: 409 },
     );
   }
 
   const admin = createAdminClient();
   // ON DELETE CASCADE on votes.category_id wipes any in-progress votes
-  // for this category. That's the right behavior — if you delete the
+  // for this category. That's the right behavior - if you delete the
   // category before reveal, there's nothing left to tally.
   const { error } = await admin
     .from("award_categories")

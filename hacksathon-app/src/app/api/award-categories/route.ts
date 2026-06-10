@@ -4,6 +4,7 @@ import {
   requireEventAdmin,
   isErrorResponse,
 } from "@/lib/server/event-admin-guard";
+import { stampSetting } from "@/lib/events/settings";
 
 export const maxDuration = 10;
 
@@ -16,7 +17,7 @@ export const maxDuration = 10;
  * collision-avoiding random suffix. We don't expose `key` to organizers
  * because it's an internal handle for the M4 reveal-tally pipeline.
  *
- * Refused when the event is locked (voting revealed) — categories are
+ * Refused when the event is locked (voting revealed) - categories are
  * frozen at reveal time.
  */
 export async function POST(req: Request) {
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
     .single<{ is_locked: boolean }>();
   if (lockCheck?.is_locked) {
     return NextResponse.json(
-      { error: "Event is locked — award categories can't be changed." },
+      { error: "Event is locked - award categories can't be changed." },
       { status: 409 },
     );
   }
@@ -113,6 +114,11 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
+
+  // Stamp the "awards reviewed" milestone so the Hacky Helper can flip
+  // the corresponding step done. Idempotent - first save wins, repeats
+  // no-op.
+  await stampSetting(eventId, "awards_reviewed_at");
 
   return NextResponse.json({ ok: true, category: inserted });
 }

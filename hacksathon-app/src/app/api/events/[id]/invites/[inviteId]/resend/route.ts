@@ -17,7 +17,7 @@ export const maxDuration = 30;
 
 /**
  * Resend a pending invitation. Issues a fresh token + expiry so the
- * old link stops working — important if the original recipient lost or
+ * old link stops working - important if the original recipient lost or
  * leaked it.
  *
  * Refuses to resend accepted, revoked, or expired invites. To re-invite

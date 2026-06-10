@@ -14,7 +14,7 @@ export const maxDuration = 10;
  * so we keep an audit trail. The partial unique index ignores revoked
  * rows, so a future re-invite to the same email works.
  *
- * Accepted invitations are not revocable from this endpoint — to remove
+ * Accepted invitations are not revocable from this endpoint - to remove
  * an accepted participant, use DELETE /api/events/[id]/members/[memberId].
  */
 export async function DELETE(

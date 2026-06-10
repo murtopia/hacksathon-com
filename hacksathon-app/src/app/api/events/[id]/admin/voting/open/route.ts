@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireEventAdmin, isErrorResponse } from "@/lib/server/event-admin-guard";
+import { openVoting } from "@/lib/voting/transitions";
 
 export const maxDuration = 10;
 
@@ -7,8 +8,11 @@ export const maxDuration = 10;
  * Flip the event's voting_status from 'closed' to 'open'. Admin-only.
  *
  * Idempotent: re-posting while already 'open' is a no-op. Refuses to
- * downgrade from 'revealed' back to 'open' — once awards are revealed,
+ * downgrade from 'revealed' back to 'open' - once awards are revealed,
  * voting is permanently closed for this event.
+ *
+ * Manual open also stamps voting_open_at = now() so the scheduled
+ * window and the explicit-toggle paths stay in lockstep.
  */
 export async function POST(
   _req: Request,
@@ -18,26 +22,16 @@ export async function POST(
   const ctx = await requireEventAdmin(eventId);
   if (isErrorResponse(ctx)) return ctx;
 
-  const { data: current } = await ctx.supabase
-    .from("events")
-    .select("voting_status")
-    .eq("id", eventId)
-    .single<{ voting_status: string }>();
+  const result = await openVoting(eventId, { stampDateColumn: true });
 
-  if (current?.voting_status === "revealed") {
-    return NextResponse.json(
-      { error: "Awards already revealed — voting is permanently closed." },
-      { status: 409 },
-    );
-  }
-
-  const { error } = await ctx.supabase
-    .from("events")
-    .update({ voting_status: "open" })
-    .eq("id", eventId);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!result.ok) {
+    if (result.refused === "revealed") {
+      return NextResponse.json(
+        { error: "Awards already revealed - voting is permanently closed." },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json({ error: result.error }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, voting_status: "open" });

@@ -3,18 +3,11 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import { Check, Edit, Eye, Sparkles } from "lucide-react";
+import { Check, Edit, Eye, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { AdminSection } from "@/components/admin/admin-section";
 
 interface ReflectionSummaryPanelProps {
   eventId: string;
@@ -22,6 +15,7 @@ interface ReflectionSummaryPanelProps {
   generatedAt: string | null;
   approvedAt: string | null;
   reflectionResponseCount: number;
+  number?: string;
 }
 
 /**
@@ -29,8 +23,8 @@ interface ReflectionSummaryPanelProps {
  *
  *   none      → "Generate" CTA, with response-count hint.
  *   draft     → markdown preview + Edit / Approve / Regenerate actions.
- *   approved  → preview + small "Approved" badge + Regenerate (which
- *               clears approval).
+ *   approved  → preview + solid-fill "Approved" badge + Regenerate
+ *               (which clears approval).
  */
 export function ReflectionSummaryPanel({
   eventId,
@@ -38,6 +32,7 @@ export function ReflectionSummaryPanel({
   generatedAt,
   approvedAt,
   reflectionResponseCount,
+  number = "01",
 }: ReflectionSummaryPanelProps) {
   const router = useRouter();
   const [draft, setDraft] = useState(summary ?? "");
@@ -109,31 +104,15 @@ export function ReflectionSummaryPanel({
 
   if (!summary) {
     return (
-      <Card>
-        <CardHeader className="flex flex-row items-start gap-3 space-y-0">
-          <div
-            aria-hidden
-            className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted"
-          >
-            <Sparkles className="size-5" />
-          </div>
-          <div className="flex-1">
-            <CardTitle className="text-base">Reflection summary</CardTitle>
-            <CardDescription>
-              Synthesize every participant&apos;s reflection answers into a
-              warm 250–400-word recap. Edit before sharing.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {reflectionResponseCount === 0
-              ? "No reflections submitted yet. Encourage your team to drop a few thoughts in Block +02 first."
-              : `${reflectionResponseCount} reflection ${reflectionResponseCount === 1 ? "answer" : "answers"} ready to summarize.`}
-          </p>
-        </CardContent>
-        <CardFooter>
+      <AdminSection
+        id="recap"
+        number={number}
+        title="AI recap"
+        intent="Synthesize every participant's reflection answers into a warm 250–400-word recap. Edit before sharing."
+        footer={
           <Button
+            variant="pill"
+            size="pill"
             onClick={generate}
             disabled={pending || reflectionResponseCount === 0}
             title={
@@ -142,59 +121,44 @@ export function ReflectionSummaryPanel({
                 : undefined
             }
           >
-            <Sparkles className="mr-2 size-4" />
+            <FileText />
             {pending ? "Generating…" : "Generate summary"}
           </Button>
-        </CardFooter>
-      </Card>
+        }
+      >
+        <p className="font-serif text-sm italic text-muted-foreground">
+          {reflectionResponseCount === 0
+            ? "No reflections submitted yet. Encourage your team to drop a few thoughts in Block +02 first."
+            : `${reflectionResponseCount} reflection ${reflectionResponseCount === 1 ? "answer" : "answers"} ready to summarize.`}
+        </p>
+      </AdminSection>
     );
   }
 
+  const titleBadge = approvedAt ? (
+    <span
+      className="ml-3 inline-flex items-center gap-1 rounded-[4px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] align-middle"
+      style={{
+        backgroundColor: "var(--black)",
+        color: "var(--white)",
+      }}
+    >
+      <Check className="size-3" />
+      Approved
+    </span>
+  ) : null;
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start gap-3 space-y-0">
-        <div
-          aria-hidden
-          className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted"
-        >
-          <Sparkles className="size-5" />
-        </div>
-        <div className="flex-1">
-          <CardTitle className="flex items-center gap-2 text-base">
-            Reflection summary
-            {approvedAt && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-green-300 bg-green-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-green-800 dark:border-green-700 dark:bg-green-950/40 dark:text-green-300">
-                <Check className="size-3" />
-                Approved
-              </span>
-            )}
-          </CardTitle>
-          <CardDescription>
-            {generatedAt
-              ? `Generated ${formatStamp(generatedAt)}`
-              : "Draft"}
-          </CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {mode === "edit" ? (
-          <Textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={16}
-            className="font-mono text-sm"
-          />
-        ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown>{summary}</ReactMarkdown>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex flex-wrap gap-2">
-        {mode === "edit" ? (
+    <AdminSection
+      id="recap"
+      number={number}
+      title="AI recap"
+      intent={generatedAt ? `Generated ${formatStamp(generatedAt)}` : "Draft"}
+      footer={
+        mode === "edit" ? (
           <>
-            <Button onClick={saveEdit} disabled={pending} size="sm">
-              <Check className="mr-2 size-4" />
+            <Button onClick={saveEdit} disabled={pending} variant="pill" size="pill">
+              <Check />
               {pending ? "Saving…" : "Save edits"}
             </Button>
             <Button
@@ -221,8 +185,8 @@ export function ReflectionSummaryPanel({
               Edit
             </Button>
             {!approvedAt && (
-              <Button onClick={approve} disabled={pending} size="sm">
-                <Eye className="mr-2 size-4" />
+              <Button onClick={approve} disabled={pending} variant="pill" size="pill">
+                <Eye />
                 {pending ? "Approving…" : "Approve"}
               </Button>
             )}
@@ -232,13 +196,27 @@ export function ReflectionSummaryPanel({
               onClick={generate}
               disabled={pending}
             >
-              <Sparkles className="mr-2 size-4" />
+              <FileText className="mr-2 size-4" />
               Regenerate
             </Button>
           </>
-        )}
-      </CardFooter>
-    </Card>
+        )
+      }
+    >
+      {titleBadge && <div>{titleBadge}</div>}
+      {mode === "edit" ? (
+        <Textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={16}
+          className="font-mono text-sm"
+        />
+      ) : (
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+          <ReactMarkdown>{summary}</ReactMarkdown>
+        </div>
+      )}
+    </AdminSection>
   );
 }
 

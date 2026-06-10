@@ -5,18 +5,15 @@ import { useRouter } from "next/navigation";
 import { Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { AdminSection } from "@/components/admin/admin-section";
 
 interface EventLogoSectionProps {
   eventId: string;
   initialLogoUrl: string | null;
+  /** Company/event name used for the no-logo initial preview. */
+  fallbackName?: string;
   isLocked: boolean;
+  number?: string;
 }
 
 const ACCEPT = "image/png,image/jpeg,image/webp,image/svg+xml";
@@ -32,12 +29,16 @@ const MAX_BYTES = 5 * 1024 * 1024;
 export function EventLogoSection({
   eventId,
   initialLogoUrl,
+  fallbackName,
   isLocked,
+  number = "02",
 }: EventLogoSectionProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl);
   const [pending, startTransition] = useTransition();
+
+  const fallbackInitial = (fallbackName ?? "").trim().slice(0, 1).toUpperCase();
 
   function pickFile() {
     if (isLocked || pending) return;
@@ -92,71 +93,74 @@ export function EventLogoSection({
   }
 
   return (
-    <Card id="logo">
-      <CardHeader>
-        <CardTitle className="text-base">Logo</CardTitle>
-        <CardDescription>
-          Shown on the participant event home, the vanity URL landing page,
-          and in invite emails. PNG, JPEG, WebP, or SVG up to 5 MB.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <input
-          ref={inputRef}
-          type="file"
-          accept={ACCEPT}
-          className="hidden"
-          onChange={handleChange}
-        />
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border bg-muted">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={logoUrl}
-                alt="Event logo"
-                className="h-full w-full object-contain"
-              />
-            ) : (
-              <span
-                aria-hidden
-                className="text-xs font-medium text-muted-foreground"
-              >
-                No logo
-              </span>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+    <AdminSection
+      id="logo"
+      number={number}
+      title="Logo"
+      intent="Shown on the participant event home, the vanity URL landing page, and join screens. Horizontal or square both work, just keep it under about 4:1 and at least 256px tall. PNG, JPEG, WebP, or SVG up to 5 MB. No logo? Participants see the first letter of your company name."
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept={ACCEPT}
+        className="hidden"
+        onChange={handleChange}
+      />
+      <div className="flex items-center gap-4">
+        <div className="flex h-16 w-auto min-w-[64px] max-w-[256px] items-center justify-center overflow-hidden rounded-md border bg-muted">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt="Event logo"
+              className="h-full w-auto object-contain"
+            />
+          ) : fallbackInitial ? (
+            <span
+              aria-hidden
+              className="text-2xl font-semibold text-muted-foreground"
+            >
+              {fallbackInitial}
+            </span>
+          ) : (
+            <span
+              aria-hidden
+              className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground"
+            >
+              No logo
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            onClick={pickFile}
+            disabled={pending || isLocked}
+            variant="pill"
+            size="pill"
+          >
+            <Upload />
+            {logoUrl ? "Replace" : "Upload logo"}
+          </Button>
+          {logoUrl && (
             <Button
               type="button"
-              onClick={pickFile}
+              variant="pill"
+              size="pill"
+              onClick={handleRemove}
               disabled={pending || isLocked}
-              variant={logoUrl ? "outline" : "default"}
-              size="sm"
             >
-              <Upload className="mr-2 size-4" />
-              {logoUrl ? "Replace" : "Upload logo"}
+              <Trash2 />
+              Remove
             </Button>
-            {logoUrl && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleRemove}
-                disabled={pending || isLocked}
-              >
-                <Trash2 className="mr-2 size-4" />
-                Remove
-              </Button>
-            )}
-            {isLocked && (
-              <span className="text-xs text-muted-foreground">
-                Event is locked — logo can&apos;t be changed.
-              </span>
-            )}
-          </div>
+          )}
+          {isLocked && (
+            <span className="font-serif text-xs italic text-muted-foreground">
+              Event is locked - logo can&apos;t be changed.
+            </span>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </AdminSection>
   );
 }

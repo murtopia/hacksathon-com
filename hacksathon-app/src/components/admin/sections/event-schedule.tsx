@@ -5,22 +5,18 @@ import { useRouter } from "next/navigation";
 import { Calendar, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AdminField } from "@/components/admin/admin-section";
+import { DateTime15Field } from "@/components/admin/fields/datetime-15-field";
+import { cn } from "@/lib/utils";
 
 export interface ScheduleBlock {
   id: string;
   block_key: string;
   title: string;
   subtitle: string | null;
+  /** Long-form description from the migration 00024 seed - shown as the intent line on each row. */
+  description: string | null;
   scheduled_date: string | null;
   duration_minutes: number | null;
   sort_order: number;
@@ -33,19 +29,22 @@ interface EventScheduleSectionProps {
 }
 
 /**
- * Schedule editor: one row per block with a datetime-local picker and a
- * minutes input.
+ * Schedule editor in the participant editorial timeline frame: a left
+ * rail with a circle connector per block, mono block key + serif title,
+ * the tool-agnostic intent line from `blocks.description`, then an
+ * inline form group with `Start` (datetime-local) and `Duration` (min)
+ * inputs plus a per-row Save button.
  *
  * Why no central save button? Each row writes to PATCH /api/blocks/[id]
  * independently, which means partial saves never strand the form in a
  * "your branding got blown away when you only meant to bump the start
- * time" state. The whole-form button is per-row instead — Save shows up
+ * time" state. The whole-form button is per-row instead - Save shows up
  * as soon as that row is dirty.
  *
  * datetime-local note: we store ISO strings (with timezone) on the
  * server but the native input wants `YYYY-MM-DDTHH:mm` in local time.
  * The conversion is lossy by one minute (the input strips seconds) but
- * that matches organizer intent — nobody schedules a block at 9:30:42.
+ * that matches organizer intent - nobody schedules a block at 9:30:42.
  */
 export function EventScheduleSection({
   eventId: _eventId,
@@ -53,40 +52,45 @@ export function EventScheduleSection({
   isLocked,
 }: EventScheduleSectionProps) {
   void _eventId;
-  // Sorted view: stable per render so re-renders don't shuffle rows.
   const sorted = useMemo(
     () => [...blocks].sort((a, b) => a.sort_order - b.sort_order),
     [blocks],
   );
 
+  if (sorted.length === 0) {
+    return (
+      <div className="rounded-[4px] border border-dashed p-8 text-center">
+        <p className="font-serif text-sm italic text-muted-foreground">
+          No blocks yet. Create your event from the dashboard and the default
+          blocks will appear here - unscheduled blocks stay Upcoming forever
+          until you set a start time.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <Card id="schedule">
-      <CardHeader>
-        <CardTitle className="text-base">Schedule</CardTitle>
-        <CardDescription>
-          Optional start times and durations for every block. Times power the
-          participant timeline and the &ldquo;up next&rdquo; hero — leaving them
-          blank just means &ldquo;whenever you get there.&rdquo;
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div className="space-y-6">
+      <ol
+        className={cn(
+          "relative pl-16",
+          "before:pointer-events-none before:absolute before:left-[18px] before:top-1 before:bottom-1 before:w-px before:bg-border",
+          "sm:pl-16",
+          "max-sm:pl-10 max-sm:before:left-[10px]",
+        )}
+      >
         {sorted.map((block) => (
           <BlockRow key={block.id} block={block} isLocked={isLocked} />
         ))}
-        {sorted.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No blocks yet. Create your event from the dashboard and the 10
-            default blocks will appear here.
-          </p>
-        )}
-      </CardContent>
-      <CardFooter>
-        <p className="text-xs text-muted-foreground">
-          <Calendar className="-mt-0.5 mr-1.5 inline size-3" />
-          All times are in your browser&apos;s local timezone.
-        </p>
-      </CardFooter>
-    </Card>
+      </ol>
+      <p
+        className="font-mono text-[10px] uppercase tracking-[0.1em]"
+        style={{ color: "var(--text-tertiary)" }}
+      >
+        <Calendar className="-mt-0.5 mr-1.5 inline size-3" />
+        All times are in your browser&apos;s local timezone.
+      </p>
+    </div>
   );
 }
 
@@ -113,12 +117,17 @@ function BlockRow({
 
   const dirty =
     scheduledLocal !== initialLocal || duration !== initialDuration;
+  const isScheduled = Boolean(block.scheduled_date);
 
   function handleSave() {
     const parsedDuration = duration.trim() === "" ? null : Number(duration);
     if (parsedDuration !== null) {
-      if (!Number.isFinite(parsedDuration) || parsedDuration < 5 || parsedDuration > 720) {
-        toast.error("Duration must be between 5 and 720 minutes.");
+      if (
+        !Number.isFinite(parsedDuration) ||
+        parsedDuration < 15 ||
+        parsedDuration > 720
+      ) {
+        toast.error("Duration must be between 15 and 720 minutes.");
         return;
       }
     }
@@ -149,22 +158,60 @@ function BlockRow({
   }
 
   return (
-    <div className="rounded-md border bg-card p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">
-            <span className="mr-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              {block.block_key}
-            </span>
-            {block.title}
-          </p>
-          {block.subtitle && (
-            <p className="truncate text-xs text-muted-foreground">
-              {block.subtitle}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
+    <li className="relative mb-10 last:mb-0">
+      <span
+        aria-hidden
+        className={cn(
+          "absolute top-[6px] size-[13px] rounded-full border-2 border-foreground bg-background transition-colors",
+          "-left-[52px] max-sm:-left-[34px] max-sm:size-[11px]",
+          isScheduled && "bg-foreground",
+        )}
+      />
+      <header className="flex flex-wrap items-baseline gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-1">
+        <span className="min-w-12 font-mono text-sm font-bold uppercase tracking-wide tabular-nums text-foreground">
+          {block.block_key}
+        </span>
+        <h4 className="font-serif text-xl leading-snug text-foreground">
+          {block.title}
+        </h4>
+      </header>
+      {(block.description || block.subtitle) && (
+        <p className="mt-1 max-w-[640px] font-serif text-sm italic text-muted-foreground/80">
+          {block.description ?? block.subtitle}
+        </p>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <AdminField
+          label="Start"
+          htmlFor={`block-${block.id}-date`}
+          className="w-[18.5rem] max-w-full"
+        >
+          <DateTime15Field
+            id={`block-${block.id}`}
+            value={scheduledLocal}
+            disabled={isLocked || pending}
+            onChange={setScheduledLocal}
+          />
+        </AdminField>
+        <AdminField
+          label="Duration (min)"
+          htmlFor={`block-${block.id}-duration`}
+          className="w-[7rem]"
+        >
+          <Input
+            id={`block-${block.id}-duration`}
+            type="number"
+            min={15}
+            max={720}
+            step={15}
+            value={duration}
+            disabled={isLocked || pending}
+            onChange={(e) => setDuration(e.target.value)}
+            placeholder="30"
+          />
+        </AdminField>
+        <div className="flex items-center gap-2 pb-[2px]">
           {savedAt && !dirty && !pending && (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Check className="size-3" />
@@ -182,37 +229,7 @@ function BlockRow({
           </Button>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr]">
-        <div className="space-y-1">
-          <Label htmlFor={`block-${block.id}-date`} className="text-xs">
-            Start
-          </Label>
-          <Input
-            id={`block-${block.id}-date`}
-            type="datetime-local"
-            value={scheduledLocal}
-            disabled={isLocked || pending}
-            onChange={(e) => setScheduledLocal(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor={`block-${block.id}-duration`} className="text-xs">
-            Duration (min)
-          </Label>
-          <Input
-            id={`block-${block.id}-duration`}
-            type="number"
-            min={5}
-            max={720}
-            step={5}
-            value={duration}
-            disabled={isLocked || pending}
-            onChange={(e) => setDuration(e.target.value)}
-            placeholder="30"
-          />
-        </div>
-      </div>
-    </div>
+    </li>
   );
 }
 
@@ -220,7 +237,6 @@ function isoToLocalInput(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  // Build YYYY-MM-DDTHH:mm in local time.
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
     d.getHours(),

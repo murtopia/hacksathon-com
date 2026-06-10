@@ -1,323 +1,400 @@
 # Hacksathon.com — Technical Architecture
 
+> As-built reference, May 2026. This reflects what currently ships in
+> `hacksathon-app/`, not the original aspirational design. Where a
+> surface is planned but not yet wired, it is called out explicitly.
+
+## Stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js 16.2.2 (App Router, React 19.2.4 Server Components) |
+| Styling | Tailwind CSS v4 + shadcn/ui (Radix primitives via `radix-ui`) |
+| Data / Auth | Supabase (Postgres + Auth) via `@supabase/ssr` + `@supabase/supabase-js` |
+| AI | Vercel AI SDK v6 (`ai`) with `@ai-sdk/anthropic` (Claude) |
+| Email | Resend (`resend`) + React Email (`@react-email/*`) |
+| Toasts | `sonner` |
+| Export | `jszip` (document/markdown export) |
+| Icons | `lucide-react` (closed allowlist — see design system) |
+| Hosting | Vercel (production: `hacksathon.com`) |
+
+**Not yet wired:** `stripe` is installed as a dependency but there is no
+billing webhook route or `lib/stripe` integration yet — pricing is
+display-only. There is **no PostHog** and **no Supabase Realtime** usage
+in the codebase today; both appeared in the original design but are not
+built. Live counts on admin surfaces are plain server reads.
+
 ## Next.js App Router Structure
 
+Member-facing surfaces are **slug-based** (`/[companyslug]/...`). The
+older `(platform)/events/[id]/...` routes still exist and are being
+phased out in favor of the slug routes.
+
 ```
-app/
-├── (marketing)/                     # Public marketing pages (no auth)
-│   ├── layout.tsx                   # Marketing layout (nav, footer)
+src/app/
+├── (marketing)/                     # Public marketing (no auth)
+│   ├── layout.tsx
 │   ├── page.tsx                     # Homepage
-│   ├── pricing/page.tsx             # Pricing tiers
-│   ├── case-study/page.tsx          # Seven2 case study
-│   ├── showcase/page.tsx            # Public hackathon gallery
-│   └── showcase/[slug]/page.tsx     # Individual hackathon showcase
+│   ├── pricing/page.tsx
+│   ├── case-study/page.tsx
+│   ├── showcase/page.tsx
+│   └── waitlist/page.tsx
 │
-├── (auth)/                          # Auth pages
-│   ├── layout.tsx                   # Centered card layout
-│   ├── login/page.tsx               # Magic link + Google OAuth
-│   ├── signup/page.tsx              # Org creation flow
-│   ├── join/[invite]/page.tsx       # Participant invite acceptance
-│   └── callback/route.ts            # Supabase auth callback
+├── (auth)/                          # Auth pages (centered card layout)
+│   ├── layout.tsx
+│   ├── login/page.tsx
+│   ├── signup/page.tsx
+│   ├── forgot-password/page.tsx
+│   └── reset-password/page.tsx
 │
-├── (platform)/                      # Authenticated app (all roles)
-│   ├── layout.tsx                   # App shell: sidebar + header
-│   ├── dashboard/page.tsx           # Role-based redirect or overview
-│   │
-│   ├── events/                      # Event management
-│   │   ├── page.tsx                 # Event list for current org
-│   │   ├── new/page.tsx             # Create event wizard
-│   │   └── [eventId]/
-│   │       ├── layout.tsx           # Event-scoped layout with subnav
-│   │       ├── page.tsx             # Event overview / participant home
-│   │       ├── timeline/page.tsx    # Block timeline view
-│   │       ├── ideas/
-│   │       │   ├── page.tsx         # IdeaLab gallery
-│   │       │   ├── new/page.tsx     # Submit idea form
-│   │       │   └── [ideaId]/
-│   │       │       ├── page.tsx     # Idea detail
-│   │       │       ├── docs/page.tsx          # ZERO.Prmptr conversation
-│   │       │       └── docs/[docId]/page.tsx  # EDIT.Prmptr editor
-│   │       ├── vote/page.tsx        # Hacky Awards ballot
-│   │       ├── reflect/page.tsx     # Reflection form
-│   │       ├── showcase/page.tsx    # Public showcase preview
-│   │       │
-│   │       └── admin/               # Org Admin only
-│   │           ├── page.tsx         # Admin overview
-│   │           ├── timeline/page.tsx    # Manage blocks
-│   │           ├── participants/page.tsx # Manage members
-│   │           ├── ideas/page.tsx       # All ideas management
-│   │           ├── voting/page.tsx      # Voting controls + results
-│   │           ├── reflections/page.tsx # Reflection management
-│   │           ├── awards/page.tsx      # Announce winners
-│   │           ├── analytics/page.tsx   # Event analytics
-│   │           └── settings/page.tsx    # Event config + branding
-│   │
-│   ├── settings/                    # Org-level settings
-│   │   ├── page.tsx                 # General settings
-│   │   ├── members/page.tsx         # Org member management
-│   │   └── billing/page.tsx         # Stripe subscription
-│   │
-│   └── profile/page.tsx             # User profile
+├── (platform)/                      # Authenticated platform shell
+│   ├── layout.tsx
+│   ├── dashboard/page.tsx           # Role-based redirect / home
+│   ├── settings/page.tsx            # Profile + account security
+│   ├── plan/page.tsx
+│   ├── idealab/page.tsx
+│   └── events/                      # LEGACY (being phased out)
+│       ├── page.tsx
+│       ├── new/page.tsx
+│       └── [id]/
+│           ├── page.tsx
+│           ├── admin/page.tsx
+│           ├── blocks/[blockKey]/page.tsx
+│           └── idealab/{page,new,[ideaId]}/page.tsx
 │
-├── (superadmin)/                    # Platform Admin only
-│   ├── layout.tsx                   # Superadmin layout
-│   ├── page.tsx                     # Platform overview
-│   ├── organizations/page.tsx       # All client orgs
-│   ├── organizations/[orgId]/page.tsx
-│   ├── billing/page.tsx             # Revenue and subscriptions
-│   ├── templates/page.tsx           # Event templates
-│   ├── analytics/page.tsx           # Platform metrics
-│   └── feature-flags/page.tsx       # Feature flag management
+├── [companyslug]/                   # Slug-based member experience
+│   ├── layout.tsx                   # Resolves slug context + viewer
+│   ├── page.tsx                     # Event home (participant)
+│   ├── blocks/page.tsx              # Block timeline
+│   ├── blocks/[blockKey]/page.tsx   # Single block workspace
+│   ├── idea/{page,new}/page.tsx
+│   ├── idealab/{page,[ideaId]}/page.tsx
+│   ├── gallery/{page,[ideaId]}/page.tsx
+│   ├── reflections/page.tsx
+│   ├── awards/page.tsx
+│   └── admin/                       # Admin-only (gated in layout.tsx)
+│       ├── layout.tsx               # is_event_admin gate + sub-nav
+│       ├── page.tsx                 # 00 Hacky Helper (overview)
+│       ├── identity/page.tsx        # 01
+│       ├── integrations/page.tsx    # 02
+│       ├── schedule/page.tsx        # 03
+│       ├── team/page.tsx            # 04
+│       ├── awards/page.tsx          # 05
+│       ├── reflections/page.tsx     # 06
+│       ├── org/page.tsx             # legacy redirect target
+│       └── event/page.tsx           # legacy redirect target
 │
-├── api/                             # API Routes
-│   ├── auth/callback/route.ts       # Supabase auth callback
-│   ├── chat/route.ts                # AI conversation (ZERO.Prmptr)
-│   ├── generate-ideas/route.ts      # AI idea generation
-│   ├── competitive-analysis/route.ts # AI competitive analysis
-│   ├── feature-prioritization/route.ts # AI feature ranking
-│   ├── prd-generator/route.ts       # AI PRD generation
-│   ├── documents/
-│   │   ├── route.ts                 # CRUD documents
-│   │   ├── export/route.ts          # Zip export
-│   │   └── [docId]/share/route.ts   # Public share link
-│   ├── webhooks/
-│   │   └── stripe/route.ts          # Stripe webhook handler
-│   ├── invites/
-│   │   └── route.ts                 # Send invitations
-│   └── admin/
-│       ├── voting/route.ts          # Voting controls
-│       ├── awards/route.ts          # Announce winners
-│       └── reflections/route.ts     # Feature reflections
+├── accept-invite/[token]/page.tsx   # Public set-password landing (email invite)
+├── join/[token]/page.tsx            # Public join-link landing (request to join)
 │
-├── p/[slug]/page.tsx                # Public shared document view
+├── api/                             # See route table below
 ├── layout.tsx                       # Root layout (fonts, metadata)
-├── globals.css                      # Tailwind + custom tokens
-└── not-found.tsx                    # 404 page
+└── globals.css                      # Tailwind v4 + design tokens
 ```
 
-## Key Components Structure
+> **Platform-owner console (Murtopolis):** a separate owner-only admin at
+> `(platform)/murtopolis/*` (gated by the `platform_admins` table /
+> `is_platform_admin()` RPC) tracks cross-tenant customers, users,
+> waitlist, and revenue. Built but not yet committed/deployed — see
+> `Claude Planning Docs/murtopolis-owner-dashboard.md` for the full
+> implementation handoff.
+
+> **Social share images (OG / Twitter):** generated at request time with
+> `next/og` via the file conventions `src/app/opengraph-image.tsx` +
+> `twitter-image.tsx` (static marketing default) and
+> `src/app/[companyslug]/opengraph-image.tsx` + `twitter-image.tsx`
+> (dynamic per-event override). Both call the shared renderer in
+> `src/lib/og/share-image.tsx` and load the bundled EB Garamond woff
+> fonts from `src/lib/og/`. Full design spec, the size/copy knobs, and
+> the font-loading gotcha live in the "Social Share Images (OG / Twitter)"
+> section of `Claude Planning Docs/hacksathon-design-system.md`.
+
+### API Routes
 
 ```
-components/
+src/app/api/
+├── auth/signout/route.ts                       # POST (303 redirect)
+├── profile/route.ts                            # PATCH name / avatar_url
+├── settings/password/route.ts                  # POST password change (+ sign out others)
+├── waitlist/route.ts                           # POST marketing waitlist
+├── organizations/[id]/route.ts                 # PATCH org (name, etc.)
+├── events/[id]/route.ts                        # PATCH event (incl. date windows)
+├── events/[id]/logo/route.ts                   # POST / DELETE logo
+├── events/[id]/join-link/route.ts              # POST / DELETE shareable join token
+├── events/[id]/invites/route.ts                # GET / POST email invites (Resend)
+├── events/[id]/invites/[inviteId]/route.ts     # DELETE invite
+├── events/[id]/invites/[inviteId]/resend/route.ts  # POST resend
+├── events/[id]/members/[memberId]/route.ts     # DELETE member
+├── events/[id]/members/[memberId]/approve/route.ts # POST approve pending member
+├── events/[id]/members/[memberId]/role/route.ts    # PATCH role (participant/admin)
+├── events/[id]/admin/voting/open/route.ts      # POST open voting
+├── events/[id]/admin/voting/reveal/route.ts    # POST reveal winners
+├── events/[id]/admin/reflections/summary/route.ts          # POST generate AI recap
+├── events/[id]/admin/reflections/summary/approve/route.ts  # POST approve recap
+├── accept-invite/route.ts                      # POST (public) accept email invite
+├── join/[token]/route.ts                       # POST (public) request to join
+├── signup-via-join/route.ts                    # POST (public) branded join signup
+├── blocks/[id]/route.ts                        # PATCH block schedule
+├── blocks/complete/route.ts                    # POST mark block complete
+├── award-categories/route.ts                   # POST category
+├── award-categories/[id]/route.ts              # PATCH / DELETE category
+├── awards/vote/route.ts                         # POST ballot
+├── reflection-questions/route.ts               # POST question
+├── reflection-questions/[id]/route.ts          # PATCH / DELETE question
+├── reflections/route.ts                         # POST reflection (date-window gated)
+├── ideas/route.ts                               # POST idea
+├── ideas/[id]/route.ts                          # PATCH / DELETE idea
+└── planning/{brief,session,step,starter-prompt}/route.ts  # ZERO.Prmptr / Blueprint flow
+```
+
+All admin-only routes call `requireEventAdmin(eventId)` from
+`src/lib/server/event-admin-guard.ts`, which authenticates the user and
+calls the `is_event_admin` SECURITY DEFINER RPC (avoids RLS recursion
+through `events` / `organization_members`).
+
+## Components
+
+```
+src/components/
 ├── ui/                              # shadcn/ui primitives
-│   ├── button.tsx
-│   ├── card.tsx
-│   ├── dialog.tsx
-│   ├── dropdown-menu.tsx
-│   ├── input.tsx
-│   ├── select.tsx
-│   ├── tabs.tsx
-│   ├── toast.tsx
-│   └── ...
-│
-├── layout/
-│   ├── marketing-nav.tsx            # Public site navigation
-│   ├── marketing-footer.tsx
-│   ├── app-sidebar.tsx              # Authenticated app sidebar
-│   ├── app-header.tsx               # Authenticated app header
-│   ├── event-subnav.tsx             # Event-scoped tab navigation
-│   └── mobile-nav.tsx
-│
-├── auth/
-│   ├── auth-form.tsx                # Login/signup form
-│   ├── google-button.tsx
-│   └── org-setup-wizard.tsx         # First-time org creation
-│
-├── events/
-│   ├── event-card.tsx               # Event list card
-│   ├── event-setup-wizard.tsx       # Create event flow
-│   ├── timeline.tsx                 # Block timeline display
-│   ├── block-card.tsx               # Individual block
-│   └── block-editor.tsx             # Admin block editing
-│
-├── ideas/
-│   ├── idea-form.tsx                # Submit/edit idea
-│   ├── idea-card.tsx                # Gallery card
-│   ├── idea-detail.tsx              # Full idea view
-│   ├── idea-gallery.tsx             # Filterable grid
-│   ├── spark-button.tsx             # Like/spark toggle
-│   ├── comment-section.tsx
-│   └── ai-idea-dialog.tsx           # AI generation modal
-│
-├── docs/
-│   ├── chat-interface.tsx           # ZERO.Prmptr conversation UI
-│   ├── chat-message.tsx             # Individual message bubble
-│   ├── doc-preview.tsx              # Generated doc preview
-│   ├── doc-sidebar.tsx              # Section navigation
-│   ├── quality-score.tsx            # Completeness indicator
-│   └── starter-prompt.tsx           # Copy-paste prompt display
-│
-├── editor/
-│   ├── editor.tsx                   # TipTap WYSIWYG editor
-│   ├── toolbar.tsx                  # Formatting toolbar
-│   ├── extensions/                  # Custom TipTap extensions
-│   └── export-button.tsx            # MD/HTML/PDF export
-│
-├── voting/
-│   ├── ballot.tsx                   # Full ballot interface
-│   ├── category-vote.tsx            # Single category picker
-│   ├── voting-controls.tsx          # Admin open/close/deadline
-│   ├── results-chart.tsx            # Vote tallies
-│   └── winner-announcement.tsx
-│
-├── reflections/
-│   ├── reflection-form.tsx          # 7-question form
-│   ├── reflection-viewer.tsx        # Admin view
-│   └── featured-quotes.tsx          # Public display
+│   ├── button, card, dialog, dropdown-menu, input, input-group,
+│   ├── select, switch, tabs, table, textarea, label, badge,
+│   ├── accordion, popover, sheet, tooltip, separator, command,
+│   └── avatar, user-avatar, sonner
 │
 ├── admin/
-│   ├── participant-table.tsx
-│   ├── voting-dashboard.tsx
-│   ├── analytics-cards.tsx
-│   └── event-settings.tsx
+│   ├── admin-section.tsx            # <AdminSection> + <AdminField> editorial frame
+│   ├── voting-controls.tsx
+│   ├── reflection-summary-panel.tsx
+│   ├── fields/datetime-15-field.tsx # Date + 15-min <select> picker
+│   └── sections/
+│       ├── hacky-helper.tsx         # The always-on guided walkthrough
+│       ├── org-basics.tsx
+│       ├── event-title.tsx
+│       ├── event-welcome.tsx
+│       ├── event-logo.tsx
+│       ├── event-vanity-url.tsx
+│       ├── event-team-chat.tsx
+│       ├── event-build-tool.tsx
+│       ├── event-public-showcase.tsx
+│       ├── event-schedule.tsx
+│       ├── participants-panel.tsx   # Roster + invites + JoinLinkBlock
+│       ├── award-categories-editor.tsx
+│       ├── voting-window.tsx
+│       ├── reflection-questions-editor.tsx
+│       └── reflection-window.tsx
 │
-└── marketing/
-    ├── hero.tsx
-    ├── feature-grid.tsx
-    ├── pricing-table.tsx
-    ├── case-study-section.tsx
-    └── testimonial-carousel.tsx
+├── event-nav/
+│   ├── participant-nav.tsx
+│   └── admin-subnav.tsx             # 00 Hacky Helper → 06 Reflections
+│
+├── event-home/blocks-timeline.tsx
+│
+├── blocks/                          # Participant block workspaces
+│   ├── build-session, zero-screen, shark-tank-screen,
+│   ├── hacky-awards-screen, reflections-screen, reflection-form,
+│   ├── award-ballot, showcase-prep, lock-my-idea-button
+│
+├── planning/                        # ZERO.Prmptr / Blueprint conversation
+│   ├── planning-flow, ai-message, user-input, step-indicator,
+│   ├── starter-prompt, project-brief-card, post-prd-input
+│
+├── idealab/
+│   ├── idea-card, idea-detail, idea-details-modal, idea-form,
+│   ├── idea-progress-timeline, screenshot-uploader, char-counter,
+│   └── blueprint-flow-dialog
+│
+├── showcase/
+│   ├── showcase-hero, idea-gallery, winners-grid, showcase-recap,
+│   └── showcase-teaser, showcase-footer
+│
+├── join/
+│   ├── event-identity.tsx
+│   └── request-to-join-button.tsx
+│
+├── settings/
+│   ├── profile-section.tsx
+│   └── account-security-section.tsx
+│
+├── auth/
+│   ├── auth-form.tsx
+│   └── accept-invite-form.tsx
+│
+├── site/
+│   ├── site-footer.tsx
+│   └── user-menu.tsx
+│
+└── waitlist/waitlist-form.tsx
 ```
 
 ## Library Layer
 
 ```
-lib/
+src/lib/
 ├── supabase/
-│   ├── client.ts                    # Browser Supabase client
-│   ├── server.ts                    # Server-side Supabase client (cookies)
-│   ├── admin.ts                     # Service role client (for webhooks)
-│   ├── middleware.ts                # Auth middleware helpers
-│   └── types.ts                     # Generated TypeScript types
+│   ├── client.ts                    # Browser client
+│   ├── server.ts                    # Cookie-bound server client
+│   ├── admin.ts                     # Service-role client
+│   └── middleware.ts                # updateSession() — session refresh + last-active touch
 │
 ├── ai/
-│   ├── chat.ts                      # AI SDK conversation handler
-│   ├── prompts/
-│   │   ├── doc-generation.ts        # ZERO.Prmptr system prompts per doc type
-│   │   ├── idea-generation.ts       # IdeaLab AI prompts
-│   │   ├── competitive-analysis.ts
-│   │   └── prd-generator.ts
-│   └── quality-scoring.ts           # Document completeness algorithm
+│   ├── model.ts                     # Anthropic model via AI SDK
+│   └── reflection-summary-prompt.ts
 │
-├── stripe/
-│   ├── client.ts                    # Stripe client
-│   ├── webhooks.ts                  # Webhook handler logic
-│   └── plans.ts                     # Pricing tier definitions
+├── helper/                          # Hacky Helper engine
+│   ├── phase.ts                     # stops/steps, kinds, phase, nextStep
+│   └── loader.ts                    # loadHelperContext()
 │
-├── email/
-│   ├── client.ts                    # Resend client
-│   └── templates/
-│       ├── invite.tsx               # React Email invite template
-│       ├── event-update.tsx
-│       └── welcome.tsx
+├── events/settings.ts               # stampSetting() milestone tracking
 │
-├── hooks/
-│   ├── use-auth.ts                  # Auth state hook
-│   ├── use-organization.ts          # Current org context
-│   ├── use-event.ts                 # Current event context
-│   ├── use-ideas.ts                 # Ideas CRUD
-│   ├── use-documents.ts             # Documents CRUD
-│   ├── use-voting.ts                # Voting state
-│   └── use-reflections.ts           # Reflections CRUD
+├── voting/
+│   ├── transitions.ts               # openVoting / revealAwards (shared)
+│   └── auto-transition.ts           # lazy date-window auto-flip
 │
-└── utils/
-    ├── roles.ts                     # Permission checks
-    ├── markdown.ts                  # MD processing
-    ├── export.ts                    # Zip/PDF generation
-    └── date.ts                      # Date formatting
+├── og/                              # Generated social share images (next/og)
+│   ├── share-image.tsx              # Shared grayscale renderer + resolveLogo()
+│   ├── fonts.ts                     # loadOgFonts() (reads bundled woff via fs)
+│   └── fonts/EBGaramond-{Regular,Italic}.woff
+├── join/{tokens.ts,preview.ts}      # Join-link token gen + public preview
+├── invites/tokens.ts                # Email invite token gen + expiry
+├── reflections/questions.ts
+├── awards/categories.ts
+├── blocks/status.ts
+├── datetime/local-input.ts          # datetime-local <-> ISO helpers
+├── planning/{types,steps,ensure-session,context,prompts,index}.ts
+├── idealab/{url,types,format-relative-date}.ts
+├── routing/{slug-context,reserved-slugs}.ts
+├── server/event-admin-guard.ts      # requireEventAdmin()
+├── server/rate-limit.ts             # in-process per-IP throttle for public endpoints
+├── build-tool/labels.ts
+├── user/display-name.ts
+├── email/resend.ts                  # sendEmail() wrapper (degrades when key unset)
+└── utils.ts
 ```
 
 ## Middleware
 
-```typescript
-// middleware.ts — Root middleware for auth + org routing
-// Uses Supabase Auth to:
-// 1. Refresh session tokens
-// 2. Redirect unauthenticated users from /events/* to /login
-// 3. Redirect authenticated users from /login to /dashboard
-// 4. Verify platform admin access for /superadmin/*
-// 5. Verify org membership for /events/[eventId]/*
-```
+`src/middleware.ts` delegates to `updateSession()` in
+`src/lib/supabase/middleware.ts`, which:
+
+1. Refreshes the Supabase session on every matched request.
+2. Fires the throttled `touch_my_activity` RPC (fire-and-forget) to keep
+   `profiles.last_active_at` current for the roster "Last seen" column.
+3. Gates a private-prefix allowlist (`/dashboard`, `/events`, `/idealab`,
+   `/plan`, `/settings`) — unauthenticated hits redirect to `/login?redirect=...`.
+   Everything else (marketing, auth, vanity slug routes, invite/join
+   landings, public showcases) is treated as public and the page handles
+   auth-aware rendering.
+4. Redirects authenticated users away from `/login` and `/signup` to
+   `/dashboard`.
+
+Admin authorization is **not** done in middleware — it lives in
+`[companyslug]/admin/layout.tsx` (non-admins 404) and in every admin API
+route via `requireEventAdmin`.
+
+## Security
+
+Hacksathon.com collects personal data, so the security model is
+documented separately and in full in [SECURITY.md](SECURITY.md). The
+load-bearing pieces:
+
+- **Authorization** is layered: `requireEventAdmin` / `is_org_admin` /
+  `is_platform_admin` on routes, RLS as the database backstop, and admin
+  gates re-checked in every admin route (never the client).
+- **Service-role client** (`lib/supabase/admin.ts`) bypasses RLS and is
+  server-only. Any new use must add its own ownership/membership check.
+- **Rate limiting** on public, unauthenticated write endpoints via
+  `lib/server/rate-limit.ts` (per-IP, in-process fixed window): `support`
+  (3/10 min), `waitlist` and `signup-via-join` (5/10 min).
+- **No verification-link leakage:** `signup-via-join` never returns the
+  Supabase confirmation `action_link` to the client and fails closed in
+  production when email cannot be sent.
+- **Invite binding:** `accept-invite` Path 2 requires the signed-in
+  account's email to match the invite email.
+- **Enumeration resistance:** the waitlist endpoint returns identical
+  responses for new vs. existing emails.
+
+A pre-launch security review (June 2026) found and fixed four issues; the
+findings and remaining follow-ups are tracked in
+[SECURITY.md](SECURITY.md).
 
 ## Supabase Configuration
 
-### Row-Level Security Strategy
+### Row-Level Security
 
-Every table with organization-scoped data uses RLS policies:
+Organization-scoped tables use RLS keyed off `organization_members`.
+Admin-only writes are gated through the `is_event_admin(p_event_id)`
+SECURITY DEFINER function to avoid policy recursion.
 
 ```sql
--- Pattern: Users can only access data in their organization
+-- Pattern: members can read data for events in their active orgs
 CREATE POLICY "org_isolation" ON ideas
   FOR ALL USING (
     event_id IN (
       SELECT e.id FROM events e
       JOIN organization_members om ON om.organization_id = e.organization_id
-      WHERE om.user_id = auth.uid()
-      AND om.status = 'active'
-    )
-  );
-
--- Pattern: Admin-only operations
-CREATE POLICY "admin_only" ON voting_config
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM organization_members om
-      JOIN events e ON e.organization_id = om.organization_id
-      WHERE om.user_id = auth.uid()
-      AND om.role = 'admin'
-      AND e.id = voting_config.event_id
+      WHERE om.user_id = auth.uid() AND om.status = 'active'
     )
   );
 ```
 
-### Edge Functions (AI Features)
+`organization_members.status` is a TEXT column with a CHECK constraint
+(`active` / `pending` / etc.), migrated from an earlier ENUM to support
+the join-link pending-approval flow.
 
-AI features run as Supabase Edge Functions or Next.js API routes (depending on latency requirements):
+### Storage buckets
 
-| Function | Location | AI Provider |
-|----------|----------|-------------|
-| Chat conversation | Next.js API route (streaming) | Claude via AI SDK |
-| Document generation | Next.js API route (streaming) | Claude via AI SDK |
-| Idea generation | Next.js API route | Claude via AI SDK |
-| Competitive analysis | Next.js API route | Claude via AI SDK |
-| Feature prioritization | Next.js API route | Claude via AI SDK |
-| PRD generator | Next.js API route | Claude via AI SDK |
+| Bucket | Path | Public |
+| --- | --- | --- |
+| `event-logos` | `{eventId}/{uuid}.{ext}` | yes |
+| `idea-screenshots` | `{eventId}/{userId}/{filename}` | yes |
+| `avatars` | `{userId}/...` | yes (write scoped to `auth.uid()` prefix) |
 
-### Realtime Subscriptions
+### Migrations
 
-Used for live updates in:
-- Voting: live voter count for admin
-- Ideas: new submissions appear in gallery
-- Awards: winner announcements propagate instantly
-- Block status: timeline updates for participants
+`supabase/migrations/00001` → `00027`. Notable recent additions:
 
-## Deployment Architecture
+- `00017_organizer_admin` — event invitations + `event-logos` bucket.
+- `00022_avatars_bucket` — avatar storage.
+- `00025_join_link_and_pending_members` — `events.join_token`,
+  `organization_members.status` TEXT + partial index.
+- `00026_profile_last_active` — `profiles.last_active_at` + `touch_my_activity()` RPC.
+- `00027_voting_and_reflections_windows` — `voting_open_at/close_at`,
+  `reflections_open_at/close_at` with CHECK constraints.
+
+## AI Features
+
+All AI runs through Next.js API routes using the Vercel AI SDK with
+`@ai-sdk/anthropic` (Claude). Model config lives in `lib/ai/model.ts`.
+
+| Feature | Route |
+| --- | --- |
+| Planning conversation (ZERO.Prmptr) | `api/planning/{session,step}` |
+| Starter prompt / brief | `api/planning/{starter-prompt,brief}` |
+| Reflection AI recap | `api/events/[id]/admin/reflections/summary` |
+
+## Email
+
+`lib/email/resend.ts` wraps the Resend client and degrades gracefully
+when `RESEND_API_KEY` is unset (logs + returns `{ ok: true, skipped: true }`).
+React Email templates render server-side. Used for participant invites,
+branded join-link signup confirmation, and password-change security
+notices. Some auth emails are also routed through Supabase SMTP
+configured with Resend.
+
+## Deployment
 
 ```
-Vercel
-├── Production (hacksathon.com)
-│   ├── Next.js App (Serverless Functions)
-│   ├── Edge Middleware (auth/routing)
-│   └── Static Assets (marketing pages)
-│
-├── Preview (PR branches)
-│
-Supabase
-├── Production project
-│   ├── Postgres (all tables with RLS)
-│   ├── Auth (magic link + Google OAuth)
-│   ├── Storage (screenshots, logos, documents)
-│   ├── Realtime (voting, ideas, blocks)
-│   └── Edge Functions (if needed for background tasks)
-│
-Stripe
-├── Subscription management
-├── Webhook → /api/webhooks/stripe
-│
+Vercel (production: hacksathon.com)
+├── Next.js App (Server Functions + Server Components)
+├── Middleware (session refresh + routing)
+└── Static marketing assets
+
+Supabase (production project)
+├── Postgres (all tables, RLS)
+├── Auth (magic link, password, Google OAuth)
+└── Storage (event-logos, idea-screenshots, avatars)
+
 Resend
-├── Transactional email (invites, notifications)
-│
-PostHog
-├── Product analytics
-├── Feature flags
+└── Transactional email (invites, join confirmation, security notices)
 ```

@@ -15,18 +15,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type TeamSize = "1-5" | "6-15" | "16-50" | "51-200" | "200+";
+type TeamSize = "1-10" | "11-25" | "26-50" | "51+";
 
 const TEAM_SIZES: { value: TeamSize; label: string }[] = [
-  { value: "1-5", label: "Just me / 1–5" },
-  { value: "6-15", label: "6–15" },
-  { value: "16-50", label: "16–50" },
-  { value: "51-200", label: "51–200" },
-  { value: "200+", label: "200+" },
+  { value: "1-10", label: "1–10" },
+  { value: "11-25", label: "11–25" },
+  { value: "26-50", label: "26–50" },
+  { value: "51+", label: "51+" },
 ];
 
 interface SuccessState {
-  alreadyOnList: boolean;
   name: string;
 }
 
@@ -34,10 +32,10 @@ interface SuccessState {
  * The waitlist signup form.
  *
  * One screen, four fields. On submit we POST to /api/waitlist and
- * swap the form for an in-place thank-you. Re-submits of the same
- * email come back with `alreadyOnList: true`, which we surface as a
- * softer "you're already on the list" message so the user knows their
- * earlier signup landed.
+ * swap the form for an in-place thank-you. The endpoint returns an
+ * identical response whether the email is new or already on the list
+ * (to prevent membership enumeration), so we show a single generic
+ * confirmation either way.
  */
 export function WaitlistForm() {
   const [email, setEmail] = useState("");
@@ -76,10 +74,7 @@ export function WaitlistForm() {
         return;
       }
 
-      setSuccess({
-        alreadyOnList: Boolean(body?.alreadyOnList),
-        name: name.trim(),
-      });
+      setSuccess({ name: name.trim() });
     });
   }
 
@@ -159,14 +154,15 @@ export function WaitlistForm() {
 
       <Button
         type="submit"
-        size="lg"
+        variant="pill"
+        size="pill"
         className="w-full"
         disabled={pending}
       >
         {pending ? "Adding you…" : "Join the Waitlist"}
       </Button>
 
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="form-hint text-center">
         We&apos;ll only email you about Hacksathon.com.{" "}
         <Link
           href="/case-study"
@@ -190,21 +186,19 @@ function SuccessPanel({ state }: { state: SuccessState }) {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">
-          {state.alreadyOnList
-            ? `You're already on the list, ${firstName}.`
-            : `You're in, ${firstName}.`}
+        <h2 className="text-2xl tracking-tight">
+          You&apos;re in, {firstName}.
         </h2>
         <p className="text-sm text-muted-foreground">
-          {state.alreadyOnList
-            ? "We've got your details and you'll hear from us as soon as Hacksathon.com is ready."
-            : "Thanks for raising your hand. We just sent you a confirmation email and will be in touch as soon as Hacksathon.com is ready for your team."}
+          Thanks for raising your hand. We&apos;ve got your details and
+          we&apos;ll be in touch as soon as Hacksathon.com is ready for your
+          team. Keep an eye on your inbox for a confirmation.
         </p>
       </div>
 
       <ShareButton />
 
-      <p className="pt-2 text-xs text-muted-foreground">
+      <p className="form-hint pt-2">
         Want a flavor of what this looks like in practice?{" "}
         <Link
           href="/case-study"
@@ -237,7 +231,7 @@ function ShareButton() {
         });
         return;
       } catch {
-        // User cancelled — fall through to clipboard copy.
+        // User cancelled - fall through to clipboard copy.
       }
     }
 

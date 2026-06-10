@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
 import { WaitlistConfirmationEmail } from "@/emails/waitlist-confirmation";
+import { getClientIp, rateLimit } from "@/lib/server/rate-limit";
 
 export const maxDuration = 15;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const TEAM_SIZE_VALUES = ["1-5", "6-15", "16-50", "51-200", "200+"] as const;
+const TEAM_SIZE_VALUES = ["1-10", "11-25", "26-50", "51+"] as const;
 type TeamSize = (typeof TEAM_SIZE_VALUES)[number];
 
 interface SignupBody {
@@ -26,17 +27,28 @@ interface SignupBody {
  * traffic, which is why we have to use the admin client here.
  *
  * Privacy posture:
- *   - We never reveal whether an email is already on the list via a
- *     distinct status code. Both "fresh signup" and "already on the
- *     list" return 200 with the same shape, so a scraper can't probe
- *     for membership.
+ *   - We never reveal whether an email is already on the list. Both
+ *     "fresh signup" and "already on the list" return 200 with the exact
+ *     same body, so a scraper can't probe for membership by diffing
+ *     status codes or response fields.
  *   - The confirmation email only sends on a *new* signup. Re-submits
  *     are silently idempotent (no spam to people who hit the form
- *     twice). That trade-off favors not annoying real users; the
- *     visible-only signal of "already on the list" lives in the UI
- *     copy, not in an email.
+ *     twice), and that difference is never surfaced to the caller.
  */
 export async function POST(req: Request) {
+  // Throttle per IP - this is a public, unauthenticated write endpoint.
+  const limit = rateLimit({
+    key: `waitlist:${getClientIp(req)}`,
+    limit: 5,
+    windowMs: 10 * 60_000,
+  });
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please wait a moment and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
+
   let body: SignupBody;
   try {
     body = (await req.json()) as SignupBody;
@@ -86,10 +98,14 @@ export async function POST(req: Request) {
 
   const admin = createAdminClient();
 
-  // Detect re-submit before upserting so we know whether to send the
-  // confirmation email. We could rely on the UNIQUE violation, but
-  // looking it up first is cheaper than catching errors and lets us
-  // surface the "already on list" copy cleanly.
+  // The identical response we return whether the email was just added or
+  // was already present. Keeping these byte-for-byte the same is what
+  // prevents membership enumeration.
+  const genericSuccess = NextResponse.json({ ok: true });
+
+  // Detect re-submit before inserting so we know whether to send the
+  // confirmation email. The result of this check is never surfaced to
+  // the caller - it only gates the (best-effort) email send.
   const { data: existing } = await admin
     .from("waitlist_signups")
     .select("id")
@@ -97,11 +113,7 @@ export async function POST(req: Request) {
     .maybeSingle<{ id: string }>();
 
   if (existing) {
-    return NextResponse.json({
-      ok: true,
-      alreadyOnList: true,
-      emailSkipped: true,
-    });
+    return genericSuccess;
   }
 
   const { error: insertError } = await admin.from("waitlist_signups").insert({
@@ -114,13 +126,10 @@ export async function POST(req: Request) {
 
   if (insertError) {
     // If the UNIQUE index fires (race condition with a sibling tab),
-    // treat it as "already on list" rather than an error.
+    // treat it exactly like an "already on list" success so the response
+    // stays indistinguishable.
     if (insertError.code === "23505") {
-      return NextResponse.json({
-        ok: true,
-        alreadyOnList: true,
-        emailSkipped: true,
-      });
+      return genericSuccess;
     }
     console.error("[waitlist] insert failed:", insertError);
     return NextResponse.json(
@@ -129,7 +138,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const emailResult = await sendEmail({
+  // Best-effort confirmation email on genuinely new signups only. We
+  // deliberately ignore the result so the response shape can't reveal
+  // whether this was a new insert.
+  await sendEmail({
     to: email,
     subject: "You're on the Hacksathon.com waitlist.",
     react: WaitlistConfirmationEmail({
@@ -138,10 +150,5 @@ export async function POST(req: Request) {
     }),
   });
 
-  return NextResponse.json({
-    ok: true,
-    alreadyOnList: false,
-    emailSkipped: Boolean(emailResult.skipped),
-    emailError: emailResult.error ?? null,
-  });
+  return genericSuccess;
 }

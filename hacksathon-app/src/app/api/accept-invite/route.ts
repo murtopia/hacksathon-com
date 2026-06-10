@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isExpired } from "@/lib/invites/tokens";
+import { sendParticipantWelcomeEmail } from "@/lib/email/send-participant-welcome";
 
 export const maxDuration = 30;
 
@@ -16,11 +17,11 @@ export const maxDuration = 30;
  *        confirmed (the invite itself proves the email is reachable),
  *        upsert the profile, add to organization_members as 'member',
  *        mark the invitation accepted. Returns `{ ok: true, eventId,
- *        signedIn: false }` — the caller still needs to sign in.
+ *        signedIn: false }` - the caller still needs to sign in.
  *
  *   2. Existing logged-in user (the inviter sent the link to themselves
  *      from another account, or the recipient already has an account):
- *      { token } — no password required; we use the caller's session
+ *      { token } - no password required; we use the caller's session
  *      to join the org. Returns `{ ok: true, eventId, signedIn: true }`.
  *
  * RLS bypass: we use the admin client because the recipient has no
@@ -87,10 +88,12 @@ export async function POST(req: Request) {
     );
   }
 
-  const eventRel = invite.events as
-    | { id: string; organization_id: string }
-    | { id: string; organization_id: string }[]
-    | null;
+  type InviteEvent = {
+    id: string;
+    title: string | null;
+    organization_id: string;
+  };
+  const eventRel = invite.events as InviteEvent | InviteEvent[] | null;
   const eventRow = Array.isArray(eventRel) ? eventRel[0] : eventRel;
   if (!eventRow) {
     return NextResponse.json(
@@ -100,7 +103,9 @@ export async function POST(req: Request) {
   }
   const organizationId = eventRow.organization_id;
   const eventId = eventRow.id;
+  const eventTitle = eventRow.title?.trim() || "your Hacks-a-Thon";
   const inviteEmail = String(invite.email);
+  let participantName: string | null = null;
 
   // Decide between path 1 (new user via password) and path 2
   // (already-signed-in caller).
@@ -112,10 +117,34 @@ export async function POST(req: Request) {
   let userId: string;
 
   if (currentUser) {
-    // Path 2 — join the org under the current session.
+    // Path 2 - join the org under the current session.
+    //
+    // SECURITY: bind the invite to the signed-in account's email. Without
+    // this check, any logged-in user who obtains an invite token (a
+    // forwarded email, a shared screen, a leaked link) could redeem it
+    // under their own account, burning the invite and locking out the
+    // intended recipient.
+    const sessionEmail = currentUser.email?.trim().toLowerCase() ?? "";
+    if (!sessionEmail || sessionEmail !== inviteEmail.toLowerCase()) {
+      return NextResponse.json(
+        {
+          error:
+            "This invitation was sent to a different email address. Sign in with the invited address to accept it.",
+          code: "EMAIL_MISMATCH",
+        },
+        { status: 403 },
+      );
+    }
+
     userId = currentUser.id;
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", userId)
+      .maybeSingle<{ full_name: string | null }>();
+    participantName = profile?.full_name?.trim() || null;
   } else {
-    // Path 1 — create the user.
+    // Path 1 - create the user.
     const password =
       typeof body.password === "string" ? body.password : "";
     const fullName =
@@ -138,7 +167,7 @@ export async function POST(req: Request) {
 
     // If an auth user already exists for this email, the create call
     // will fail. In that case, we fall back to a sign-in flow on the
-    // client (the page surfaces "We found an existing account — sign
+    // client (the page surfaces "We found an existing account - sign
     // in to join").
     const { data: created, error: createError } =
       await admin.auth.admin.createUser({
@@ -165,6 +194,7 @@ export async function POST(req: Request) {
     }
 
     userId = created.user.id;
+    participantName = fullName;
 
     // Upsert the profile (trigger likely creates a base row on auth
     // user creation, but we set full_name explicitly here).
@@ -188,12 +218,17 @@ export async function POST(req: Request) {
     .eq("user_id", userId)
     .maybeSingle<{ id: string; status: string }>();
 
+  // Only welcome on a real transition into active (not a re-accept by an
+  // already-active member).
+  let becameActive = false;
+
   if (existingMember) {
     if (existingMember.status !== "active") {
       await admin
         .from("organization_members")
         .update({ status: "active", joined_at: new Date().toISOString() })
         .eq("id", existingMember.id);
+      becameActive = true;
     }
   } else {
     const { error: memberError } = await admin
@@ -201,7 +236,7 @@ export async function POST(req: Request) {
       .insert({
         organization_id: organizationId,
         user_id: userId,
-        role: "member",
+        role: "participant",
         status: "active",
         joined_at: new Date().toISOString(),
       });
@@ -212,6 +247,7 @@ export async function POST(req: Request) {
         { status: 500 },
       );
     }
+    becameActive = true;
   }
 
   // Mark the invitation accepted.
@@ -219,6 +255,23 @@ export async function POST(req: Request) {
     .from("event_invitations")
     .update({ status: "accepted", accepted_at: new Date().toISOString() })
     .eq("id", invite.id);
+
+  // Branded participant welcome - fail-soft, only on transition to active.
+  if (becameActive) {
+    const { data: org } = await admin
+      .from("organizations")
+      .select("name")
+      .eq("id", organizationId)
+      .maybeSingle<{ name: string | null }>();
+
+    await sendParticipantWelcomeEmail({
+      email: inviteEmail,
+      participantName,
+      orgName: org?.name?.trim() || "",
+      eventTitle,
+      eventId,
+    });
+  }
 
   return NextResponse.json({
     ok: true,

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EB_Garamond, Inter, JetBrains_Mono } from "next/font/google";
+import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -25,14 +26,14 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hacksathon.com — Run Your Own Hacks-a-Thon",
+    default: "Hacksathon.com - Run Your Own Hacks-a-Thon",
     template: "%s | Hacksathon.com",
   },
   description:
     "The turnkey platform for running structured, AI-powered Hacks-a-Thons at your company. From ideation to showcase, everything your non-technical team needs to build something real.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   openGraph: {
-    title: "Hacksathon.com — Run Your Own Hacks-a-Thon",
+    title: "Hacksathon.com - Run Your Own Hacks-a-Thon",
     description:
       "The turnkey platform for running structured, AI-powered Hacks-a-Thons at your company.",
     type: "website",
@@ -50,10 +51,12 @@ export default function RootLayout({
       className={`${inter.variable} ${ebGaramond.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <TooltipProvider>
-          {children}
-          <Toaster />
-        </TooltipProvider>
+        <PostHogProvider>
+          <TooltipProvider>
+            {children}
+            <Toaster />
+          </TooltipProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

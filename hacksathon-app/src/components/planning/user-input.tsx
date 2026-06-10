@@ -10,7 +10,7 @@ interface UserInputProps {
 }
 
 /**
- * Plain conversational input — textarea + Send. The Blueprint flow no
+ * Plain conversational input - textarea + Send. The Blueprint flow no
  * longer has a per-step advance gate; the persistent "Generate my Blueprint"
  * CTA lives in PlanningFlow alongside this input.
  */
@@ -56,6 +56,8 @@ export function UserInput({ onSend, disabled }: UserInputProps) {
       />
       <Button
         type="submit"
+        variant="pill"
+        size="pill"
         disabled={!value.trim() || disabled}
         className="w-full"
       >

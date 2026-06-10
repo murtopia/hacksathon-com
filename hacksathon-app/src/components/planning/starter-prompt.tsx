@@ -2,23 +2,43 @@
 
 import { useState } from "react";
 import { Check, Copy as CopyIcon } from "lucide-react";
+import {
+  buildToolLabel,
+  isRecognizedBuildTool,
+} from "@/lib/build-tool/labels";
 
 interface StarterPromptProps {
   prompt: string | null;
   error?: string | null;
   onRetry?: () => void;
+  /**
+   * The event's configured build tool. Drives the Next Steps copy so
+   * the kickoff instructions reference the right tool (or fall back
+   * to "your vibe coding app" for organizers using "Other"). When
+   * omitted the panel renders generic copy.
+   */
+  buildTool?: string | null;
 }
 
 /**
- * The Next Steps panel — the single most important UX moment for a
+ * The Next Steps panel - the single most important UX moment for a
  * non-technical participant. Above the prompt itself we show the
- * verbatim five-step kickoff instructions from the planning doc, so
- * pasting into Lovable (or another tool) is completely explicit. The
- * prominent "Copy Starter Prompt" CTA lives here (not on the Blueprint
- * card above) so the call-to-action sits right next to the prompt it
+ * verbatim five-step kickoff instructions so pasting into the
+ * configured build tool is completely explicit. The prominent
+ * "Copy Starter Prompt" CTA lives here (not on the Blueprint card
+ * above) so the call-to-action sits right next to the prompt it
  * copies.
  */
-export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
+export function StarterPrompt({
+  prompt,
+  error,
+  onRetry,
+  buildTool,
+}: StarterPromptProps) {
+  const toolLabel = buildToolLabel(buildTool);
+  const isLovable = isRecognizedBuildTool(buildTool)
+    ? buildTool?.toLowerCase().trim() === "lovable"
+    : false;
   const [copiedHeader, setCopiedHeader] = useState(false);
   const [copiedCta, setCopiedCta] = useState(false);
 
@@ -48,23 +68,23 @@ export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
       }}
     >
       <div className="mb-5">
-        <span className="mono-label">Next Steps — Build It</span>
+        <span className="mono-label">Next Steps - Build It</span>
         <p
           className="font-serif text-[16px] leading-relaxed mt-3"
           style={{ color: "var(--text-secondary)" }}
         >
-          This is how you kick off your build in Lovable (or Cursor or Bolt).
+          This is how you kick off your build in {toolLabel}.
         </p>
       </div>
 
       <ol className="space-y-3 mb-6">
         <InstructionStep
           number={1}
-          text="Download your Blueprint from the card above — Download .md or Save as PDF, your choice."
+          text="Download your Blueprint from the card above - Download .md or Save as PDF, your choice."
         />
         <InstructionStep
           number={2}
-          text="Open your build tool and start a new project."
+          text={`Open ${toolLabel} and start a new project.`}
         />
         <InstructionStep
           number={3}
@@ -72,12 +92,16 @@ export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
         />
         <InstructionStep
           number={4}
-          text="Attach your Blueprint file. In Lovable, click the paperclip icon and upload it. This gives the AI everything it needs to build the right thing from the start."
+          text={
+            isLovable
+              ? "Attach your Blueprint file. In Lovable, click the paperclip icon and upload it. This gives the AI everything it needs to build the right thing from the start."
+              : "Attach your Blueprint file using your tool's file or upload control. This gives the AI everything it needs to build the right thing from the start."
+          }
         />
         <InstructionStep number={5} text="Hit send. You're building." />
       </ol>
 
-      {/* Primary CTA — sits directly above the prompt it copies. */}
+      {/* Primary CTA - sits directly above the prompt it copies. */}
       {error && onRetry ? (
         <div
           className="py-4 px-4 mb-3 rounded-sm"
@@ -106,8 +130,12 @@ export function StarterPrompt({ prompt, error, onRetry }: StarterPromptProps) {
         type="button"
         onClick={() => handleCopy(setCopiedCta)}
         disabled={!prompt}
-        className="gradient-border w-full py-3 px-4 mb-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 print:hidden"
-        style={{ color: "var(--text-primary)" }}
+        className="w-full py-3 px-4 mb-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 print:hidden"
+        style={{
+          color: "var(--white)",
+          backgroundColor: "var(--text-primary)",
+          border: "1px solid var(--text-primary)",
+        }}
       >
         {prompt &&
           (copiedCta ? (

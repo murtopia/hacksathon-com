@@ -1,5 +1,5 @@
 /**
- * IdeaLab — types, constants, and small helpers.
+ * IdeaLab - types, constants, and small helpers.
  *
  * The Idea type mirrors the `ideas` table after the 00006 + 00009
  * migrations. Status is the Postgres enum (`idea_status`); user-facing
@@ -45,6 +45,7 @@ export interface Idea {
  */
 export interface IdeaWithAuthor extends Idea {
   authorName: string | null;
+  authorAvatarUrl: string | null;
 }
 
 /**

@@ -4,7 +4,7 @@ import { anthropic } from "@ai-sdk/anthropic";
  * Single source of truth for the AI model used across the planning engine.
  *
  * Centralized here so that future model swaps (e.g. when Claude 4.7 ships
- * or 4.6 is deprecated) are a one-line change — or a Vercel env override
+ * or 4.6 is deprecated) are a one-line change - or a Vercel env override
  * with no deploy needed.
  *
  * Anthropic switched to a dateless model ID format starting with the

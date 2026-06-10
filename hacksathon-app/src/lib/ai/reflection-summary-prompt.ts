@@ -4,7 +4,7 @@
  * every participant's reflection answers. It runs once when the
  * organizer hits "Generate" and again on every "Regenerate". Approved
  * drafts surface to participants via the (deferred) public results page
- * — for M4 the recap stays internal to the organizer.
+ * - for M4 the recap stays internal to the organizer.
  */
 
 interface ReflectionEntry {
@@ -19,13 +19,13 @@ export function buildReflectionSummarySystemPrompt(args: {
 }): string {
   return `You are writing a short, warm post-event recap for a company Hacks-a-Thon called "${args.eventTitle}" hosted by ${args.orgName}.
 
-Your reader is the organizer, who will share this with their team. The voice should sound like a teammate who paid attention all week — warm, observational, casually celebratory. Not corporate. Not effusive. Not a list.
+Your reader is the organizer, who will share this with their team. The voice should sound like a teammate who paid attention all week - warm, observational, casually celebratory. Not corporate. Not effusive. Not a list.
 
 Tasks:
 - Read every participant's reflection answers below.
-- Find the shared threads — what surprised people, what they're proud of, what they learned, what they're taking forward.
+- Find the shared threads - what surprised people, what they're proud of, what they learned, what they're taking forward.
 - Quote 2–4 short, anonymized phrases (paraphrase if needed). Never name names unless the participant included their own name inside their answer.
-- Call out the energy or pattern that defined the event — the thing that, if you were retelling this hackathon at a dinner party, you'd open with.
+- Call out the energy or pattern that defined the event - the thing that, if you were retelling this hackathon at a dinner party, you'd open with.
 - Close with one line that lands. Not a summary. Not a CTA. Just a beat.
 
 Format:
@@ -41,7 +41,7 @@ export function buildReflectionSummaryUserPrompt(
   entries: ReflectionEntry[],
 ): string {
   if (entries.length === 0) {
-    return "No reflection responses were submitted. Write a brief, honest one-paragraph note acknowledging this — warm but truthful — instead of a recap.";
+    return "No reflection responses were submitted. Write a brief, honest one-paragraph note acknowledging this - warm but truthful - instead of a recap.";
   }
 
   const grouped = new Map<string, ReflectionEntry[]>();

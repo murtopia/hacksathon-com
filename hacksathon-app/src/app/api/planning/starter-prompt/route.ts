@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   // Note: planning_sessions has TWO foreign keys to project_briefs
   // (brief_id and existing_brief_id), so we can't rely on PostgREST's
   // implicit foreign-key joins. Fetch the session and brief in two
-  // explicit steps instead — this also keeps the route resilient if a
+  // explicit steps instead - this also keeps the route resilient if a
   // session has a stale brief_id.
   const { data: session, error: sessionError } = await supabase
     .from("planning_sessions")
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 
 /**
  * Synthesize the Starter Prompt from brief fields using the doc's verbatim template.
- * Plain text — no markdown, no fences. Designed to paste directly into a build tool.
+ * Plain text - no markdown, no fences. Designed to paste directly into a build tool.
  */
 function buildStarterPrompt(args: {
   projectName: string;
@@ -96,7 +96,7 @@ function buildStarterPrompt(args: {
 }): string {
   const designLine = [args.designVibe, args.referenceUrl]
     .filter((v) => v && v.trim().length > 0)
-    .join(" — ");
+    .join(" - ");
 
   return `I'm building an app called ${args.projectName}.
 
@@ -110,5 +110,5 @@ ${designLine ? `Design direction: ${designLine}\n\n` : ""}For this first build, 
 
 Start there and nothing else. Don't add features I haven't asked for.
 
-I'm attaching my Blueprint — please read it before you start building.`;
+I'm attaching my Blueprint - please read it before you start building.`;
 }

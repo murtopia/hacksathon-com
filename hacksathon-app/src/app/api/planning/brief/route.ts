@@ -239,7 +239,7 @@ function buildFallbackMarkdown(args: {
   oneThing: string;
   doneWhen: string;
 }): string {
-  return `# ${args.projectName} — Blueprint
+  return `# ${args.projectName} - Blueprint
 
 ## 🎯 What It Does
 ${args.whatItDoes || "_(Not yet captured.)_"}

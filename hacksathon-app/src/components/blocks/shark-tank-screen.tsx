@@ -13,22 +13,36 @@ interface SharkTankScreenProps {
   eventId: string;
   ideaId: string | null;
   alreadyLocked: boolean;
+  /**
+   * Vanity slug for the event. When provided the inline "Update your
+   * idea" / "Add your idea" links use `/[slug]/idea(/new)` directly
+   * instead of routing through the legacy `/events/[id]/idealab/...`
+   * redirect.
+   */
+  slug?: string;
 }
 
 /**
- * Shark Tank Prep — the brief on-screen reminder of pitch shape, plus
+ * Shark Tank Prep - the brief on-screen reminder of pitch shape, plus
  * the two affordances that close out this block:
  *
  *   1. "Update your idea" deep link so participants can capture
  *      feedback from the room while it's fresh.
- *   2. "Lock my idea" — explicit per-participant completion. Writes a
+ *   2. "Lock my idea" - explicit per-participant completion. Writes a
  *      block_completions row for block '02'.
  */
 export function SharkTankScreen({
   eventId,
   ideaId,
   alreadyLocked,
+  slug,
 }: SharkTankScreenProps) {
+  const updateIdeaHref = slug
+    ? `/${slug}/idea`
+    : `/events/${eventId}/idealab/${ideaId}`;
+  const newIdeaHref = slug
+    ? `/${slug}/idea/new`
+    : `/events/${eventId}/idealab/new`;
   return (
     <div className="space-y-6">
       <Card>
@@ -72,26 +86,22 @@ export function SharkTankScreen({
                   alreadyLocked={alreadyLocked}
                 />
                 <Button asChild variant="outline">
-                  <Link href={`/events/${eventId}/idealab/${ideaId}`}>
-                    Update your idea
-                  </Link>
+                  <Link href={updateIdeaHref}>Update your idea</Link>
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
                 {alreadyLocked
                   ? "Your idea is locked. You can still edit it from the IdeaLab."
-                  : "Sharpen the pitch, swap a feature, or refine your one-liner — whatever the room landed on. Lock it in when you're ready to build."}
+                  : "Sharpen the pitch, swap a feature, or refine your one-liner - whatever the room landed on. Lock it in when you're ready to build."}
               </p>
             </>
           ) : (
             <>
-              <Button asChild>
-                <Link href={`/events/${eventId}/idealab/new`}>
-                  Drop your idea first
-                </Link>
+              <Button asChild variant="pill" size="pill">
+                <Link href={newIdeaHref}>Add your idea first</Link>
               </Button>
               <p className="text-xs text-muted-foreground">
-                Drop your idea in the IdeaLab so you have something to pitch.
+                Add your idea in the IdeaLab so you have something to pitch.
               </p>
             </>
           )}

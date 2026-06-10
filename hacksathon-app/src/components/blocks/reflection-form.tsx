@@ -119,10 +119,13 @@ export function ReflectionForm({
         return (
           <div key={q.id} className="space-y-2">
             <div className="flex items-start justify-between gap-2">
-              <Label htmlFor={`reflection-${q.id}`} className="text-base font-medium">
+              <Label
+                htmlFor={`reflection-${q.id}`}
+                className="font-serif text-base font-normal normal-case tracking-normal leading-snug text-foreground"
+              >
                 {q.question_text}
                 {!q.is_required && (
-                  <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  <span className="ml-2 align-middle font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
                     Optional
                   </span>
                 )}
@@ -149,8 +152,8 @@ export function ReflectionForm({
             <div className="flex justify-end">
               <span
                 className={cn(
-                  "text-xs",
-                  remaining < 100 ? "text-amber-600" : "text-muted-foreground",
+                  "font-mono text-[10px] uppercase tracking-wide",
+                  remaining < 100 ? "text-foreground" : "text-[var(--text-tertiary)]",
                 )}
               >
                 {remaining} characters left

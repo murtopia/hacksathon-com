@@ -14,7 +14,7 @@ interface ProjectBriefCardProps {
 }
 
 /**
- * The rendered Blueprint card — header AND footer expose the same
+ * The rendered Blueprint card - header AND footer expose the same
  * Copy / Download / Save as PDF actions because the Blueprint can run
  * 1.5–2 pages and scrolling back to the top to take action is friction.
  * The Starter Prompt CTA lives in the StarterPrompt panel below this
@@ -74,7 +74,7 @@ export function ProjectBriefCard({
         {actionRow}
       </div>
 
-      {/* The Blueprint itself — rendered from prdMarkdown */}
+      {/* The Blueprint itself - rendered from prdMarkdown */}
       <div className="prd-markdown">
         {brief.prdMarkdown ? (
           <ReactMarkdown
@@ -178,7 +178,7 @@ export function ProjectBriefCard({
         )}
       </div>
 
-      {/* Updating overlay — light scrim while regenerating */}
+      {/* Updating overlay - light scrim while regenerating */}
       {updating && (
         <div
           className="absolute inset-0 flex items-center justify-center rounded-sm"
@@ -199,7 +199,7 @@ export function ProjectBriefCard({
         </div>
       )}
 
-      {/* Repeat the Blueprint actions at the bottom — the document can
+      {/* Repeat the Blueprint actions at the bottom - the document can
           run 1.5–2 pages and scrolling back up to act is friction. */}
       <div
         className="mt-8 pt-6 flex items-center justify-end gap-4 flex-wrap print:hidden"

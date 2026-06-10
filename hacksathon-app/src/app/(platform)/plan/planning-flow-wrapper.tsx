@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { PlanningFlow } from "@/components/planning/planning-flow";
 import { rowToSession } from "@/lib/planning/context";
+import { createPlanningSession } from "@/lib/planning/ensure-session";
 import type { PlanningSession, ProjectBrief } from "@/lib/planning/types";
 
 interface PlanningFlowWrapperProps {
@@ -38,36 +39,27 @@ export function PlanningFlowWrapper({
 
     creating.current = true;
 
-    async function createSession() {
+    async function bootstrap() {
       try {
-        const res = await fetch("/api/planning/session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            eventId: eventId ?? null,
-            ideaId: ideaId ?? null,
-            buildTool: buildTool ?? "lovable",
-          }),
+        const created = await createPlanningSession({
+          eventId,
+          ideaId,
+          buildTool,
         });
+        setSession(created);
 
-        if (!res.ok) {
-          setError("Failed to start planning session.");
-          return;
-        }
-
-        const data = await res.json();
-        setSession(data.session);
-
-        // Persist session ID in the URL for reload support
+        // Persist session ID in the URL so a hard reload picks up the
+        // same session. The dialog-flavoured caller (BlueprintFlowDialog)
+        // shares the same helper but intentionally skips this step.
         const url = new URL(window.location.href);
-        url.searchParams.set("session", data.session.id);
+        url.searchParams.set("session", created.id);
         window.history.replaceState({}, "", url.toString());
       } catch {
         setError("Failed to start planning session.");
       }
     }
 
-    createSession();
+    bootstrap();
   }, [session, userId, eventId, ideaId, buildTool]);
 
   if (error) {

@@ -5,14 +5,6 @@ import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export interface BallotCategory {
   id: string;
@@ -103,82 +95,88 @@ export function AwardBallot({
 
   if (ideas.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">No projects to vote on yet</CardTitle>
-          <CardDescription>
-            Once people drop their projects into the showcase, they&apos;ll
-            appear here.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="space-y-1">
+        <p className="mono-label">No projects yet</p>
+        <p className="font-serif text-sm italic text-muted-foreground/80">
+          Once people drop their projects into the showcase, they&apos;ll appear
+          here.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {categories.map((cat) => {
         const selected = picks.get(cat.id) ?? null;
         const isPending = pendingCategoryId === cat.id;
         return (
-          <Card key={cat.id}>
-            <CardHeader>
-              <CardTitle className="text-lg">{cat.name}</CardTitle>
+          <div
+            key={cat.id}
+            className="space-y-4 border border-border bg-background p-6"
+          >
+            <div className="space-y-1">
+              <p className="mono-label">{cat.name}</p>
               {cat.description && (
-                <CardDescription>{cat.description}</CardDescription>
+                <p className="font-serif text-sm italic text-muted-foreground/80">
+                  {cat.description}
+                </p>
               )}
-            </CardHeader>
-            <CardContent>
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {ideas.map((idea) => {
-                  const isSelected = selected === idea.id;
-                  return (
-                    <li key={idea.id}>
-                      <button
-                        type="button"
-                        onClick={() => castVote(cat.id, idea.id)}
-                        disabled={isPending}
-                        aria-pressed={isSelected}
+            </div>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {ideas.map((idea) => {
+                const isSelected = selected === idea.id;
+                return (
+                  <li key={idea.id}>
+                    <button
+                      type="button"
+                      onClick={() => castVote(cat.id, idea.id)}
+                      disabled={isPending}
+                      aria-pressed={isSelected}
+                      className={cn(
+                        "group flex w-full items-start gap-3 rounded-[4px] border p-3 text-left transition",
+                        "hover:border-foreground/40",
+                        isSelected
+                          ? "border-foreground"
+                          : "border-border",
+                        isPending && "opacity-60",
+                      )}
+                    >
+                      <span
+                        aria-hidden
                         className={cn(
-                          "group flex w-full items-start gap-3 rounded-md border p-3 text-left transition",
-                          "hover:border-foreground/40",
+                          "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border",
                           isSelected
-                            ? "border-foreground bg-foreground/5"
-                            : "border-border",
-                          isPending && "opacity-60",
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-muted-foreground/40",
                         )}
                       >
+                        {isSelected && <Check className="size-3" />}
+                      </span>
+                      <span className="min-w-0 flex-1">
                         <span
-                          aria-hidden
                           className={cn(
-                            "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border",
-                            isSelected
-                              ? "border-foreground bg-foreground text-background"
-                              : "border-muted-foreground/40",
+                            "block truncate",
+                            isSelected ? "font-semibold" : "font-medium",
                           )}
                         >
-                          {isSelected && <Check className="size-3" />}
+                          {idea.title}
                         </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate font-medium">
-                            {idea.title}
-                          </span>
-                          <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                            {idea.ownerName && <span>{idea.ownerName}</span>}
-                            {idea.isMine && (
-                              <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                Your idea
-                              </span>
-                            )}
-                          </span>
+                        <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          {idea.ownerName && <span>{idea.ownerName}</span>}
+                          {idea.isMine && (
+                            <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              Your idea
+                            </span>
+                          )}
                         </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </CardContent>
-          </Card>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         );
       })}
     </div>

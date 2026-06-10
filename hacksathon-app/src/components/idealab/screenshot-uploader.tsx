@@ -25,7 +25,7 @@ const ACCEPTED_TYPES = [
 const PUBLIC_URL_PREFIX = "/storage/v1/object/public/idea-screenshots/";
 
 interface ScreenshotUploaderProps {
-  /** Parent ideas.id — drives the storage path and RLS check. */
+  /** Parent ideas.id - drives the storage path and RLS check. */
   ideaId: string;
   /** Current persisted screenshot URL, or null when empty. */
   currentUrl: string | null;
@@ -54,7 +54,7 @@ interface ScreenshotUploaderProps {
 }
 
 /**
- * ScreenshotUploader — direct client → Supabase Storage upload with a
+ * ScreenshotUploader - direct client → Supabase Storage upload with a
  * focal-point crop tool.
  *
  * Storage layout: `{ideaId}/{uuid}.{ext}` in the public `idea-screenshots`
@@ -62,7 +62,7 @@ interface ScreenshotUploaderProps {
  * make every upload unique by construction, so we never need `upsert`
  * or a cache-buster query param.
  *
- * "Cropping" is intentionally CSS-only — we save `hero_crop_x` /
+ * "Cropping" is intentionally CSS-only - we save `hero_crop_x` /
  * `hero_crop_y` percentages and let `object-position` move the visible
  * 16:9 window on the original image at render time. No image
  * processing pipeline, no Sharp, no edge function.
@@ -116,7 +116,7 @@ export function ScreenshotUploader({
 
   // If the screenshot is already in the browser cache, the <img>'s
   // `load` event may fire before React attaches our `onLoad` handler
-  // — leaving `heroNaturalSize` null and the crop tool stuck in the
+  // - leaving `heroNaturalSize` null and the crop tool stuck in the
   // "nothing to crop" state. Read the dimensions directly from the
   // ref whenever the URL changes, falling back to onLoad for fresh
   // loads.
@@ -148,7 +148,7 @@ export function ScreenshotUploader({
 
   /**
    * Which axis is meaningful for this image. `object-cover` in a 16:9
-   * frame crops only one direction — taller-than-16:9 crops vertically
+   * frame crops only one direction - taller-than-16:9 crops vertically
    * (Y axis), wider-than-16:9 crops horizontally (X axis), exactly 16:9
    * doesn't crop at all so the focal point is moot.
    *
@@ -166,7 +166,7 @@ export function ScreenshotUploader({
   /**
    * Visible slice size along the active axis as a percentage of the
    * full image. For Y axis this is the slice height; for X axis it's
-   * the slice width. Capped at 100 — when the image already fits the
+   * the slice width. Capped at 100 - when the image already fits the
    * 16:9 frame in that direction, there's nothing to crop.
    */
   const sliceSize = useMemo(() => {
@@ -180,7 +180,7 @@ export function ScreenshotUploader({
    * Band geometry on the source image. As the active crop value goes
    * 0..100, the band's leading edge linearly slides from 0% to
    * (100 - sliceSize)%, so the band always stays fully inside the
-   * image — and the leading edge / size map exactly to the slice that
+   * image - and the leading edge / size map exactly to the slice that
    * `object-cover` shows at the corresponding `object-position`.
    */
   const activeCrop = cropAxis === "x" ? localCropX : localCropY;
@@ -192,7 +192,7 @@ export function ScreenshotUploader({
       const container = cropContainerRef.current;
       if (!container) return;
       // No active axis (exactly 16:9) or the slice already covers the
-      // full image — nothing to crop. Lock both axes at center.
+      // full image - nothing to crop. Lock both axes at center.
       if (!cropAxis || sliceSize >= 100) {
         setLocalCropX(50);
         setLocalCropY(50);
@@ -232,7 +232,7 @@ export function ScreenshotUploader({
       setIsDragging(false);
       if (!cropAxis) return;
       // Surface the save in the UI so the user has something to look
-      // at — silent auto-save reads as "did anything happen?".
+      // at - silent auto-save reads as "did anything happen?".
       setSavingCrop(true);
       setCropSavedFlash(false);
       if (savedFlashTimer.current) {
@@ -360,7 +360,7 @@ export function ScreenshotUploader({
   }
 
   // ============================================================
-  // Empty state — drop zone
+  // Empty state - drop zone
   // ============================================================
   if (!currentUrl) {
     return (
@@ -393,8 +393,8 @@ export function ScreenshotUploader({
             handleDrop(e);
           }}
           className={cn(
-            "flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed bg-muted/30 px-6 py-10 text-center transition-colors",
-            dragOver && "border-foreground/60 bg-muted/60",
+            "flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-[4px] border border-border bg-background px-6 py-10 text-center transition-colors",
+            dragOver && "border-foreground/60 bg-muted/40",
             (disabled || uploading) &&
               "cursor-not-allowed opacity-60"
           )}
@@ -418,7 +418,7 @@ export function ScreenshotUploader({
                   Drop image here or click to browse
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  PNG, JPG, WebP or GIF &mdash; max 5 MB
+                  PNG, JPG, WebP or GIF - max 5 MB
                 </p>
               </div>
             </>
@@ -441,13 +441,13 @@ export function ScreenshotUploader({
   }
 
   // ============================================================
-  // Loaded state — crop tool (with overlay band) + Replace / Remove
+  // Loaded state - crop tool (with overlay band) + Replace / Remove
   // ============================================================
   //
   // The crop tool is the preview. The band overlay on the full image
   // already communicates exactly what the gallery card will show, so
   // we don't duplicate that as a separate hero thumbnail or mini
-  // preview — those added noise without new information.
+  // preview - those added noise without new information.
   const hasCrop = cropAxis !== null && sliceSize < 100;
   const helperCopy = !hasCrop
     ? "This image already fills the card. Nothing to crop."
@@ -488,7 +488,7 @@ export function ScreenshotUploader({
           updateCropFromPointer(e.clientX, e.clientY);
         }}
         className={cn(
-          "relative w-full select-none overflow-hidden rounded-lg border bg-muted",
+          "relative w-full select-none overflow-hidden rounded-[4px] border bg-background",
           disabled || !hasCrop
             ? "cursor-default"
             : cropAxis === "x"

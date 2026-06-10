@@ -12,7 +12,7 @@ interface LockMyIdeaButtonProps {
 }
 
 /**
- * "Lock my idea" — explicit per-participant completion for the Shark
+ * "Lock my idea" - explicit per-participant completion for the Shark
  * Tank block. Idempotent POST to /api/blocks/complete; the unique
  * (event_id, user_id, block_key) constraint prevents duplicates and the
  * route uses upsert so a re-tap during in-flight is harmless.
@@ -63,8 +63,8 @@ export function LockMyIdeaButton({
   }
 
   return (
-    <Button onClick={handleClick} disabled={pending}>
-      <Lock className="mr-2 size-4" aria-hidden />
+    <Button variant="pill" size="pill" onClick={handleClick} disabled={pending}>
+      <Lock aria-hidden />
       {pending ? "Locking…" : "Lock my idea"}
     </Button>
   );

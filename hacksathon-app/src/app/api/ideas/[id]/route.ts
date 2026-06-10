@@ -15,7 +15,7 @@ const VALID_STATUSES: IdeaStatus[] = [
  * Owner-only edit. RLS already gates writes to user_id = auth.uid(),
  * but we also guard the demo-ready transition: status='completed'
  * requires both live_url and final_screenshot_url. The DB CHECK
- * constraint enforces this too — we duplicate it here so the user
+ * constraint enforces this too - we duplicate it here so the user
  * gets a friendly error instead of a Postgres exception bubbling
  * through.
  */

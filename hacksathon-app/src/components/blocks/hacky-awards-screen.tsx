@@ -1,13 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, Trophy } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   AwardBallot,
   type BallotCategory,
@@ -28,77 +21,76 @@ export interface RevealedWinner {
 interface HackyAwardsScreenProps {
   eventId: string;
   votingStatus: VotingStatus;
+  /**
+   * Whether results have been published (events.results_published_at).
+   * When voting is `revealed` but results aren't published, winners are
+   * still private - the organizer is running the live ceremony - so we
+   * show a waiting state instead of the winners.
+   */
+  resultsPublished: boolean;
   categories: BallotCategory[];
   ideas: BallotIdea[];
   myPicks: BallotInitialPick[];
   winners: RevealedWinner[];
+  /**
+   * Vanity slug for the event. When provided the "back to the
+   * showcase" link uses `/[slug]/blocks/FINAL` directly.
+   */
+  slug?: string;
 }
 
 /**
- * Hacky Awards screen — three modes:
+ * Hacky Awards screen - modes:
  *
- *   closed   → "Voting opens after Showcase" card + helpful next step.
- *   open     → ballot (one card per category, ideas as tiles).
- *   revealed → winners-only display per category (no vote counts per the
- *              session-2 spec). When a category had zero votes we show
- *              a small "No votes cast" tile so the layout stays even.
+ *   closed              → "Voting opens after Showcase" note.
+ *   open                → ballot (one section per category, ideas as tiles).
+ *   revealed, unpublished → "Results are being revealed live" waiting
+ *                           state (the ceremony is happening on the
+ *                           organizer's shared screen).
+ *   revealed, published → winners-only display per category.
  *
- * Nothing here gates writes — the API + RLS do. This component is just
- * the right visual surface for whatever state the event is in.
+ * State copy lives in the page header's `.lead`; this surface stays flat
+ * and editorial - no tinted status cards. Nothing here gates writes -
+ * the API + RLS do.
  */
 export function HackyAwardsScreen({
   eventId,
   votingStatus,
+  resultsPublished,
   categories,
   ideas,
   myPicks,
   winners,
+  slug,
 }: HackyAwardsScreenProps) {
+  const backToShowcaseHref = slug
+    ? `/${slug}/blocks/FINAL`
+    : `/events/${eventId}/blocks/FINAL`;
+
   if (votingStatus === "closed") {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Voting opens after Showcase
-          </CardTitle>
-          <CardDescription>
-            When the demos wrap, your organizer will open voting here. Until
-            then, nothing to do.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="ghost" size="sm">
-            <Link href={`/events/${eventId}/blocks/FINAL`}>
-              Back to the showcase
-              <ArrowRight className="ml-1.5" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <p className="font-serif text-sm italic text-muted-foreground/80">
+          When the demos wrap, your organizer will open voting here. Until
+          then, nothing to do.
+        </p>
+        <Button asChild variant="ghost" size="sm" className="-ml-3">
+          <Link href={backToShowcaseHref}>
+            Back to the showcase
+            <ArrowRight className="ml-1.5" />
+          </Link>
+        </Button>
+      </div>
     );
   }
 
   if (votingStatus === "open") {
     return (
-      <div className="space-y-4">
-        <Card className="border-foreground/20 bg-foreground/[0.02]">
-          <CardHeader className="flex flex-row items-start gap-3 space-y-0">
-            <div
-              aria-hidden
-              className="flex h-10 w-10 items-center justify-center rounded-md border bg-background text-foreground"
-            >
-              <Sparkles className="size-5" />
-            </div>
-            <div className="flex-1">
-              <CardTitle className="text-base">Voting is open</CardTitle>
-              <CardDescription>
-                One pick per category. Tap to change your vote any time before
-                the organizer reveals winners.
-              </CardDescription>
-            </div>
-          </CardHeader>
-        </Card>
-
+      <div className="space-y-6">
+        <p className="font-serif text-sm italic text-muted-foreground/80">
+          One pick per category. Tap to change your vote any time before the
+          organizer reveals winners.
+        </p>
         <AwardBallot
           eventId={eventId}
           categories={categories}
@@ -109,42 +101,42 @@ export function HackyAwardsScreen({
     );
   }
 
-  return (
-    <div className="space-y-4">
-      <Card className="border-foreground/20 bg-foreground/[0.02]">
-        <CardHeader className="flex flex-row items-start gap-3 space-y-0">
-          <div
-            aria-hidden
-            className="flex h-10 w-10 items-center justify-center rounded-md border bg-background text-foreground"
-          >
-            <Trophy className="size-5" />
-          </div>
-          <div className="flex-1">
-            <CardTitle className="text-base">Winners</CardTitle>
-            <CardDescription>
-              That&apos;s a wrap. Here&apos;s what the team picked.
-            </CardDescription>
-          </div>
-        </CardHeader>
-      </Card>
+  // revealed but not yet published - the live ceremony is in progress.
+  if (!resultsPublished) {
+    return (
+      <div className="space-y-4">
+        <p className="font-serif text-sm italic text-muted-foreground/80">
+          Voting is closed and your organizer is announcing the winners right
+          now. Keep an eye on the shared screen - results will appear here the
+          moment the ceremony wraps.
+        </p>
+        <Button asChild variant="ghost" size="sm" className="-ml-3">
+          <Link href={backToShowcaseHref}>
+            Back to the showcase
+            <ArrowRight className="ml-1.5" />
+          </Link>
+        </Button>
+      </div>
+    );
+  }
 
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {winners.length === 0
-          ? categories.map((cat) => (
-              <li key={cat.id}>
-                <WinnerTile categoryName={cat.name} winner={null} />
-              </li>
-            ))
-          : winners.map((w) => (
-              <li key={w.categoryId}>
-                <WinnerTile
-                  categoryName={w.categoryName}
-                  winner={w.ideaTitle ? w : null}
-                />
-              </li>
-            ))}
-      </ul>
-    </div>
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2">
+      {winners.length === 0
+        ? categories.map((cat) => (
+            <li key={cat.id}>
+              <WinnerTile categoryName={cat.name} winner={null} />
+            </li>
+          ))
+        : winners.map((w) => (
+            <li key={w.categoryId}>
+              <WinnerTile
+                categoryName={w.categoryName}
+                winner={w.ideaTitle ? w : null}
+              />
+            </li>
+          ))}
+    </ul>
   );
 }
 
@@ -156,42 +148,38 @@ function WinnerTile({
   winner: RevealedWinner | null;
 }) {
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          {categoryName}
-        </p>
-        {winner?.ideaTitle ? (
-          <>
-            <CardTitle className="text-lg">
-              {winner.projectUrl ? (
-                <a
-                  href={winner.projectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                >
-                  {winner.ideaTitle}
-                </a>
-              ) : (
-                winner.ideaTitle
-              )}
-            </CardTitle>
-            {winner.ownerName && (
-              <CardDescription>{winner.ownerName}</CardDescription>
+    <div className="h-full space-y-1.5 border border-border bg-background p-6">
+      <p className="mono-label">{categoryName}</p>
+      {winner?.ideaTitle ? (
+        <>
+          <p className="font-serif text-2xl leading-snug text-foreground">
+            {winner.projectUrl ? (
+              <a
+                href={winner.projectUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                {winner.ideaTitle}
+              </a>
+            ) : (
+              winner.ideaTitle
             )}
-          </>
-        ) : (
-          <>
-            <CardTitle className="text-lg text-muted-foreground">
-              No votes cast
-            </CardTitle>
-            <CardDescription>
-              No one cast a vote in this category.
-            </CardDescription>
-          </>
-        )}
-      </CardHeader>
-    </Card>
+          </p>
+          {winner.ownerName && (
+            <p className="text-sm text-muted-foreground">{winner.ownerName}</p>
+          )}
+        </>
+      ) : (
+        <>
+          <p className="font-serif text-2xl leading-snug text-muted-foreground">
+            No votes cast
+          </p>
+          <p className="text-sm text-muted-foreground">
+            No one cast a vote in this category.
+          </p>
+        </>
+      )}
+    </div>
   );
 }

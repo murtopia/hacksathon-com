@@ -15,13 +15,33 @@ import type {
 interface PlanningFlowProps {
   session: PlanningSession;
   initialBrief?: ProjectBrief | null;
+  /**
+   * Optional callback fired after a successful Blueprint
+   * generation or update. The standalone `/plan` page leaves this
+   * unset (it keeps the participant in the same surface, post-PRD
+   * refinement loop and all). The `BlueprintFlowDialog` provides
+   * one so it can close itself and hand control back to the host
+   * timeline, which then re-renders Section 03 with the artifact.
+   */
+  onBriefChanged?: (brief: ProjectBrief) => void;
+  /**
+   * When set to "refine", the post-Blueprint refinement experience
+   * renders without the original pre-Blueprint chat or the inline
+   * Blueprint/Starter Prompt artifacts. The participant sees only a
+   * fresh AI invitation, the refinement input, and the Update CTA -
+   * because they've already seen the Blueprint via the Section 02
+   * action buttons before opening this modal. Default (undefined)
+   * preserves the full historical render used by `/plan` and the
+   * Start/Resume dialog entries.
+   */
+  focusMode?: "refine";
 }
 
 /**
  * Heuristic for detecting when the AI has signaled the conversation has
  * enough material to generate the Blueprint. Strike Mission's session
  * ended with "That's everything I need. Ready to turn this into a build
- * plan?" — exactly the kind of phrasing this matches. Purely visual: when
+ * plan?" - exactly the kind of phrasing this matches. Purely visual: when
  * matched, the persistent CTA upgrades to primary styling. The button is
  * always clickable regardless.
  */
@@ -59,6 +79,8 @@ function isReadyToUpdateSignal(text: string): boolean {
 export function PlanningFlow({
   session: initialSession,
   initialBrief = null,
+  onBriefChanged,
+  focusMode,
 }: PlanningFlowProps) {
   const [session, setSession] = useState(initialSession);
   const [streamingText, setStreamingText] = useState("");
@@ -72,7 +94,7 @@ export function PlanningFlow({
   );
   /**
    * Tracks the most recent stream failure so we can show an inline error
-   * card with a Retry affordance — instead of the silent empty-bubble
+   * card with a Retry affordance - instead of the silent empty-bubble
    * failure mode we hit when an Anthropic model ID was invalid.
    */
   const [streamError, setStreamError] = useState<{
@@ -118,7 +140,7 @@ export function PlanningFlow({
 
     // Scroll the Blueprint into view after fresh generation/update so it's
     // unmissable. We gate on a flag instead of firing on every brief
-    // mount — initial page loads with an existing brief shouldn't yank
+    // mount - initial page loads with an existing brief shouldn't yank
     // the user past the conversation they were reading.
     if (shouldScrollToBlueprint.current) {
       shouldScrollToBlueprint.current = false;
@@ -291,6 +313,13 @@ export function PlanningFlow({
         // the participant sees the Blueprint render. The route is
         // idempotent and caches in planning_sessions.starter_prompt_text.
         fetchStarterPrompt();
+
+        // Surface the fresh brief to the host (e.g. the BlueprintFlowDialog,
+        // which uses this signal to close itself and let the timeline
+        // re-render Section 03 with the artifact). Fired AFTER local state
+        // is updated so the standalone /plan page's render also picks up
+        // the change.
+        onBriefChanged?.(normalized);
       } else {
         const data = await res.json().catch(() => ({}));
         setBriefError(
@@ -325,11 +354,14 @@ export function PlanningFlow({
         // Same scroll-into-view treatment for regenerate so the user
         // sees the updated Blueprint instead of having to hunt for it.
         shouldScrollToBlueprint.current = true;
-        setBrief(normalizeBrief(data.brief));
-        // Re-fetch the starter prompt — server invalidated it on
+        const updated = normalizeBrief(data.brief);
+        setBrief(updated);
+        // Re-fetch the starter prompt - server invalidated it on
         // regenerate so a fresh one will be generated.
         setStarterPrompt(null);
         fetchStarterPrompt();
+
+        onBriefChanged?.(updated);
       } else {
         const data = await res.json().catch(() => ({}));
         setBriefError(
@@ -359,7 +391,7 @@ export function PlanningFlow({
         setStarterPrompt(data.starterPrompt);
         return;
       }
-      // Non-OK response — surface a retry instead of silently leaving the
+      // Non-OK response - surface a retry instead of silently leaving the
       // panel in a "preparing" state forever.
       const data = await res.json().catch(() => ({}));
       setStarterPromptError(
@@ -403,7 +435,7 @@ export function PlanningFlow({
 
   function handleSaveAsPdf() {
     if (!brief?.prdMarkdown) return;
-    // We use window.print() under the hood — modern browsers expose a
+    // We use window.print() under the hood - modern browsers expose a
     // "Save as PDF" destination in the print dialog, which is the right
     // mental model for the user. The print stylesheet (globals.css)
     // hides everything outside .print-blueprint-area when
@@ -452,7 +484,7 @@ export function PlanningFlow({
         <AIMessage content={streamingText} isStreaming />
       )}
 
-      {/* Inline error card with Retry — replaces the silent empty-bubble
+      {/* Inline error card with Retry - replaces the silent empty-bubble
           failure mode that used to appear when a model call failed. */}
       {streamError && !isStreaming && (
         <div
@@ -479,7 +511,7 @@ export function PlanningFlow({
         </div>
       )}
 
-      {/* Blueprint generation/update error — surfaced inline so the
+      {/* Blueprint generation/update error - surfaced inline so the
           participant isn't left wondering after they hit Generate or
           Update. */}
       {briefError && (
@@ -509,15 +541,22 @@ export function PlanningFlow({
     </>
   );
 
+  // Focused refinement entry: the dialog opens straight to the refine
+  // input without re-rendering the original chat that produced the
+  // current Blueprint or the inline Blueprint/Starter Prompt block -
+  // both have already been seen via the Section 02 action buttons.
+  const isRefineFocus = focusMode === "refine" && isPostPrd;
+
   return (
     <div className="max-w-[var(--container-narrow)] mx-auto">
-      {/* Pre-Blueprint conversation — the chat that produced (or is
+      {/* Pre-Blueprint conversation - the chat that produced (or is
           producing) the current Blueprint. Once a Blueprint exists,
           this section becomes a record; new turns land below. */}
       <div className="space-y-4 mb-6">
-        {preBlueprintVisible.map((msg, i) => (
-          <MessageBubble key={`pre-${i}`} message={msg} />
-        ))}
+        {!isRefineFocus &&
+          preBlueprintVisible.map((msg, i) => (
+            <MessageBubble key={`pre-${i}`} message={msg} />
+          ))}
 
         {/* Streaming + error UIs live here only while we're still in the
             pre-Blueprint flow. Once isPostPrd is true they move into the
@@ -540,11 +579,13 @@ export function PlanningFlow({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Blueprint + Next Steps — rendered right after the conversation
+      {/* Blueprint + Next Steps - rendered right after the conversation
           so the artifact appears at the participant's eye-line when
           they click Generate. Smooth-scroll into view on first
-          generation. */}
-      {isPostPrd && brief && (
+          generation. Hidden in refine-focus mode because the
+          participant has already seen these via Section 02's View
+          Blueprint / View Starter Prompt buttons. */}
+      {isPostPrd && brief && !isRefineFocus && (
         <div
           ref={blueprintRef}
           className="space-y-6 mb-10 print-blueprint-area"
@@ -560,6 +601,7 @@ export function PlanningFlow({
             prompt={starterPrompt}
             error={starterPromptError}
             onRetry={fetchStarterPrompt}
+            buildTool={session.buildTool}
           />
         </div>
       )}
@@ -576,7 +618,7 @@ export function PlanningFlow({
         </div>
       )}
 
-      {/* Post-Blueprint refinement section — section header, live
+      {/* Post-Blueprint refinement section - section header, live
           continuation thread, input, and smart Update CTA. The
           continuation thread sits directly above the input so the AI's
           reply lands at the user's eye-line. */}
@@ -600,13 +642,21 @@ export function PlanningFlow({
           !isStreaming &&
           !streamError &&
           !briefError ? (
-            <p
-              className="font-serif italic text-[15px] py-2"
-              style={{ color: "var(--text-tertiary)" }}
-            >
-              Anything you want to refine? Talk it through below and
-              I&rsquo;ll roll your changes in.
-            </p>
+            isRefineFocus ? (
+              <AIMessage
+                content={
+                  "What about your Blueprint would you like to refine? Tell me what's off, what to add, or what to rethink - I'll roll the changes in."
+                }
+              />
+            ) : (
+              <p
+                className="font-serif italic text-[15px] py-2"
+                style={{ color: "var(--text-tertiary)" }}
+              >
+                Anything you want to refine? Talk it through below and
+                I&rsquo;ll roll your changes in.
+              </p>
+            )
           ) : (
             <div className="space-y-4">
               {postBlueprintVisible.map((msg, i) => (
@@ -638,7 +688,7 @@ export function PlanningFlow({
 }
 
 /**
- * Single message bubble — extracted so the pre- and post-Blueprint
+ * Single message bubble - extracted so the pre- and post-Blueprint
  * threads render identical styling without duplicated markup.
  */
 function MessageBubble({ message }: { message: Message }) {
@@ -663,7 +713,7 @@ function MessageBubble({ message }: { message: Message }) {
  * Persistent "Generate my Blueprint" CTA. Default state is secondary
  * (subtle, helper text says "when you're ready"). When the AI's most
  * recent message contains a ready-signal phrase, it upgrades to a
- * primary styling and the helper text changes — so the AI's voice and
+ * primary styling and the helper text changes - so the AI's voice and
  * the UI feel like a single product.
  */
 function GenerateCTA({
@@ -681,15 +731,13 @@ function GenerateCTA({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className={
-          ready
-            ? "gradient-border w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
-            : "w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
-        }
+        className="w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-colors disabled:opacity-50"
         style={{
-          color: ready ? "var(--text-primary)" : "var(--text-secondary)",
-          backgroundColor: ready ? undefined : "transparent",
-          border: ready ? undefined : "1px solid var(--border-default)",
+          color: ready ? "var(--white)" : "var(--text-secondary)",
+          backgroundColor: ready ? "var(--text-primary)" : "transparent",
+          border: ready
+            ? "1px solid var(--text-primary)"
+            : "1px solid var(--border-default)",
         }}
       >
         ◆ Generate my Blueprint →
@@ -699,7 +747,7 @@ function GenerateCTA({
         style={{ color: "var(--text-tertiary)" }}
       >
         {ready
-          ? "You're ready — let's go."
+          ? "You're ready - let's go."
           : "Generate when you're ready. The longer you talk, the better it gets."}
       </p>
     </div>
@@ -710,9 +758,11 @@ function GenerateCTA({
  * The post-Blueprint counterpart to GenerateCTA. Default state is a
  * quiet bordered button that's disabled until at least one post-Blueprint
  * exchange has happened. When the AI signals it has captured the changes
- * (POST_PRD_READY_PHRASES), the button upgrades to the same gradient
- * primary treatment as GenerateCTA so the visual cue matches the AI's
- * voice. While updating, the label and helper text reflect progress.
+ * (POST_PRD_READY_PHRASES), the button upgrades to the same grayscale
+ * primary fill (dark background + white text) as GenerateCTA so the
+ * visual cue matches the AI's voice without breaking the grayscale
+ * design language. While updating, the label and helper text reflect
+ * progress.
  */
 function UpdateCTA({
   ready,
@@ -741,19 +791,16 @@ function UpdateCTA({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className={
-          ready && !updating
-            ? "gradient-border w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
-            : "w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
-        }
+        className="w-full py-3 px-4 rounded-sm font-mono text-xs font-semibold uppercase tracking-widest transition-colors disabled:opacity-50"
         style={{
           color:
-            ready && !updating
-              ? "var(--text-primary)"
-              : "var(--text-secondary)",
-          backgroundColor: ready && !updating ? undefined : "transparent",
+            ready && !updating ? "var(--white)" : "var(--text-secondary)",
+          backgroundColor:
+            ready && !updating ? "var(--text-primary)" : "transparent",
           border:
-            ready && !updating ? undefined : "1px solid var(--border-default)",
+            ready && !updating
+              ? "1px solid var(--text-primary)"
+              : "1px solid var(--border-default)",
         }}
       >
         {label}

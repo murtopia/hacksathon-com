@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +18,13 @@ interface BuildSessionProps {
   blueprintMarkdown: string | null;
   starterPromptText: string | null;
   slackUrl: string | null;
+  /**
+   * Build tool the organizer picked for this event. Drives the `tool`
+   * query param on the /plan link so the Blueprint conversation hands
+   * off to the right tool. Optional with a `"lovable"` default so older
+   * call sites keep working during the slug migration.
+   */
+  buildTool?: string;
 }
 
 const ENCOURAGEMENT: Record<BuildSessionKey, { title: string; body: string }> = {
@@ -39,11 +45,12 @@ const ENCOURAGEMENT: Record<BuildSessionKey, { title: string; body: string }> = 
 /**
  * Build session screens for blocks 04 / 05 / 06.
  *
- * Block 04 is the kickoff session — full surface: encouragement,
+ * Block 04 is the kickoff session - full surface: encouragement,
  * collapsed Blueprint, and the Starter Prompt block (which carries the
- * 5-step paste-into-Lovable instructions). When there's no Blueprint
- * yet we suppress the Starter Prompt entirely; otherwise the user sees
- * a misleading "Preparing your Starter Prompt…" spinner.
+ * 5-step paste-into-build-tool instructions, rendered against the
+ * configured tool). When there's no Blueprint yet we suppress the
+ * Starter Prompt entirely; otherwise the user sees a misleading
+ * "Preparing your Starter Prompt…" spinner.
  *
  * Blocks 05 and 06 are continuation sessions. The kickoff already
  * happened in 04, so we drop the Starter Prompt block here and show
@@ -57,9 +64,10 @@ export function BuildSession({
   blueprintMarkdown,
   starterPromptText,
   slackUrl,
+  buildTool = "lovable",
 }: BuildSessionProps) {
   const tone = ENCOURAGEMENT[sessionKey];
-  const planHref = buildPlanHref(eventId, ideaId);
+  const planHref = buildPlanHref(eventId, ideaId, buildTool);
   const isKickoff = sessionKey === "04";
 
   return (
@@ -83,7 +91,7 @@ export function BuildSession({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild>
+            <Button asChild variant="pill" size="pill">
               <Link href={planHref}>Open The Blueprint</Link>
             </Button>
           </CardContent>
@@ -91,7 +99,7 @@ export function BuildSession({
       )}
 
       {isKickoff && blueprintMarkdown && (
-        <StarterPrompt prompt={starterPromptText} />
+        <StarterPrompt prompt={starterPromptText} buildTool={buildTool} />
       )}
 
       {!isKickoff && slackUrl && <TeamChatReminder slackUrl={slackUrl} />}
@@ -133,20 +141,12 @@ function BlueprintDetails({
 function TeamChatReminder({ slackUrl }: { slackUrl: string }) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start gap-3 space-y-0">
-        <div
-          aria-hidden
-          className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted text-foreground"
-        >
-          <MessageSquare className="size-5" />
-        </div>
-        <div className="flex-1">
-          <CardTitle className="text-base">Stuck? Ask the room.</CardTitle>
-          <CardDescription>
-            Drop a question in the team chat. Someone else has probably hit the
-            same wall.
-          </CardDescription>
-        </div>
+      <CardHeader>
+        <CardTitle className="text-base">Stuck? Ask the room.</CardTitle>
+        <CardDescription>
+          Drop a question in the team chat. Someone else has probably hit the
+          same wall.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Button asChild variant="outline">
@@ -159,8 +159,12 @@ function TeamChatReminder({ slackUrl }: { slackUrl: string }) {
   );
 }
 
-function buildPlanHref(eventId: string, ideaId: string | null): string {
-  const params = new URLSearchParams({ event: eventId, tool: "lovable" });
+function buildPlanHref(
+  eventId: string,
+  ideaId: string | null,
+  buildTool: string,
+): string {
+  const params = new URLSearchParams({ event: eventId, tool: buildTool });
   if (ideaId) params.set("idea", ideaId);
   return `/plan?${params.toString()}`;
 }

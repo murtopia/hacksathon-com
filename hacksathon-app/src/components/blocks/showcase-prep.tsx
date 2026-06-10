@@ -15,10 +15,15 @@ interface ShowcasePrepProps {
   liveUrl: string | null;
   finalScreenshotUrl: string | null;
   status: string | null;
+  /**
+   * Vanity slug for the event. When provided, the "edit your idea"
+   * deep link uses `/[slug]/idea(/new)` directly.
+   */
+  slug?: string;
 }
 
 /**
- * Showcase prep — the final check before going on stage. Shows three
+ * Showcase prep - the final check before going on stage. Shows three
  * binary readiness signals against the participant's IdeaLab entry,
  * each with a deep link to fix anything that's missing.
  */
@@ -28,10 +33,15 @@ export function ShowcasePrep({
   liveUrl,
   finalScreenshotUrl,
   status,
+  slug,
 }: ShowcasePrepProps) {
-  const editHref = ideaId
-    ? `/events/${eventId}/idealab/${ideaId}`
-    : `/events/${eventId}/idealab/new`;
+  const editHref = slug
+    ? ideaId
+      ? `/${slug}/idea`
+      : `/${slug}/idea/new`
+    : ideaId
+      ? `/events/${eventId}/idealab/${ideaId}`
+      : `/events/${eventId}/idealab/new`;
 
   const items = [
     {
@@ -137,7 +147,11 @@ export function ShowcasePrep({
 
           {ideaId && (
             <div className="pt-2">
-              <Button asChild variant={allReady ? "default" : "outline"}>
+              <Button
+                asChild
+                variant={allReady ? "pill" : "outline"}
+                size={allReady ? "pill" : "default"}
+              >
                 <Link href={editHref}>Open your idea</Link>
               </Button>
             </div>

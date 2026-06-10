@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   });
 
   // Look up the IdeaLab entry so we can seed Step 1's opening with the
-  // real project name (Scenario A) — or fall back to Scenario B prompting
+  // real project name (Scenario A) - or fall back to Scenario B prompting
   // for a working title. Either way, the opening is deterministic and
   // never depends on a model call. This removes a class of silent
   // failures from the very first thing a participant sees on /plan.

@@ -11,7 +11,7 @@ export const maxDuration = 10;
  * Update a single block's schedule (date/time + duration).
  *
  * Admin-only. We resolve the block's event_id first and then run the
- * shared admin guard against it — that way callers can't sidestep the
+ * shared admin guard against it - that way callers can't sidestep the
  * gate by editing a block in someone else's event.
  *
  * Accepts:
@@ -47,7 +47,7 @@ export async function PATCH(
 
   if (eventRow?.is_locked) {
     return NextResponse.json(
-      { error: "Event is locked — schedule can't be changed." },
+      { error: "Event is locked - schedule can't be changed." },
       { status: 409 },
     );
   }

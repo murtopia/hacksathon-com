@@ -13,13 +13,13 @@ import type { Message } from "@/lib/planning/types";
 export const maxDuration = 60;
 
 /**
- * The planning conversation is one continuous chat — no per-step gating.
+ * The planning conversation is one continuous chat - no per-step gating.
  * The only thing this route does on each turn is:
  *   1. (optionally) append the user's new message to history
  *   2. stream an AI response with the conversation as context
  *   3. persist the assistant's reply on finish
  *
- * Calling without `userMessage` is a retry — re-streams from the existing
+ * Calling without `userMessage` is a retry - re-streams from the existing
  * history without mutating it again.
  */
 export async function POST(req: Request) {
@@ -100,8 +100,8 @@ export async function POST(req: Request) {
   let systemPrompt = buildSystemPrompt(participantCtx);
 
   // Post-Blueprint continuation: if a Blueprint already exists, load it
-  // and inject as context. The conversation stays open — same session,
-  // same history — but the AI now treats the Blueprint as the source of
+  // and inject as context. The conversation stays open - same session,
+  // same history - but the AI now treats the Blueprint as the source of
   // truth and helps the participant describe targeted changes.
   const isPostPrd = session.status === "complete" && session.briefId;
   if (isPostPrd) {
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
 
   let history = session.conversationHistory;
 
-  // Append the user's new message (skip if this is a retry — no userMessage).
+  // Append the user's new message (skip if this is a retry - no userMessage).
   if (userMessage) {
     const userMsg: Message = {
       role: "user",
@@ -157,7 +157,7 @@ export async function POST(req: Request) {
     },
     onFinish: async ({ text }) => {
       // Guard against persisting empty assistant turns. When the model
-      // call errors before producing any text, onFinish still fires —
+      // call errors before producing any text, onFinish still fires -
       // committing an empty bubble would be worse than nothing because
       // it visibly breaks the conversation.
       const trimmed = text?.trim();

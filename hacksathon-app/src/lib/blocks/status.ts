@@ -3,11 +3,11 @@
  *
  * The participant's "Your timeline" view combines two signals:
  *
- *   1. windowStatus — pure function of the organizer's scheduled_date +
+ *   1. windowStatus - pure function of the organizer's scheduled_date +
  *      duration_minutes. Drives the "Happening now" / "Upcoming" badge.
  *      The organizer never marks anything by hand; the clock decides.
  *
- *   2. mineDone — boolean per (user, block) computed at read time from:
+ *   2. mineDone - boolean per (user, block) computed at read time from:
  *        a. Time fallback: windowStatus === "completed" (the scheduled
  *           window ended for everyone).
  *        b. Auto-derived: idea row exists (01), Blueprint exists (03),
@@ -15,7 +15,7 @@
  *        c. Explicit: a row in block_completions for this user (today
  *           only the Shark Tank "Lock my idea" button writes here).
  *
- * Pure functions only — no DB calls. Callers load the bits and hand
+ * Pure functions only - no DB calls. Callers load the bits and hand
  * them in.
  */
 

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rowToIdea } from "@/lib/idealab/types";
+import { captureServer } from "@/lib/analytics/server";
+import { AnalyticsEvent } from "@/lib/analytics/events";
 
 /**
  * POST /api/ideas
@@ -60,7 +62,7 @@ export async function POST(req: Request) {
   }
 
   // Defense in depth: bail early if the user already has an idea in
-  // this event. The DB UNIQUE index is still authoritative — if a
+  // this event. The DB UNIQUE index is still authoritative - if a
   // simultaneous request slips through, the insert will 409.
   const { data: existing } = await supabase
     .from("ideas")
@@ -117,6 +119,12 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+
+  await captureServer({
+    distinctId: user.id,
+    event: AnalyticsEvent.IdeaSubmitted,
+    properties: { event_id: eventId },
+  });
 
   return NextResponse.json({ idea: rowToIdea(inserted) });
 }

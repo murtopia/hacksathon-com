@@ -5,7 +5,8 @@ export interface StepDefinition {
   /**
    * Question template the AI uses to open this step.
    * `[Project Name]` placeholder is interpolated by the AI from
-   * conversation context (set in Step 1 or pre-loaded from IdeaLab).
+   * conversation context (set in Step 1 or pre-loaded from the
+   * participant's submitted idea).
    */
   questionTemplate: string;
   /**
@@ -13,9 +14,9 @@ export interface StepDefinition {
    */
   coachingTip: string;
   /**
-   * For Step 1, the AI may use a static opening if no IdeaLab entry
-   * exists (Scenario B). For Steps 2-5, the AI always generates the
-   * opening from full conversation history.
+   * For Step 1, the AI may use a static opening if the participant
+   * hasn't submitted an idea yet (Scenario B). For Steps 2-5, the AI
+   * always generates the opening from full conversation history.
    */
   aiGeneratedOpening: boolean;
 }
@@ -39,7 +40,7 @@ export const STEPS: StepDefinition[] = [
     key: "who_its_for",
     title: "Who it's for",
     questionTemplate:
-      "Who's the first real person you'd show this to when it's done? Tell me about them — not a demographic, just someone specific.",
+      "Who's the first real person you'd show this to when it's done? Tell me about them - not a demographic, just someone specific.",
     coachingTip:
       "Pick one real person. Their situation is more useful than \"busy professionals.\"",
     aiGeneratedOpening: true,
@@ -49,7 +50,7 @@ export const STEPS: StepDefinition[] = [
     key: "how_it_feels",
     title: "How it should feel",
     questionTemplate:
-      "When someone opens [Project Name] for the first time, what should it feel like? Name a vibe, describe an aesthetic, reference a website you like — or say \"it should feel like [Brand X] but for [Person Y].\"",
+      "When someone opens [Project Name] for the first time, what should it feel like? Name a vibe, describe an aesthetic, reference a website you like - or say \"it should feel like [Brand X] but for [Person Y].\"",
     coachingTip:
       "References help. \"Calm but confident, like Linear but warmer\" tells the build tool everything.",
     aiGeneratedOpening: true,
@@ -59,7 +60,7 @@ export const STEPS: StepDefinition[] = [
     key: "the_one_thing",
     title: "The one thing",
     questionTemplate:
-      "If [Project Name] could only do one thing when it launches — just one — what is that thing? Finish this sentence: \"[Project Name] helps [someone] do [one thing].\"",
+      "If [Project Name] could only do one thing when it launches - just one - what is that thing? Finish this sentence: \"[Project Name] helps [someone] do [one thing].\"",
     coachingTip:
       "Saying no to things is what makes a v1 shippable. We can name v2 stuff in a minute.",
     aiGeneratedOpening: true,

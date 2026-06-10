@@ -63,7 +63,7 @@ export default async function PlanPage({
     .eq("id", user.id)
     .single();
 
-  // Idea context (Scenario A — pre-load project name + pitch)
+  // Idea context (Scenario A - pre-load project name + pitch)
   let ideaContext: { id: string; title: string; pitch: string } | null = null;
   if (params.idea) {
     const { data: idea } = await supabase
@@ -104,7 +104,7 @@ export default async function PlanPage({
 
 /**
  * Sets expectations before the conversation starts. Hidden once a brief
- * exists — at that point the page is the Blueprint itself, not the
+ * exists - at that point the page is the Blueprint itself, not the
  * planning onramp. Doc-tone, plain prose, no jargon.
  */
 function PlanningIntro({ ideaName }: { ideaName?: string | null } = {}) {
@@ -125,13 +125,13 @@ function PlanningIntro({ ideaName }: { ideaName?: string | null } = {}) {
         className="font-serif text-[17px] leading-relaxed"
         style={{ color: "var(--text-secondary)" }}
       >
-        Talk it through with a thinking partner — no forms, no steps to march
-        through. Over the conversation we'll cover what it does, who it's for,
-        how it should feel, the one thing it has to do, and what done looks
-        like. The end result is your <strong>Blueprint</strong> — a focused
-        document you can hand to Lovable, Cursor, or any AI build tool, plus a
-        Starter Prompt to kick off the build. When you're ready, hit{" "}
-        <em>Generate my Blueprint</em> below the conversation.
+        Talk it through with a thinking partner - no forms, no steps to march
+        through. Over the conversation we&apos;ll cover what it does, who
+        it&apos;s for, how it should feel, the one thing it has to do, and what
+        done looks like. The end result is your <strong>Blueprint</strong> - a
+        focused document you can hand to Lovable, Cursor, or any AI build tool,
+        plus a Starter Prompt to kick off the build. When you&apos;re ready,
+        hit <em>Generate my Blueprint</em> below the conversation.
       </p>
     </div>
   );

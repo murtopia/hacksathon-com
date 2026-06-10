@@ -18,7 +18,7 @@ interface ZeroScreenProps {
 }
 
 /**
- * Kickoff block — purely read-only. Renders whatever the organizer set
+ * Kickoff block - purely read-only. Renders whatever the organizer set
  * up in the block row (description, purpose, checklists). Most events
  * will lean on the default template's description.
  */

@@ -6,12 +6,12 @@ export const maxDuration = 15;
 /**
  * Save (or update) one reflection answer for the current user.
  *
- * Reflections are stored one row per (event, user, question) — the
+ * Reflections are stored one row per (event, user, question) - the
  * original 00001 schema models them that way. The client posts each
  * answer individually so partial saves are cheap and the API stays
  * simple.
  *
- * Allowed even when the event is locked — the lock semantic only
+ * Allowed even when the event is locked - the lock semantic only
  * applies to creative artifacts (ideas, briefs, sessions). Reflections
  * are explicitly post-event, so blocking them after reveal would
  * defeat the whole point.
@@ -82,6 +82,35 @@ export async function POST(req: Request) {
       { error: "Question not found for this event" },
       { status: 404 },
     );
+  }
+
+  // Status gate: reflections can only be submitted while the event's
+  // reflection_status is 'open'. Event admins are exempt so they can
+  // fix answers any time (mirrors the RLS policy). The optional
+  // reflections_open_at / close_at window auto-flips the status
+  // (see auto-transition.ts); this endpoint reads the resolved status.
+  const { data: eventRow } = await supabase
+    .from("events")
+    .select("reflection_status")
+    .eq("id", eventId)
+    .maybeSingle<{ reflection_status: "closed" | "open" | "complete" }>();
+
+  if (!eventRow || eventRow.reflection_status !== "open") {
+    const { data: isAdmin } = await supabase.rpc("is_event_admin", {
+      p_event_id: eventId,
+    });
+    if (!isAdmin) {
+      const status = eventRow?.reflection_status ?? "closed";
+      return NextResponse.json(
+        {
+          error:
+            status === "complete"
+              ? "Reflections are closed - this event has wrapped."
+              : "Reflections aren't open yet.",
+        },
+        { status: 409 },
+      );
+    }
   }
 
   const { error: upsertError } = await supabase.from("reflections").upsert(

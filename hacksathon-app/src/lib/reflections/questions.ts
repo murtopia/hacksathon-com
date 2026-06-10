@@ -2,7 +2,7 @@
  * Default reflection questions seeded on every new event.
  *
  * These are the Seven2 defaults. Each row goes into `reflection_questions`
- * verbatim — there's no placeholder interpolation. Per-event customization
+ * verbatim - there's no placeholder interpolation. Per-event customization
  * (the M6 organizer wizard) edits the same table; M4 reads from it
  * either way.
  *

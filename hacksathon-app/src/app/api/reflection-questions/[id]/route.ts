@@ -4,6 +4,7 @@ import {
   requireEventAdmin,
   isErrorResponse,
 } from "@/lib/server/event-admin-guard";
+import { stampSetting } from "@/lib/events/settings";
 
 export const maxDuration = 10;
 
@@ -13,7 +14,7 @@ export const maxDuration = 10;
  * PATCH body: { questionText?, isRequired?, sortOrder? }
  *
  * Delete cascades to all `reflections` rows for the question via the
- * 00001 schema FK. That's intentional — if you remove the question,
+ * 00001 schema FK. That's intentional - if you remove the question,
  * you remove the answers tied to it.
  */
 
@@ -107,6 +108,9 @@ export async function PATCH(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Editing a question counts as "reflections reviewed" for Helper purposes.
+  await stampSetting(gated.eventId, "reflections_reviewed_at");
 
   return NextResponse.json({ ok: true, question: data });
 }

@@ -4,6 +4,7 @@ import {
   requireEventAdmin,
   isErrorResponse,
 } from "@/lib/server/event-admin-guard";
+import { stampSetting } from "@/lib/events/settings";
 
 export const maxDuration = 10;
 
@@ -12,7 +13,7 @@ export const maxDuration = 10;
  *
  * Body: { eventId, questionText, isRequired?, sortOrder? }
  *
- * Reflection questions are editable even after lock — organizers might
+ * Reflection questions are editable even after lock - organizers might
  * add follow-up prompts as the conversation evolves after the event.
  */
 export async function POST(req: Request) {
@@ -82,6 +83,10 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
+
+  // Stamp the "reflections reviewed" milestone so the Hacky Helper can
+  // flip the corresponding step done.
+  await stampSetting(eventId, "reflections_reviewed_at");
 
   return NextResponse.json({ ok: true, question: inserted });
 }

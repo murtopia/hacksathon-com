@@ -4,7 +4,7 @@
  * The `{company}` placeholder in any `name` is interpolated with the
  * organization's name at seed time so we don't have to recompute the
  * label every render. `interpolateCategoryName` is the single source of
- * truth for that substitution — used both in TypeScript (createMinimalEvent)
+ * truth for that substitution - used both in TypeScript (provisionPaidEvent)
  * and mirrored in the SQL backfill (migration 00016).
  */
 
@@ -22,7 +22,7 @@ export const DEFAULT_AWARD_CATEGORIES: ReadonlyArray<AwardCategorySeed> = [
     key: "best-in-show",
     name: "Best in Show",
     description:
-      "The runaway favorite — the one everyone is still talking about.",
+      "The runaway favorite - the one everyone is still talking about.",
     sort_order: 1,
   },
   {
@@ -59,7 +59,7 @@ export const DEFAULT_AWARD_CATEGORIES: ReadonlyArray<AwardCategorySeed> = [
 
 /**
  * Replace the `{company}` placeholder in a category name with the org
- * name. Idempotent — a name without the placeholder passes through
+ * name. Idempotent - a name without the placeholder passes through
  * unchanged, so it's safe to call on data that's already been
  * interpolated.
  */
@@ -75,7 +75,7 @@ export function interpolateCategoryName(
  * Seed the six default award categories for a freshly-created event.
  *
  * Idempotent: if any category exists for the event we treat it as
- * already-seeded and bail. Callers can ignore failures — the migration
+ * already-seeded and bail. Callers can ignore failures - the migration
  * 00016 backfill keeps existing events whole, so the worst case is one
  * event that has to be re-seeded by hand.
  */

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { captureServer } from "@/lib/analytics/server";
+import { AnalyticsEvent } from "@/lib/analytics/events";
 
 export const maxDuration = 15;
 
@@ -8,7 +10,7 @@ export const maxDuration = 15;
  *
  * Idempotent: the `votes` table has UNIQUE (event_id, user_id, category_id),
  * so re-posting overwrites the participant's existing pick. Postgres RLS
- * gates the operation on `events.voting_status = 'open'` — if voting is
+ * gates the operation on `events.voting_status = 'open'` - if voting is
  * closed or revealed, the underlying upsert returns no rows and we
  * surface a 409.
  *
@@ -50,7 +52,7 @@ export async function POST(req: Request) {
       { status: 400 },
     );
 
-  // Confirm the category belongs to this event (defense in depth — RLS
+  // Confirm the category belongs to this event (defense in depth - RLS
   // already filters non-members at the event level).
   const { data: cat } = await supabase
     .from("award_categories")
@@ -125,6 +127,12 @@ export async function POST(req: Request) {
       { status: 409 },
     );
   }
+
+  await captureServer({
+    distinctId: user.id,
+    event: AnalyticsEvent.VoteCast,
+    properties: { event_id: eventId, category_id: categoryId },
+  });
 
   return NextResponse.json({ ok: true });
 }

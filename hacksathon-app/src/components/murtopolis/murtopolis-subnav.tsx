@@ -56,11 +56,17 @@ const items: NavItem[] = [
     label: "Waitlist",
     match: (p) => p.startsWith(`${BASE}/waitlist`),
   },
+  {
+    href: `${BASE}/emails`,
+    number: "05",
+    label: "Emails",
+    match: (p) => p.startsWith(`${BASE}/emails`),
+  },
   ...(POSTHOG_DASHBOARD_URL
     ? [
         {
           href: POSTHOG_DASHBOARD_URL,
-          number: "05",
+          number: "06",
           label: "Analytics",
           match: () => false,
           external: true,

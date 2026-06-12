@@ -1,13 +1,14 @@
 import {
   Body,
   Container,
-  Head,
   Hr,
   Html,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
+import { EmailHead } from "@/lib/email/email-head";
+import * as s from "@/lib/email/email-styles";
 
 export interface SupportMessageEmailProps {
   senderName: string;
@@ -29,36 +30,36 @@ export function SupportMessageEmail({
 }: SupportMessageEmailProps) {
   return (
     <Html>
-      <Head />
+      <EmailHead />
       <Preview>
         New support message from {senderName} ({topic})
       </Preview>
-      <Body style={body}>
-        <Container style={container}>
-          <Section style={brandSection}>
-            <Text style={brandText}>Hacksathon.com · Support</Text>
+      <Body style={s.body}>
+        <Container style={s.container}>
+          <Section style={s.brandSection}>
+            <Text style={s.brandText}>Hacksathon.com · Support</Text>
           </Section>
 
           <Section>
-            <Text style={heading}>New support message</Text>
-            <Text style={meta}>
+            <Text style={s.internalHeading}>New support message</Text>
+            <Text style={s.meta}>
               <strong>From:</strong> {senderName} ({senderEmail})
             </Text>
-            <Text style={meta}>
+            <Text style={s.meta}>
               <strong>Topic:</strong> {topic}
             </Text>
           </Section>
 
-          <Hr style={hr} />
+          <Hr style={s.hr} />
 
           <Section>
-            <Text style={messageText}>{message}</Text>
+            <Text style={s.messageText}>{message}</Text>
           </Section>
 
-          <Hr style={hr} />
+          <Hr style={s.hr} />
 
           <Section>
-            <Text style={footer}>
+            <Text style={s.footer}>
               Reply directly to this email to respond to {senderName} - the
               reply-to is set to their address ({senderEmail}).
             </Text>
@@ -78,70 +79,3 @@ SupportMessageEmail.PreviewProps = {
 } satisfies SupportMessageEmailProps;
 
 export default SupportMessageEmail;
-
-// ============================================
-// Inline styles (React Email best practice)
-// ============================================
-const body: React.CSSProperties = {
-  backgroundColor: "#f6f6f4",
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'",
-  margin: 0,
-  padding: 0,
-};
-
-const container: React.CSSProperties = {
-  backgroundColor: "#ffffff",
-  borderRadius: 12,
-  margin: "32px auto",
-  maxWidth: 520,
-  padding: "32px 28px",
-};
-
-const brandSection: React.CSSProperties = {
-  paddingBottom: 16,
-};
-
-const brandText: React.CSSProperties = {
-  color: "#0a0a0a",
-  fontSize: 14,
-  fontWeight: 600,
-  letterSpacing: "0.08em",
-  margin: 0,
-  textTransform: "uppercase",
-};
-
-const heading: React.CSSProperties = {
-  color: "#0a0a0a",
-  fontSize: 22,
-  fontWeight: 700,
-  lineHeight: 1.25,
-  margin: "0 0 16px 0",
-};
-
-const meta: React.CSSProperties = {
-  color: "#2a2a2a",
-  fontSize: 15,
-  lineHeight: 1.5,
-  margin: "0 0 6px 0",
-};
-
-const messageText: React.CSSProperties = {
-  color: "#2a2a2a",
-  fontSize: 16,
-  lineHeight: 1.6,
-  margin: 0,
-  whiteSpace: "pre-wrap",
-};
-
-const hr: React.CSSProperties = {
-  borderColor: "#ececec",
-  margin: "20px 0",
-};
-
-const footer: React.CSSProperties = {
-  color: "#888888",
-  fontSize: 12,
-  lineHeight: 1.5,
-  margin: 0,
-};

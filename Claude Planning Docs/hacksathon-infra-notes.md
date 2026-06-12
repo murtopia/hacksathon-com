@@ -425,6 +425,8 @@ Each template needs:
 
 ### 1. Confirm signup
 
+**Subject:** `Confirm your email — Hacksathon.com`
+
 ```html
 <style>
   @font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/ebgaramond/v32/SlGDmQSNjdsmc35JDF1K5E55YMjF_7DPuGi-6_RUAw.ttf) format('truetype'); }
@@ -461,6 +463,8 @@ Each template needs:
 ```
 
 ### 2. Reset Password
+
+**Subject:** `Reset your Hacksathon.com password`
 
 ```html
 <style>
@@ -499,6 +503,8 @@ Each template needs:
 
 ### 3. Magic Link
 
+**Subject:** `Your Hacksathon.com sign-in link`
+
 ```html
 <style>
   @font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/ebgaramond/v32/SlGDmQSNjdsmc35JDF1K5E55YMjF_7DPuGi-6_RUAw.ttf) format('truetype'); }
@@ -535,6 +541,8 @@ Each template needs:
 ```
 
 ### 4. Change Email Address
+
+**Subject:** `Confirm your new email — Hacksathon.com`
 
 ```html
 <style>

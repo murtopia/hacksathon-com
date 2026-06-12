@@ -3,6 +3,11 @@ import { sendEmail } from "@/lib/email/resend";
 import { formatUsd } from "@/lib/billing/pricing";
 import { siteBaseUrl } from "@/lib/routing/site-url";
 import { PurchaseWelcomeEmail } from "@/emails/purchase-welcome";
+import { PurchaseNotificationEmail } from "@/emails/purchase-notification";
+
+/** Internal recipient for new-purchase heads-up notifications. */
+const INTERNAL_NOTIFY_EMAIL =
+  process.env.INTERNAL_NOTIFY_EMAIL ?? "nick@seven2.com";
 
 export interface PurchaseWelcomeParams {
   userId: string;
@@ -77,6 +82,33 @@ export async function sendPurchaseWelcomeEmail(
         recipientEmail: email,
       }),
     });
+
+    // Internal heads-up to the operator. Independent and fail-soft so a
+    // notification failure never affects the buyer's welcome or the
+    // webhook 200. Reply-to is the buyer so replies reach the customer.
+    try {
+      await sendEmail({
+        to: INTERNAL_NOTIFY_EMAIL,
+        subject: `New purchase - ${params.orgName} (${amountLabel})`,
+        replyTo: email,
+        react: PurchaseNotificationEmail({
+          buyerName: adminName,
+          buyerEmail: email,
+          orgName: params.orgName,
+          eventTitle: params.eventTitle,
+          seatLimit: params.seatLimit,
+          amountLabel,
+          discountCode: params.discountCode,
+          slug: params.slug,
+          adminUrl,
+        }),
+      });
+    } catch (e) {
+      console.error(
+        "[email] purchase-notification send failed (non-fatal):",
+        e,
+      );
+    }
   } catch (e) {
     console.error("[email] purchase-welcome send failed (non-fatal):", e);
   }

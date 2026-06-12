@@ -386,10 +386,19 @@ else.
 
 ## Supabase email templates — copy-paste HTML
 
-The four templates below match the brand styles in
-`src/emails/participant-invite.tsx` and
-`src/emails/join-link-confirmation.tsx`. Inline styles only — email
-clients (Outlook in particular) drop `<style>` blocks.
+The four templates below match the design system in
+`src/lib/email/email-styles.ts` (the shared source of truth for all
+React Email templates): EB Garamond headings, Inter body, JetBrains
+Mono brand bar, and the `#1A1A1A` / `#525252` / `#A3A3A3` / `#E8E8E8`
+palette.
+
+Inline styles carry the design (Outlook in particular drops `<style>`
+blocks). Each template also prepends a small `<style>` `@font-face`
+block as progressive enhancement, mirroring what
+`src/lib/email/email-head.tsx` does for the app templates: clients that
+honor it load the real webfonts, and the inline `font-family` fallbacks
+(`Georgia` for headings, system sans for body) do the real work
+everywhere else.
 
 Supabase template placeholders:
 
@@ -417,27 +426,33 @@ Each template needs:
 ### 1. Confirm signup
 
 ```html
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f6f6f4;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<style>
+  @font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/ebgaramond/v32/SlGDmQSNjdsmc35JDF1K5E55YMjF_7DPuGi-6_RUAw.ttf) format('truetype'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf) format('truetype'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYMZg.ttf) format('truetype'); }
+  @font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url(https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf) format('truetype'); }
+</style>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F5F5;margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
   <tr>
     <td align="center" style="padding:32px 16px;">
       <table width="520" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:12px;max-width:520px;padding:32px 28px;">
         <tr><td style="padding-bottom:16px;">
-          <p style="color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin:0;">Hacksathon.com</p>
+          <p style="color:#1A1A1A;font-family:'JetBrains Mono','SF Mono','Fira Code',monospace;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Hacksathon.com</p>
         </td></tr>
         <tr><td>
-          <h1 style="color:#0a0a0a;font-size:28px;font-weight:700;line-height:1.2;margin:0 0 12px 0;">Confirm your email.</h1>
-          <p style="color:#2a2a2a;font-size:16px;line-height:1.55;margin:0 0 12px 0;">Welcome to Hacksathon.com. Confirm your email below to finish setting up your account.</p>
+          <h1 style="color:#1A1A1A;font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:400;line-height:1.1;letter-spacing:-0.02em;margin:0 0 12px 0;">Confirm your email.</h1>
+          <p style="color:#1A1A1A;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:1.55;margin:0 0 12px 0;">Welcome to Hacksathon.com. Confirm your email below to finish setting up your account.</p>
         </td></tr>
         <tr><td style="padding:20px 0;">
-          <a href="{{ .ConfirmationURL }}" style="background-color:#0a0a0a;border-radius:8px;color:#ffffff;display:inline-block;font-size:16px;font-weight:600;padding:12px 22px;text-decoration:none;">Confirm email</a>
+          <a href="{{ .ConfirmationURL }}" style="background-color:#1A1A1A;border-radius:8px;color:#ffffff;display:inline-block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;padding:12px 22px;text-decoration:none;">Confirm email</a>
         </td></tr>
         <tr><td>
-          <p style="color:#666666;font-size:13px;line-height:1.5;margin:0 0 12px 0;word-break:break-all;">Or paste this link into your browser:<br/><a href="{{ .ConfirmationURL }}" style="color:#0a0a0a;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
+          <p style="color:#525252;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.5;margin:0 0 12px 0;word-break:break-all;">Or paste this link into your browser:<br/><a href="{{ .ConfirmationURL }}" style="color:#1A1A1A;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
         </td></tr>
-        <tr><td style="padding:24px 0;"><hr style="border:none;border-top:1px solid #ececec;margin:0;"/></td></tr>
+        <tr><td style="padding:24px 0;"><hr style="border:none;border-top:1px solid #E8E8E8;margin:0;"/></td></tr>
         <tr><td>
-          <p style="color:#888888;font-size:12px;line-height:1.5;margin:0 0 6px 0;">This confirmation was sent to {{ .Email }}. If you didn't sign up, you can ignore this email.</p>
-          <p style="color:#888888;font-size:12px;line-height:1.5;margin:0;">Hacksathon.com</p>
+          <p style="color:#A3A3A3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.5;margin:0 0 6px 0;">This confirmation was sent to {{ .Email }}. If you didn't sign up, you can ignore this email.</p>
+          <p style="color:#A3A3A3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.5;margin:0;">Hacksathon.com</p>
         </td></tr>
       </table>
     </td>
@@ -448,27 +463,33 @@ Each template needs:
 ### 2. Reset Password
 
 ```html
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f6f6f4;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<style>
+  @font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/ebgaramond/v32/SlGDmQSNjdsmc35JDF1K5E55YMjF_7DPuGi-6_RUAw.ttf) format('truetype'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf) format('truetype'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYMZg.ttf) format('truetype'); }
+  @font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url(https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf) format('truetype'); }
+</style>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F5F5;margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
   <tr>
     <td align="center" style="padding:32px 16px;">
       <table width="520" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:12px;max-width:520px;padding:32px 28px;">
         <tr><td style="padding-bottom:16px;">
-          <p style="color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin:0;">Hacksathon.com</p>
+          <p style="color:#1A1A1A;font-family:'JetBrains Mono','SF Mono','Fira Code',monospace;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Hacksathon.com</p>
         </td></tr>
         <tr><td>
-          <h1 style="color:#0a0a0a;font-size:28px;font-weight:700;line-height:1.2;margin:0 0 12px 0;">Reset your password.</h1>
-          <p style="color:#2a2a2a;font-size:16px;line-height:1.55;margin:0 0 12px 0;">Click the button below to set a new password for your Hacksathon.com account. The link is valid for one hour.</p>
+          <h1 style="color:#1A1A1A;font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:400;line-height:1.1;letter-spacing:-0.02em;margin:0 0 12px 0;">Reset your password.</h1>
+          <p style="color:#1A1A1A;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:1.55;margin:0 0 12px 0;">Click the button below to set a new password for your Hacksathon.com account. The link is valid for one hour.</p>
         </td></tr>
         <tr><td style="padding:20px 0;">
-          <a href="{{ .ConfirmationURL }}" style="background-color:#0a0a0a;border-radius:8px;color:#ffffff;display:inline-block;font-size:16px;font-weight:600;padding:12px 22px;text-decoration:none;">Reset password</a>
+          <a href="{{ .ConfirmationURL }}" style="background-color:#1A1A1A;border-radius:8px;color:#ffffff;display:inline-block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;padding:12px 22px;text-decoration:none;">Reset password</a>
         </td></tr>
         <tr><td>
-          <p style="color:#666666;font-size:13px;line-height:1.5;margin:0 0 12px 0;word-break:break-all;">Or paste this link into your browser:<br/><a href="{{ .ConfirmationURL }}" style="color:#0a0a0a;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
+          <p style="color:#525252;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.5;margin:0 0 12px 0;word-break:break-all;">Or paste this link into your browser:<br/><a href="{{ .ConfirmationURL }}" style="color:#1A1A1A;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
         </td></tr>
-        <tr><td style="padding:24px 0;"><hr style="border:none;border-top:1px solid #ececec;margin:0;"/></td></tr>
+        <tr><td style="padding:24px 0;"><hr style="border:none;border-top:1px solid #E8E8E8;margin:0;"/></td></tr>
         <tr><td>
-          <p style="color:#888888;font-size:12px;line-height:1.5;margin:0 0 6px 0;">This reset link was sent to {{ .Email }}. If you didn't request a password reset, you can safely ignore this email — your password won't change.</p>
-          <p style="color:#888888;font-size:12px;line-height:1.5;margin:0;">Hacksathon.com</p>
+          <p style="color:#A3A3A3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.5;margin:0 0 6px 0;">This reset link was sent to {{ .Email }}. If you didn't request a password reset, you can safely ignore this email - your password won't change.</p>
+          <p style="color:#A3A3A3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.5;margin:0;">Hacksathon.com</p>
         </td></tr>
       </table>
     </td>
@@ -479,27 +500,33 @@ Each template needs:
 ### 3. Magic Link
 
 ```html
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f6f6f4;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<style>
+  @font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/ebgaramond/v32/SlGDmQSNjdsmc35JDF1K5E55YMjF_7DPuGi-6_RUAw.ttf) format('truetype'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf) format('truetype'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYMZg.ttf) format('truetype'); }
+  @font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url(https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf) format('truetype'); }
+</style>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F5F5;margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
   <tr>
     <td align="center" style="padding:32px 16px;">
       <table width="520" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:12px;max-width:520px;padding:32px 28px;">
         <tr><td style="padding-bottom:16px;">
-          <p style="color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin:0;">Hacksathon.com</p>
+          <p style="color:#1A1A1A;font-family:'JetBrains Mono','SF Mono','Fira Code',monospace;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Hacksathon.com</p>
         </td></tr>
         <tr><td>
-          <h1 style="color:#0a0a0a;font-size:28px;font-weight:700;line-height:1.2;margin:0 0 12px 0;">Your sign-in link.</h1>
-          <p style="color:#2a2a2a;font-size:16px;line-height:1.55;margin:0 0 12px 0;">Click the button below to sign in to Hacksathon.com. The link is single-use and expires shortly.</p>
+          <h1 style="color:#1A1A1A;font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:400;line-height:1.1;letter-spacing:-0.02em;margin:0 0 12px 0;">Your sign-in link.</h1>
+          <p style="color:#1A1A1A;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:1.55;margin:0 0 12px 0;">Click the button below to sign in to Hacksathon.com. The link is single-use and expires shortly.</p>
         </td></tr>
         <tr><td style="padding:20px 0;">
-          <a href="{{ .ConfirmationURL }}" style="background-color:#0a0a0a;border-radius:8px;color:#ffffff;display:inline-block;font-size:16px;font-weight:600;padding:12px 22px;text-decoration:none;">Sign in</a>
+          <a href="{{ .ConfirmationURL }}" style="background-color:#1A1A1A;border-radius:8px;color:#ffffff;display:inline-block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;padding:12px 22px;text-decoration:none;">Sign in</a>
         </td></tr>
         <tr><td>
-          <p style="color:#666666;font-size:13px;line-height:1.5;margin:0 0 12px 0;word-break:break-all;">Or paste this link into your browser:<br/><a href="{{ .ConfirmationURL }}" style="color:#0a0a0a;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
+          <p style="color:#525252;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.5;margin:0 0 12px 0;word-break:break-all;">Or paste this link into your browser:<br/><a href="{{ .ConfirmationURL }}" style="color:#1A1A1A;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
         </td></tr>
-        <tr><td style="padding:24px 0;"><hr style="border:none;border-top:1px solid #ececec;margin:0;"/></td></tr>
+        <tr><td style="padding:24px 0;"><hr style="border:none;border-top:1px solid #E8E8E8;margin:0;"/></td></tr>
         <tr><td>
-          <p style="color:#888888;font-size:12px;line-height:1.5;margin:0 0 6px 0;">This sign-in link was sent to {{ .Email }}. If you didn't request it, you can ignore this email.</p>
-          <p style="color:#888888;font-size:12px;line-height:1.5;margin:0;">Hacksathon.com</p>
+          <p style="color:#A3A3A3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.5;margin:0 0 6px 0;">This sign-in link was sent to {{ .Email }}. If you didn't request it, you can ignore this email.</p>
+          <p style="color:#A3A3A3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.5;margin:0;">Hacksathon.com</p>
         </td></tr>
       </table>
     </td>
@@ -510,27 +537,33 @@ Each template needs:
 ### 4. Change Email Address
 
 ```html
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f6f6f4;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<style>
+  @font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/ebgaramond/v32/SlGDmQSNjdsmc35JDF1K5E55YMjF_7DPuGi-6_RUAw.ttf) format('truetype'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf) format('truetype'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYMZg.ttf) format('truetype'); }
+  @font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url(https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf) format('truetype'); }
+</style>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F5F5;margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
   <tr>
     <td align="center" style="padding:32px 16px;">
       <table width="520" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:12px;max-width:520px;padding:32px 28px;">
         <tr><td style="padding-bottom:16px;">
-          <p style="color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin:0;">Hacksathon.com</p>
+          <p style="color:#1A1A1A;font-family:'JetBrains Mono','SF Mono','Fira Code',monospace;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin:0;">Hacksathon.com</p>
         </td></tr>
         <tr><td>
-          <h1 style="color:#0a0a0a;font-size:28px;font-weight:700;line-height:1.2;margin:0 0 12px 0;">Confirm your new email.</h1>
-          <p style="color:#2a2a2a;font-size:16px;line-height:1.55;margin:0 0 12px 0;">Confirm the new email address on your Hacksathon.com account by clicking the button below.</p>
+          <h1 style="color:#1A1A1A;font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:400;line-height:1.1;letter-spacing:-0.02em;margin:0 0 12px 0;">Confirm your new email.</h1>
+          <p style="color:#1A1A1A;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:1.55;margin:0 0 12px 0;">Confirm the new email address on your Hacksathon.com account by clicking the button below.</p>
         </td></tr>
         <tr><td style="padding:20px 0;">
-          <a href="{{ .ConfirmationURL }}" style="background-color:#0a0a0a;border-radius:8px;color:#ffffff;display:inline-block;font-size:16px;font-weight:600;padding:12px 22px;text-decoration:none;">Confirm new email</a>
+          <a href="{{ .ConfirmationURL }}" style="background-color:#1A1A1A;border-radius:8px;color:#ffffff;display:inline-block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;padding:12px 22px;text-decoration:none;">Confirm new email</a>
         </td></tr>
         <tr><td>
-          <p style="color:#666666;font-size:13px;line-height:1.5;margin:0 0 12px 0;word-break:break-all;">Or paste this link into your browser:<br/><a href="{{ .ConfirmationURL }}" style="color:#0a0a0a;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
+          <p style="color:#525252;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.5;margin:0 0 12px 0;word-break:break-all;">Or paste this link into your browser:<br/><a href="{{ .ConfirmationURL }}" style="color:#1A1A1A;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
         </td></tr>
-        <tr><td style="padding:24px 0;"><hr style="border:none;border-top:1px solid #ececec;margin:0;"/></td></tr>
+        <tr><td style="padding:24px 0;"><hr style="border:none;border-top:1px solid #E8E8E8;margin:0;"/></td></tr>
         <tr><td>
-          <p style="color:#888888;font-size:12px;line-height:1.5;margin:0 0 6px 0;">If you didn't request this change, sign in and review your account settings — your password may have been compromised.</p>
-          <p style="color:#888888;font-size:12px;line-height:1.5;margin:0;">Hacksathon.com</p>
+          <p style="color:#A3A3A3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.5;margin:0 0 6px 0;">If you didn't request this change, sign in and review your account settings - your password may have been compromised.</p>
+          <p style="color:#A3A3A3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.5;margin:0;">Hacksathon.com</p>
         </td></tr>
       </table>
     </td>
@@ -540,7 +573,10 @@ Each template needs:
 
 ### Maintenance
 
-If the brand evolves and we update the React Email components in
-`src/emails/`, hand-port the changes back into the four blocks above.
-There's no automated sync between React Email and the Supabase
-dashboard templates — they're two separate stores.
+The design tokens above (palette, fonts, button) come from
+`src/lib/email/email-styles.ts`, the single source of truth for every
+React Email template, and the `@font-face` block mirrors
+`src/lib/email/email-head.tsx`. If those change, hand-port the changes
+back into the four blocks above. There is no automated sync between the
+React Email templates and the Supabase dashboard templates: they are
+two separate stores.

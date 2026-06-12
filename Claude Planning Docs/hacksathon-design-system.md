@@ -523,7 +523,7 @@ Segmented toggles (reflections Closed/Open/Complete, voting Closed/Open) keep th
 
 #### Email buttons (exception)
 
-Email templates in `src/emails/*` use the `@react-email/components` `Button` and **keep their solid fill** — solid renders reliably across inboxes and there's no shared CSS to lean on. Do not convert these to pills.
+Email templates in `src/emails/*` use the `@react-email/components` `Button` and **keep their solid fill** (solid `#1A1A1A` renders reliably across inboxes and there's no shared CSS to lean on). Do not convert these to pills. Shared email design tokens live in `src/lib/email/email-styles.ts`, with webfonts injected via `src/lib/email/email-head.tsx`; the four Supabase Auth dashboard templates mirror the same tokens but are hand-maintained (see `hacksathon-infra-notes.md`).
 
 #### Gradient CTA (kept — max once per view)
 

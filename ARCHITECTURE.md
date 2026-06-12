@@ -379,8 +379,20 @@ All AI runs through Next.js API routes using the Vercel AI SDK with
 when `RESEND_API_KEY` is unset (logs + returns `{ ok: true, skipped: true }`).
 React Email templates render server-side. Used for participant invites,
 branded join-link signup confirmation, and password-change security
-notices. Some auth emails are also routed through Supabase SMTP
-configured with Resend.
+notices.
+
+Two distinct email systems exist:
+
+1. **App-sent (10 templates).** React Email components in `src/emails/`,
+   rendered by the Resend SDK at runtime. Share `lib/email/email-styles.ts`
+   (design tokens) and `lib/email/email-head.tsx` (`@font-face` webfonts);
+   updated automatically with each deploy. Preview them in Murtopolis at
+   `/murtopolis/emails`.
+2. **Supabase Auth (4 templates).** Confirm signup, reset password, magic
+   link, and change-email, routed through Supabase SMTP configured with
+   Resend. These are hand-maintained HTML in the Supabase dashboard; the
+   canonical copies live in `Claude Planning Docs/hacksathon-infra-notes.md`
+   and must be hand-ported when the design system changes.
 
 ## Deployment
 

@@ -2,6 +2,8 @@
 
 All outbound email for Hacksathon.com is sent via Resend using React Email templates. This document is the canonical reference for all 10 templates: what they do, how they are triggered, what props they accept, where design is consistent, and where it drifts.
 
+> **Two email systems.** This doc covers the **10 app-sent templates** in `src/emails/` (React Email components rendered by the Resend SDK at runtime; they share `src/lib/email/email-styles.ts` and `src/lib/email/email-head.tsx`, and ship automatically with each deploy). Separately, **4 Supabase Auth templates** (confirm signup, reset password, magic link, change email) are hand-maintained HTML in the Supabase dashboard and routed through Resend via SMTP. Those mirror the same design tokens but must be updated by hand — their canonical copies live in `hacksathon-infra-notes.md`.
+
 ---
 
 ## Quick Reference

@@ -35,7 +35,16 @@ function getClient(): Resend | null {
 export interface SendEmailParams {
   to: string;
   subject: string;
-  react: ReactElement;
+  /**
+   * React Email body. Mutually exclusive with `html`; provide exactly one.
+   * Most app templates use this.
+   */
+  react?: ReactElement;
+  /**
+   * Pre-rendered HTML body. Mutually exclusive with `react`. Used for the
+   * Supabase Auth dashboard templates, which only exist as raw HTML.
+   */
+  html?: string;
   /** Optional plain-text fallback. If omitted, the rendered React body is used. */
   text?: string;
   /** Override the default from address per-send. */
@@ -56,6 +65,10 @@ export async function sendEmail(
 ): Promise<SendEmailResult> {
   const client = getClient();
 
+  if (!params.react && !params.html) {
+    return { ok: false, error: "sendEmail requires either `react` or `html`" };
+  }
+
   if (!client) {
     console.warn(
       "[email] RESEND_API_KEY is not set - email not actually sent. Subject:",
@@ -67,14 +80,18 @@ export async function sendEmail(
   }
 
   try {
-    const { data, error } = await client.emails.send({
+    const common = {
       from: params.from ?? fromEmail,
       to: params.to,
       subject: params.subject,
-      react: params.react,
       text: params.text,
       replyTo: params.replyTo ?? replyTo,
-    });
+    };
+    // Resend's send() is a discriminated union on react/html/text; branch so
+    // the right variant is passed instead of spreading an ambiguous object.
+    const { data, error } = params.react
+      ? await client.emails.send({ ...common, react: params.react })
+      : await client.emails.send({ ...common, html: params.html! });
 
     if (error) {
       console.error("[email] Resend send failed:", error);

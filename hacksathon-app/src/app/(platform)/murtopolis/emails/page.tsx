@@ -6,7 +6,9 @@ import {
   getEmailPreview,
   type EmailGroup,
 } from "@/emails/registry";
+import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { SendTestControls } from "./send-test-controls";
 
 export const metadata = { title: "Murtopolis - Emails" };
 export const dynamic = "force-dynamic";
@@ -41,11 +43,25 @@ export default async function MurtopolisEmailsPage({
 
   const html = await render(active.element);
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const adminEmail = user?.email ?? null;
+
   return (
     <Panel
       title="Email templates"
       description="Every transactional email we send via Resend, rendered with sample data. Click a template to preview its design."
     >
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b pb-6">
+        <p className="max-w-md text-sm text-muted-foreground">
+          Send yourself a full set of test emails: the 10 app templates plus the
+          four Supabase Auth emails (Reset password and Magic link fire the real
+          auth flow; Confirm signup and Change email are rendered previews).
+        </p>
+        <SendTestControls adminEmail={adminEmail} activeSlug={active.slug} />
+      </div>
       <div className="grid gap-8 md:grid-cols-[220px_minmax(0,1fr)]">
         {/* Template list */}
         <nav aria-label="Email templates" className="space-y-6">

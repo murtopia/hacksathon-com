@@ -10,23 +10,27 @@ export const metadata: Metadata = {
 
 const included = [
   "Full 10-block event format",
-  "Hacksathon admin with event setup, block controls, and participant management",
-  "IdeaLab - idea submission and gallery",
+  "Hacky Helper - guided, step-by-step event setup",
+  "Hacksathon admin with block controls and participant management",
+  "IdeaLab - idea submission, gallery, sparks, and comments",
   "Guided Blueprint - AI planning conversation that produces a build-ready plan",
+  "Auto-generated Starter Prompt tuned to your build tool",
+  "Bring your own AI build tool - Lovable, Cursor, v0, Replit, and more",
   "Shark Tank Pitch session structure",
-  "Build sessions with time-blocked structure and Add to Calendar links",
+  "Time-blocked build sessions with Blueprint + Starter Prompt handoff",
+  "Hacky Awards ceremony with team voting, auto-tallied from the ballot",
   "Reflections with AI-generated recap",
-  "Hacky Awards ceremony auto-generated from voting data",
-  "Resource Library with Design Direction Guide, Scope Guardian worksheet, and Starter Prompt templates",
-  "Organizer coaching tips at every block",
-  "Custom branding with your company logo and primary color",
+  "Team chat integration - Slack, Discord, or Teams",
+  "Your own vanity URL and optional public showcase",
+  "Branded email invites and notifications",
+  "Custom branding with your company logo",
 ];
 
 const faqs = [
   {
     question: "What's included in every event?",
     answer:
-      "Everything. Every event gets the complete platform - all 10 blocks, AI tools, awards, reflections, coaching layer, branding, and reporting. The only variable is how many people you invite.",
+      "Everything. Every event gets the complete platform - all 10 blocks, the Hacky Helper setup guide, the AI Blueprint and Starter Prompt, Hacky Awards, reflections with an AI recap, and your branding. The only variable is how many people you invite.",
   },
   {
     question: "How does buying work?",
@@ -36,7 +40,7 @@ const faqs = [
   {
     question: "Is facilitation included?",
     answer:
-      "The platform is the facilitator. Every block includes built-in coaching tips for the organizer, participant-facing instructions, and a structured format designed to run without outside help. You run it. That's the point.",
+      "The platform is the facilitator. The Hacky Helper walks you through setup step by step, every block carries participant-facing instructions and purpose, and the whole format is structured to run without outside help. You run it. That's the point.",
   },
   {
     question: "Is the AI build tool included?",

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PromptCaret } from "@/components/site/prompt-caret";
 import { UserMenu } from "@/components/site/user-menu";
 import { createClient } from "@/lib/supabase/server";
 import { isPlatformAdmin } from "@/lib/server/platform-admin-guard";
@@ -47,7 +48,8 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 w-full max-w-[var(--container-default)] items-center justify-between px-4">
-        <Link href="/" className="inline-flex items-center">
+        <Link href="/" className="inline-flex items-center gap-1">
+          <PromptCaret className="h-3.5 w-auto text-foreground" />
           <span className="font-serif text-xl text-foreground">
             Hacksathon.com
           </span>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PromptCaret } from "@/components/site/prompt-caret";
 
 const navLinkClass =
   "text-muted-foreground transition-colors hover:text-foreground";
@@ -15,7 +16,11 @@ export function SiteFooter() {
       <div className="mx-auto w-full max-w-[var(--container-default)] px-4">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-2">
-            <Link href="/" className="font-bold transition-colors hover:text-foreground">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 font-bold transition-colors hover:text-foreground"
+            >
+              <PromptCaret className="h-3 w-auto" />
               Hacksathon.com
             </Link>
             <a

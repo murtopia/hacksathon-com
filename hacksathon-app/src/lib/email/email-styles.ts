@@ -83,16 +83,18 @@ export const smallParagraph: React.CSSProperties = {
 
 // -----------------------------------------------------------------------
 // Typography - internal templates (purchase-notification, support-message)
-// Intentionally smaller / quieter than customer-facing; data-dense layout.
+// Uses the same EB Garamond treatment as customer-facing headings for a
+// consistent design language, just a touch smaller for the quieter,
+// data-dense internal layout.
 // -----------------------------------------------------------------------
 
 export const internalHeading: React.CSSProperties = {
   color: "#1A1A1A",
-  fontFamily:
-    "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",
-  fontSize: 22,
-  fontWeight: 600,
-  lineHeight: 1.25,
+  fontFamily: "'EB Garamond', Georgia, serif",
+  fontSize: 24,
+  fontWeight: 400,
+  letterSpacing: "-0.02em",
+  lineHeight: 1.15,
   margin: "0 0 16px 0",
 };
 

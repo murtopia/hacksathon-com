@@ -46,12 +46,14 @@ export function ReflectionsOpenNotificationEmail({
               The team behind the{" "}
               <strong>{orgLabel ? `${orgLabel} ` : ""}Hacks-a-Thon</strong> has
               opened reflections for <strong>{eventTitle}</strong>. Take a few
-              minutes to share what you built, what you learned, and what stood
-              out.
+              minutes to look back on the experience - what surprised you, what
+              you&apos;re proud of, what challenged you, and what you&apos;ll
+              carry forward.
             </Text>
             <Text style={s.paragraph}>
-              Your answers help shape the event recap - and make great material
-              for celebrating the work afterward.
+              It&apos;s a short set of questions about how the event went, not a
+              project write-up. Your answers help shape the event recap - and
+              make great material for celebrating the work afterward.
             </Text>
           </Section>
 

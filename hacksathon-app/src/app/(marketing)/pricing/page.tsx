@@ -8,22 +8,35 @@ export const metadata: Metadata = {
     "$995 for up to 25 people. The complete Hacks-a-Thon platform - no feature gates, no subscriptions.",
 };
 
-const included = [
-  "Full 10-block event format",
-  "Hacky Helper - guided, step-by-step event setup",
-  "Hacksathon admin with block controls and participant management",
-  "IdeaLab - idea submission, gallery, sparks, and comments",
-  "Guided Blueprint - AI planning conversation that produces a build-ready plan",
-  "Auto-generated Starter Prompt tuned to your build tool",
-  "Bring your own AI build tool - Lovable, Cursor, v0, Replit, and more",
-  "Shark Tank Pitch session structure",
-  "Time-blocked build sessions with Blueprint + Starter Prompt handoff",
-  "Hacky Awards ceremony with team voting, auto-tallied from the ballot",
-  "Reflections with AI-generated recap",
-  "Team chat integration - Slack, Discord, or Teams",
-  "Your own vanity URL and optional public showcase",
-  "Branded email invites and notifications",
-  "Custom branding with your company logo",
+const featureGroups = [
+  {
+    label: "For your team",
+    features: [
+      "Full 10-block event format",
+      "IdeaLab - idea submission, gallery, sparks, and comments",
+      "Guided Blueprint - AI planning conversation that produces a build-ready plan",
+      "Auto-generated Starter Prompt tuned to your build tool",
+      "Bring your own AI build tool - Lovable, Cursor, v0, Replit, and more",
+      "Shark Tank Pitch session structure",
+      "Time-blocked build sessions with Blueprint + Starter Prompt handoff",
+      "Hacky Awards voting and ceremony",
+      "Reflections survey with guided prompts",
+    ],
+  },
+  {
+    label: "For the admin",
+    features: [
+      "Hacky Helper - guided, step-by-step event setup",
+      "Hacksathon admin with block controls and participant management",
+      "Team chat integration - Slack, Discord, or Teams",
+      "Branded email invites and notifications",
+      "Auto-generated awards ceremony slideshow",
+      "AI-generated reflection recap",
+      "Your own vanity URL (hacksathon.com/yourteam)",
+      "Public showcase page - recap, projects, winners, and reflections",
+      "Custom branding with your company logo",
+    ],
+  },
 ];
 
 const faqs = [
@@ -139,19 +152,26 @@ export default function PricingPage() {
             No feature gates between sizes. A team of 10 gets the exact same
             platform as a team of 50.
           </p>
-          <ul className="grid md:grid-cols-2 gap-x-8 gap-y-3 max-w-2xl mx-auto">
-            {included.map((feature) => (
-              <li
-                key={feature}
-                className="flex items-start gap-2.5 text-sm text-[var(--text-secondary)]"
-              >
-                <span className="text-[var(--text-primary)] mt-0.5 shrink-0">
-                  &#10003;
-                </span>
-                {feature}
-              </li>
+          <div className="grid md:grid-cols-2 gap-x-8 gap-y-10 max-w-2xl mx-auto">
+            {featureGroups.map((group) => (
+              <div key={group.label}>
+                <h3 className="mono-label mb-4">{group.label}</h3>
+                <ul className="space-y-3">
+                  {group.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className="flex items-start gap-2.5 text-sm text-[var(--text-secondary)]"
+                    >
+                      <span className="text-[var(--text-primary)] mt-0.5 shrink-0">
+                        &#10003;
+                      </span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
         {/* FAQ */}

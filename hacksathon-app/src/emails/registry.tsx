@@ -5,6 +5,7 @@ import { JoinLinkConfirmationEmail } from "./join-link-confirmation";
 import { ParticipantWelcomeEmail } from "./participant-welcome";
 import { PurchaseWelcomeEmail } from "./purchase-welcome";
 import { PasswordChangedEmail } from "./password-changed-notification";
+import { IdealabReminderNotificationEmail } from "./idealab-reminder-notification";
 import { VotingOpenNotificationEmail } from "./voting-open-notification";
 import { ReflectionsOpenNotificationEmail } from "./reflections-open-notification";
 import { PurchaseNotificationEmail } from "./purchase-notification";
@@ -79,6 +80,17 @@ export const emailPreviews: EmailPreviewEntry[] = [
     group: "Customer-facing",
     subject: "Your Hacksathon.com password was changed",
     element: <PasswordChangedEmail {...PasswordChangedEmail.PreviewProps} />,
+  },
+  {
+    slug: "idealab-reminder",
+    label: "IdeaLab reminder",
+    group: "Customer-facing",
+    subject: "Get your IdeaLab demo-ready for Seven2 Hacks-a-Thon",
+    element: (
+      <IdealabReminderNotificationEmail
+        {...IdealabReminderNotificationEmail.PreviewProps}
+      />
+    ),
   },
   {
     slug: "voting-open",

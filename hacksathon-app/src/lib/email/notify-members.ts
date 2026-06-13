@@ -3,8 +3,9 @@ import { siteBaseUrl } from "@/lib/routing/site-url";
 import { sendEmail } from "@/lib/email/resend";
 import { VotingOpenNotificationEmail } from "@/emails/voting-open-notification";
 import { ReflectionsOpenNotificationEmail } from "@/emails/reflections-open-notification";
+import { IdealabReminderNotificationEmail } from "@/emails/idealab-reminder-notification";
 
-export type NotifyKind = "voting" | "reflections";
+export type NotifyKind = "voting" | "reflections" | "idealab";
 
 export interface NotifyMembersResult {
   ok: boolean;
@@ -66,9 +67,35 @@ export async function notifyMembersOpen(
     return { ok: false, sent: 0, failed: 0, recipients: 0, error: memberError.message };
   }
 
+  // For the IdeaLab reminder, narrow the roster to participants whose idea
+  // isn't demo-ready yet: anyone without a `completed` idea (which, by the
+  // DB constraint, means a missing live URL and/or final screenshot) plus
+  // anyone who never created an idea at all.
+  let recipientRows = memberRows ?? [];
+  if (kind === "idealab") {
+    const { data: completedIdeas, error: ideasError } = await admin
+      .from("ideas")
+      .select("user_id")
+      .eq("event_id", eventId)
+      .eq("status", "completed");
+
+    if (ideasError) {
+      return { ok: false, sent: 0, failed: 0, recipients: 0, error: ideasError.message };
+    }
+
+    const doneUserIds = new Set(
+      (completedIdeas ?? [])
+        .map((r) => r.user_id as string | null)
+        .filter((id): id is string => Boolean(id)),
+    );
+    recipientRows = recipientRows.filter(
+      (m) => !doneUserIds.has(m.user_id as string),
+    );
+  }
+
   const emails = Array.from(
     new Set(
-      (memberRows ?? [])
+      recipientRows
         .map((m) => {
           const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
           return (p?.email as string | null)?.trim() ?? null;
@@ -85,22 +112,34 @@ export async function notifyMembersOpen(
   const subject =
     kind === "voting"
       ? `Voting is open for the ${eventTitle} Hacky Awards`
-      : `Reflections are open for ${eventTitle}`;
+      : kind === "reflections"
+        ? `Reflections are open for ${eventTitle}`
+        : `Get your IdeaLab demo-ready for ${eventTitle}`;
 
-  const buildEmail = (recipientEmail: string) =>
-    kind === "voting"
-      ? VotingOpenNotificationEmail({
-          orgName,
-          eventTitle,
-          votingUrl: `${base}/${slug}/awards`,
-          recipientEmail,
-        })
-      : ReflectionsOpenNotificationEmail({
-          orgName,
-          eventTitle,
-          reflectionsUrl: `${base}/${slug}/reflections`,
-          recipientEmail,
-        });
+  const buildEmail = (recipientEmail: string) => {
+    if (kind === "voting") {
+      return VotingOpenNotificationEmail({
+        orgName,
+        eventTitle,
+        votingUrl: `${base}/${slug}/awards`,
+        recipientEmail,
+      });
+    }
+    if (kind === "reflections") {
+      return ReflectionsOpenNotificationEmail({
+        orgName,
+        eventTitle,
+        reflectionsUrl: `${base}/${slug}/reflections`,
+        recipientEmail,
+      });
+    }
+    return IdealabReminderNotificationEmail({
+      orgName,
+      eventTitle,
+      idealabUrl: `${base}/${slug}/idealab`,
+      recipientEmail,
+    });
+  };
 
   let sent = 0;
   let failed = 0;

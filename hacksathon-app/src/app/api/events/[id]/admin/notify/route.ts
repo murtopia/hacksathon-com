@@ -10,13 +10,16 @@ import { notifyMembersOpen, type NotifyKind } from "@/lib/email/notify-members";
 export const maxDuration = 60;
 
 /**
- * Email active participants that voting / reflections just opened.
- * Admin-only, manual ("Notify team" button).
+ * Email active participants that voting / reflections just opened, or
+ * remind those whose IdeaLab isn't demo-ready before voting opens.
+ * Admin-only, manual ("Notify team" / "Remind IdeaLab" button).
  *
- * Body: { kind: "voting" | "reflections" }
+ * Body: { kind: "voting" | "reflections" | "idealab" }
  *
- * Refuses unless the corresponding state is actually `open` - there's
- * no point telling people to go vote/reflect when they can't.
+ * Refuses unless the moment is right: voting/reflections must be `open`
+ * (no point telling people to act when they can't), and the IdeaLab
+ * reminder is only allowed while voting is still `closed` (it's a
+ * pre-voting nudge).
  */
 export async function POST(
   req: Request,
@@ -28,9 +31,9 @@ export async function POST(
 
   const body = await req.json().catch(() => null);
   const kind = body?.kind as NotifyKind | undefined;
-  if (kind !== "voting" && kind !== "reflections") {
+  if (kind !== "voting" && kind !== "reflections" && kind !== "idealab") {
     return NextResponse.json(
-      { error: "kind must be 'voting' or 'reflections'." },
+      { error: "kind must be 'voting', 'reflections', or 'idealab'." },
       { status: 400 },
     );
   }
@@ -46,20 +49,27 @@ export async function POST(
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
 
-  const isOpen =
+  // Each kind has a precondition: voting/reflections must be open; the
+  // IdeaLab reminder is a pre-voting nudge, so it's only allowed while
+  // voting is still closed.
+  const precondition =
     kind === "voting"
-      ? event.voting_status === "open"
-      : event.reflection_status === "open";
-  if (!isOpen) {
-    return NextResponse.json(
-      {
-        error:
-          kind === "voting"
-            ? "Open voting before notifying the team."
-            : "Open reflections before notifying the team.",
-      },
-      { status: 409 },
-    );
+      ? {
+          ok: event.voting_status === "open",
+          error: "Open voting before notifying the team.",
+        }
+      : kind === "reflections"
+        ? {
+            ok: event.reflection_status === "open",
+            error: "Open reflections before notifying the team.",
+          }
+        : {
+            ok: event.voting_status === "closed",
+            error: "The IdeaLab reminder can only be sent before voting opens.",
+          };
+
+  if (!precondition.ok) {
+    return NextResponse.json({ error: precondition.error }, { status: 409 });
   }
 
   const result = await notifyMembersOpen(eventId, kind);

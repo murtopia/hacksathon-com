@@ -292,6 +292,7 @@ function VotingToggle({
           {label}
         </button>
       ))}
+      <NotifyTeamButton eventId={eventId} kind="idealab" disabled={isOpen} />
       <NotifyTeamButton eventId={eventId} kind="voting" disabled={!isOpen} />
     </div>
   );

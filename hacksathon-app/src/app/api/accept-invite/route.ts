@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isExpired } from "@/lib/invites/tokens";
 import { sendParticipantWelcomeEmail } from "@/lib/email/send-participant-welcome";
+import { getEventSeatUsage, SEAT_LIMIT_REACHED_MESSAGE } from "@/lib/billing/seats";
 
 export const maxDuration = 30;
 
@@ -217,6 +218,20 @@ export async function POST(req: Request) {
     .eq("organization_id", organizationId)
     .eq("user_id", userId)
     .maybeSingle<{ id: string; status: string }>();
+
+  // Hard cap: block acceptance that would create a new active seat once
+  // the purchased limit is full. A seat was normally reserved for this
+  // invite, so this only trips if the event is genuinely over-committed.
+  const willBecomeActive = !existingMember || existingMember.status !== "active";
+  if (willBecomeActive) {
+    const usage = await getEventSeatUsage(eventId);
+    if (usage.limit !== null && usage.used >= usage.limit) {
+      return NextResponse.json(
+        { error: SEAT_LIMIT_REACHED_MESSAGE },
+        { status: 410 },
+      );
+    }
+  }
 
   // Only welcome on a real transition into active (not a re-accept by an
   // already-active member).

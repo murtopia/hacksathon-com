@@ -5,6 +5,7 @@ import {
   isErrorResponse,
 } from "@/lib/server/event-admin-guard";
 import { sendParticipantWelcomeEmail } from "@/lib/email/send-participant-welcome";
+import { getEventSeatUsage, SEAT_LIMIT_REACHED_MESSAGE } from "@/lib/billing/seats";
 
 export const maxDuration = 10;
 
@@ -57,6 +58,16 @@ export async function PATCH(
         error:
           "This member isn't in the pending queue. Send a fresh invite instead.",
       },
+      { status: 409 },
+    );
+  }
+
+  // Hard cap: approving consumes a seat. Block when active participating
+  // members already fill the purchased limit.
+  const usage = await getEventSeatUsage(eventId);
+  if (usage.limit !== null && usage.used >= usage.limit) {
+    return NextResponse.json(
+      { error: SEAT_LIMIT_REACHED_MESSAGE },
       { status: 409 },
     );
   }

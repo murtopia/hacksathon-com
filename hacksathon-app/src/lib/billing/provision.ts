@@ -263,3 +263,82 @@ export async function provisionPaidEvent(
     alreadyProvisioned: false,
   };
 }
+
+export interface ApplyAddedSeatsParams {
+  eventId: string;
+  /** Absolute new participant total (not a delta). */
+  newLimit: number;
+  addedSeats: number;
+  /** Incremental amount Stripe collected for this top-up, in cents. */
+  amountCents: number;
+  /** Stripe Checkout Session id - the idempotency key for this top-up. */
+  checkoutSessionId: string;
+  createdBy?: string | null;
+}
+
+export interface ApplyAddedSeatsResult {
+  newlyApplied: boolean;
+  participantLimit: number;
+}
+
+/**
+ * Apply a post-purchase seat top-up after a successful add-seats Stripe
+ * Checkout. Idempotent on the Checkout Session id via the
+ * `event_seat_purchases` unique constraint:
+ *
+ *   1. Insert the ledger row first. A conflict (23505) means this session
+ *      was already applied, so we must not move money again.
+ *   2. Raise `participant_limit` to the absolute target (GREATEST of the
+ *      current value and the new total) - safe to repeat, and self-heals
+ *      if a prior run crashed between the ledger insert and the bump.
+ *   3. Accumulate `amount_paid_cents` only on the first application.
+ */
+export async function applyAddedSeats(
+  params: ApplyAddedSeatsParams,
+): Promise<ApplyAddedSeatsResult | { error: string }> {
+  const admin = createAdminClient();
+
+  const { error: ledgerError } = await admin
+    .from("event_seat_purchases")
+    .insert({
+      event_id: params.eventId,
+      stripe_checkout_session_id: params.checkoutSessionId,
+      seats_added: params.addedSeats,
+      amount_cents: params.amountCents,
+      created_by: params.createdBy ?? null,
+    });
+
+  const newlyApplied = !ledgerError;
+  if (ledgerError && ledgerError.code !== "23505") {
+    return { error: ledgerError.message };
+  }
+
+  const { data: eventRow } = await admin
+    .from("events")
+    .select("participant_limit, amount_paid_cents")
+    .eq("id", params.eventId)
+    .maybeSingle<{
+      participant_limit: number | null;
+      amount_paid_cents: number | null;
+    }>();
+
+  if (!eventRow) return { error: "Event not found for seat top-up." };
+
+  const target = Math.max(eventRow.participant_limit ?? 0, params.newLimit);
+  const updates: { participant_limit: number; amount_paid_cents?: number } = {
+    participant_limit: target,
+  };
+  if (newlyApplied) {
+    updates.amount_paid_cents =
+      (eventRow.amount_paid_cents ?? 0) + params.amountCents;
+  }
+
+  const { error: updateError } = await admin
+    .from("events")
+    .update(updates)
+    .eq("id", params.eventId);
+
+  if (updateError) return { error: updateError.message };
+
+  return { newlyApplied, participantLimit: target };
+}

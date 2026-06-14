@@ -12,6 +12,7 @@ import {
 import { sendEmail } from "@/lib/email/resend";
 import { ParticipantInviteEmail } from "@/emails/participant-invite";
 import { stampSetting } from "@/lib/events/settings";
+import { getEventSeatUsage, SEAT_LIMIT_REACHED_MESSAGE } from "@/lib/billing/seats";
 
 export const maxDuration = 30;
 
@@ -112,6 +113,25 @@ export async function POST(
     if (existingMember && existingMember.status === "active") {
       return NextResponse.json(
         { error: "That email is already a member of this event." },
+        { status: 409 },
+      );
+    }
+  }
+
+  // Hard cap: once the event is at its purchased seat limit, block
+  // brand-new invites. Re-issuing an invite to an address that already
+  // has a pending one is a net-zero seat change, so allow that through.
+  const usage = await getEventSeatUsage(eventId);
+  if (usage.limit !== null && (usage.available ?? 0) <= 0) {
+    const { count: existingPending } = await admin
+      .from("event_invitations")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", eventId)
+      .eq("status", "pending")
+      .ilike("email", email);
+    if (!existingPending) {
+      return NextResponse.json(
+        { error: SEAT_LIMIT_REACHED_MESSAGE },
         { status: 409 },
       );
     }

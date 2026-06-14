@@ -53,6 +53,55 @@ export function isSelfServeSeatCount(seatsInput: number): boolean {
   );
 }
 
+export interface SeatIncreaseQuote {
+  currentLimit: number;
+  newLimit: number;
+  addedSeats: number;
+  /** Incremental charge: list price at newLimit minus list price at currentLimit. */
+  amountCents: number;
+}
+
+/**
+ * Price a post-purchase seat increase as the difference in list price
+ * between the new total and the current total. Because the tier math is
+ * monotonic ($995 base for <=25, +$30 for 26..50), the delta naturally
+ * charges $0 for seats still inside the included base and $30 for each
+ * seat in the overage band - so a buyer at 25 going to 35 pays exactly
+ * 10 x $30, and a buyer at 10 going to 30 pays only for seats 26..30.
+ *
+ * Throws on out-of-range input so callers can surface "contact sales"
+ * for a new total above the self-serve cap.
+ */
+export function priceForSeatIncrease(
+  currentLimitInput: number,
+  newLimitInput: number,
+): SeatIncreaseQuote {
+  const currentLimit = Math.floor(currentLimitInput);
+  const newLimit = Math.floor(newLimitInput);
+
+  if (!Number.isFinite(currentLimit) || currentLimit < MIN_SEATS) {
+    throw new Error("Current participant count is invalid.");
+  }
+  if (!Number.isFinite(newLimit) || newLimit <= currentLimit) {
+    throw new Error("Choose a number higher than your current total.");
+  }
+  if (newLimit > MAX_SELF_SERVE_SEATS) {
+    throw new Error(
+      `Events over ${MAX_SELF_SERVE_SEATS} participants are custom - contact sales.`,
+    );
+  }
+
+  const amountCents =
+    priceForSeats(newLimit).amountCents - priceForSeats(currentLimit).amountCents;
+
+  return {
+    currentLimit,
+    newLimit,
+    addedSeats: newLimit - currentLimit,
+    amountCents,
+  };
+}
+
 /** Format cents as a plain USD string, e.g. 99500 -> "$995". */
 export function formatUsd(cents: number): string {
   const dollars = cents / 100;

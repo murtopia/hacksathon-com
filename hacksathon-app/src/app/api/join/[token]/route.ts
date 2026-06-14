@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureServer } from "@/lib/analytics/server";
 import { AnalyticsEvent } from "@/lib/analytics/events";
+import { getEventSeatUsage, SEAT_LIMIT_REACHED_MESSAGE } from "@/lib/billing/seats";
 
 export const maxDuration = 10;
 
@@ -80,6 +81,11 @@ export async function POST(
     ? (orgRel[0]?.slug ?? null)
     : (orgRel?.slug ?? null);
 
+  const usage = await getEventSeatUsage(eventRow.id);
+  const capped = usage.limit !== null;
+  const noRoom = capped && (usage.available ?? 0) <= 0;
+  const seatsFull = capped && usage.used >= usage.limit!;
+
   const { data: existing } = await admin
     .from("organization_members")
     .select("id, status, role")
@@ -105,7 +111,14 @@ export async function POST(
     }
     if (existing.status === "invited") {
       // They were already pre-invited via email; the join-link just
-      // collapses the workflow - admit them directly.
+      // collapses the workflow - admit them directly. This consumes a
+      // seat, so respect the hard cap.
+      if (seatsFull) {
+        return NextResponse.json(
+          { error: SEAT_LIMIT_REACHED_MESSAGE },
+          { status: 409 },
+        );
+      }
       const { error: upErr } = await admin
         .from("organization_members")
         .update({ status: "active", joined_at: new Date().toISOString() })
@@ -121,6 +134,13 @@ export async function POST(
       });
     }
     // status === 'removed' (or anything else) → bounce them back to pending.
+    // A fresh pending request holds a seat, so respect the hard cap.
+    if (noRoom) {
+      return NextResponse.json(
+        { error: SEAT_LIMIT_REACHED_MESSAGE },
+        { status: 409 },
+      );
+    }
     const { error: upErr } = await admin
       .from("organization_members")
       .update({ status: "pending", role: "participant" })
@@ -133,6 +153,14 @@ export async function POST(
       eventId: eventRow.id,
       slug,
     });
+  }
+
+  // Brand-new join request - holds a seat in the queue. Respect the cap.
+  if (noRoom) {
+    return NextResponse.json(
+      { error: SEAT_LIMIT_REACHED_MESSAGE },
+      { status: 409 },
+    );
   }
 
   const { error: insertError } = await admin

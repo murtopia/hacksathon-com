@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe/client";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { provisionPaidEvent } from "@/lib/billing/provision";
+import { provisionPaidEvent, applyAddedSeats } from "@/lib/billing/provision";
 import { sendPurchaseWelcomeEmail } from "@/lib/email/send-purchase-welcome";
 import { captureServer } from "@/lib/analytics/server";
 import { AnalyticsEvent } from "@/lib/analytics/events";
@@ -90,6 +90,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   const metadata = session.metadata ?? {};
+
+  // Post-purchase seat top-up ("Add participants") - a different
+  // fulfillment path from the initial provisioning below.
+  if (metadata.kind === "add_seats") {
+    await handleAddSeatsCompleted(session);
+    return;
+  }
+
   const userId = metadata.userId || session.client_reference_id || "";
   const orgName = metadata.orgName || "";
   const eventTitle = metadata.eventTitle || undefined;
@@ -173,6 +181,33 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       amountTotalCents: session.amount_total ?? null,
       discountCode,
     });
+  }
+}
+
+async function handleAddSeatsCompleted(session: Stripe.Checkout.Session) {
+  const metadata = session.metadata ?? {};
+  const eventId = metadata.eventId || "";
+  const newLimit = Number(metadata.newLimit || "0");
+  const addedSeats = Number(metadata.addedSeats || "0");
+  const userId = metadata.userId || session.client_reference_id || null;
+
+  if (!eventId || !Number.isFinite(newLimit) || newLimit < 1) {
+    throw new Error(
+      `add_seats session missing required metadata (session ${session.id}).`,
+    );
+  }
+
+  const result = await applyAddedSeats({
+    eventId,
+    newLimit,
+    addedSeats: Number.isFinite(addedSeats) ? addedSeats : 0,
+    amountCents: session.amount_total ?? 0,
+    checkoutSessionId: session.id,
+    createdBy: userId,
+  });
+
+  if ("error" in result) {
+    throw new Error(`Seat top-up failed for ${session.id}: ${result.error}`);
   }
 }
 

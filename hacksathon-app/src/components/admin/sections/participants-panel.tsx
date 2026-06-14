@@ -8,15 +8,27 @@ import {
   Link2,
   Link2Off,
   Mail,
+  Plus,
   RotateCw,
   Trash2,
   UserMinus,
+  Users,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -25,6 +37,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AdminSection } from "@/components/admin/admin-section";
+import {
+  priceForSeatIncrease,
+  formatUsd,
+  MAX_SELF_SERVE_SEATS,
+} from "@/lib/billing/pricing";
+import { createAddSeatsCheckoutSession } from "@/app/checkout/actions";
+
+export interface SeatUsageProp {
+  limit: number | null;
+  used: number;
+  reserved: number;
+  available: number | null;
+}
 
 // Mirrors the server-side regex in /api/events/[id]/invites/route.ts so the
 // client and the API agree on what a "valid" address looks like.
@@ -76,6 +101,8 @@ export interface RosterMember {
   full_name: string | null;
   role: string;
   is_self: boolean;
+  /** Whether this member occupies a paid seat. Admins may opt out. */
+  is_participating: boolean;
   /**
    * ISO timestamp of the user's last authenticated request,
    * touched by middleware (`touch_my_activity` RPC) at most once
@@ -109,6 +136,7 @@ interface ParticipantsPanelProps {
   emailConfigured: boolean;
   joinUrl: string | null;
   pendingRequests: PendingJoinRequest[];
+  seatUsage?: SeatUsageProp;
   number?: string;
 }
 
@@ -131,6 +159,7 @@ export function ParticipantsPanel({
   emailConfigured,
   joinUrl,
   pendingRequests,
+  seatUsage,
   number = "02",
 }: ParticipantsPanelProps) {
   const router = useRouter();
@@ -308,6 +337,10 @@ export function ParticipantsPanel({
       title="Participants"
       intent="Share a join link anyone can use, or invite people by email. New requests land in the approval queue before they join the roster."
     >
+      {seatUsage && seatUsage.limit !== null && (
+        <SeatUsageBlock eventId={eventId} usage={seatUsage} />
+      )}
+
       <JoinLinkBlock eventId={eventId} joinUrl={joinUrl} />
 
       {pendingRequests.length > 0 && (
@@ -436,6 +469,221 @@ export function ParticipantsPanel({
   );
 }
 
+/**
+ * Seat meter + entry point to the self-serve "Add participants" flow.
+ * Only rendered when the event actually has a purchased limit.
+ */
+function SeatUsageBlock({
+  eventId,
+  usage,
+}: {
+  eventId: string;
+  usage: SeatUsageProp;
+}) {
+  const limit = usage.limit ?? 0;
+  const used = usage.used;
+  const reserved = usage.reserved;
+  const available = usage.available ?? 0;
+  const filled = Math.min(limit, used + reserved);
+  const pct = limit > 0 ? Math.min(100, Math.round((filled / limit) * 100)) : 0;
+  const full = available <= 0;
+
+  return (
+    <div className="space-y-2">
+      <p className="mono-label" style={{ color: "var(--text-tertiary)" }}>
+        Seats
+      </p>
+      <div
+        className="space-y-3 rounded-md border p-3"
+        style={{
+          borderColor: "var(--gray-400)",
+          backgroundColor: "var(--bg-tertiary)",
+        }}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-baseline gap-2">
+            <Users
+              className="size-4 self-center"
+              style={{ color: "var(--text-tertiary)" }}
+            />
+            <span className="font-serif text-2xl leading-none">{filled}</span>
+            <span className="text-sm text-muted-foreground">
+              of {limit} seats used
+            </span>
+          </div>
+          <AddParticipantsDialog eventId={eventId} currentLimit={limit} />
+        </div>
+
+        <div
+          className="h-1.5 w-full overflow-hidden rounded-full"
+          style={{ backgroundColor: "var(--gray-300)" }}
+        >
+          <div
+            className="h-full rounded-full transition-all"
+            style={{
+              width: `${pct}%`,
+              backgroundColor: full ? "var(--destructive)" : "var(--black)",
+            }}
+          />
+        </div>
+
+        <p
+          className="font-serif text-xs italic"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {used} active
+          {reserved > 0
+            ? `, ${reserved} pending (invites + requests)`
+            : ""}{" "}
+          ·{" "}
+          {full
+            ? "No seats left - add participants to invite more."
+            : `${available} ${available === 1 ? "seat" : "seats"} remaining.`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Add-seats dialog. Picks how many seats to add, shows the live delta
+ * price (you only pay the difference), and hands off to Stripe. A new
+ * total above the self-serve cap routes to support.
+ */
+function AddParticipantsDialog({
+  eventId,
+  currentLimit,
+}: {
+  eventId: string;
+  currentLimit: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const [addCount, setAddCount] = useState("5");
+  const [isPending, startTransition] = useTransition();
+
+  const atMax = currentLimit >= MAX_SELF_SERVE_SEATS;
+  const addNum = Math.floor(Number(addCount));
+  const hasValidCount = Number.isFinite(addNum) && addNum >= 1;
+  const newLimit = currentLimit + (hasValidCount ? addNum : 0);
+  const overMax = newLimit > MAX_SELF_SERVE_SEATS;
+  const canPay = hasValidCount && !overMax;
+
+  const priceLabel = useMemo(() => {
+    if (!canPay) return null;
+    try {
+      return formatUsd(priceForSeatIncrease(currentLimit, newLimit).amountCents);
+    } catch {
+      return null;
+    }
+  }, [canPay, currentLimit, newLimit]);
+
+  function handleCheckout() {
+    startTransition(async () => {
+      const result = await createAddSeatsCheckoutSession({ eventId, newLimit });
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      window.location.href = result.url;
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button" variant="pill" size="pill">
+          <Plus className="size-3.5" />
+          Add participants
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add participants</DialogTitle>
+          <DialogDescription>
+            You&apos;re set up for {currentLimit}{" "}
+            {currentLimit === 1 ? "seat" : "seats"}. Add more and you&apos;ll
+            only pay the difference.
+          </DialogDescription>
+        </DialogHeader>
+
+        {atMax ? (
+          <p className="form-hint">
+            You&apos;re already at the {MAX_SELF_SERVE_SEATS}-seat self-serve
+            maximum. Running something bigger? Email{" "}
+            <a
+              href="mailto:support@hacksathon.com"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              support@hacksathon.com
+            </a>{" "}
+            for a custom quote.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="addCount">How many more seats?</Label>
+              <Input
+                id="addCount"
+                type="number"
+                min={1}
+                max={MAX_SELF_SERVE_SEATS - currentLimit}
+                step={1}
+                value={addCount}
+                onChange={(e) => setAddCount(e.target.value)}
+                disabled={isPending}
+                className="max-w-[8rem]"
+              />
+              <p className="form-hint">
+                $30 per additional participant, up to {MAX_SELF_SERVE_SEATS}{" "}
+                total.
+              </p>
+            </div>
+
+            <div className="rounded-md border p-3">
+              {overMax ? (
+                <p className="form-hint">
+                  That would put you over {MAX_SELF_SERVE_SEATS} total. Email{" "}
+                  <a
+                    href="mailto:support@hacksathon.com"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    support@hacksathon.com
+                  </a>{" "}
+                  for a custom quote.
+                </p>
+              ) : (
+                <div className="flex items-baseline justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    New total: {newLimit} seats
+                  </span>
+                  <span className="font-serif text-2xl">
+                    {priceLabel ?? "-"}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <Button
+              type="button"
+              variant="pill"
+              size="pill"
+              className="w-full"
+              onClick={handleCheckout}
+              disabled={!canPay || isPending}
+            >
+              {isPending ? "Starting checkout…" : "Continue to payment"}
+            </Button>
+            <p className="form-hint text-center">
+              Secure checkout by Stripe. Seats unlock as soon as payment
+              clears.
+            </p>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function PendingInviteRow({
   eventId,
   invite,
@@ -549,11 +797,42 @@ function RosterRow({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [participating, setParticipating] = useState(member.is_participating);
+  const [togglePending, startToggle] = useTransition();
   // Self can never change their own role - that's enforced server-side
   // too. The Remove button hides for self and for admin rows; once an
   // admin is demoted to participant they can be removed.
   const canChangeRole = !member.is_self;
   const removable = !member.is_self && member.role !== "admin";
+  // Organizers choose whether they occupy a seat; participants always do.
+  const canToggleParticipation = member.is_self && member.role === "admin";
+
+  function handleParticipationChange(next: boolean) {
+    const previous = participating;
+    setParticipating(next);
+    startToggle(async () => {
+      const res = await fetch(
+        `/api/events/${eventId}/members/${member.user_id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isParticipating: next }),
+        },
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setParticipating(previous);
+        toast.error(body?.error ?? "Couldn't update participation.");
+        return;
+      }
+      toast.success(
+        next
+          ? "You're counted as a participant."
+          : "You've opted out of a participant seat.",
+      );
+      router.refresh();
+    });
+  }
 
   function handleRoleChange(nextRole: string) {
     if (nextRole === member.role) return;
@@ -612,7 +891,8 @@ function RosterRow({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border bg-card p-3">
+    <div className="space-y-0 rounded-md border bg-card">
+    <div className="flex items-center justify-between gap-3 p-3">
       <div className="min-w-0">
         <p className="truncate text-sm font-medium">
           {member.full_name ?? member.email}
@@ -679,6 +959,30 @@ function RosterRow({
           </span>
         ) : null}
       </div>
+    </div>
+      {canToggleParticipation && (
+        <div className="flex items-center justify-between gap-3 border-t px-3 py-2.5">
+          <div className="min-w-0">
+            <Label
+              htmlFor={`participating-${member.user_id}`}
+              className="text-sm font-medium"
+            >
+              I&apos;m participating in this Hacks-a-Thon
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {participating
+                ? "You're counted as a participant and occupy one seat."
+                : "You're organizing only - you don't take up a seat."}
+            </p>
+          </div>
+          <Switch
+            id={`participating-${member.user_id}`}
+            checked={participating}
+            onCheckedChange={handleParticipationChange}
+            disabled={togglePending}
+          />
+        </div>
+      )}
     </div>
   );
 }

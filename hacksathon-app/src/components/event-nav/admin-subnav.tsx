@@ -1,7 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 interface AdminSubnavProps {
@@ -33,9 +44,14 @@ interface NavItem {
  * Each tab carries a mono numeric prefix (00–06) to reinforce the
  * linear walk-through; the prefix is rendered in foreground color so it
  * reads as a deliberate index, not as decoration.
+ *
+ * Desktop renders the full horizontal bar; below `md` it collapses to a
+ * single section button that opens a slide-out Sheet so the seven tabs
+ * never run off-screen on phones.
  */
 export function AdminSubnav({ slug, pendingSteps = 0 }: AdminSubnavProps) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
   const base = `/${slug}/admin`;
 
   const items: NavItem[] = [
@@ -83,50 +99,111 @@ export function AdminSubnav({ slug, pendingSteps = 0 }: AdminSubnavProps) {
     },
   ];
 
+  const stepsPill = (item: NavItem) =>
+    item.href === base && pendingSteps > 0 ? (
+      <span
+        className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full border px-1.5 font-mono text-[10px] font-semibold tabular-nums"
+        style={{
+          borderColor: "var(--border-color)",
+          backgroundColor: "var(--bg-tertiary)",
+          color: "var(--text-secondary)",
+        }}
+        aria-label={`${pendingSteps} setup ${pendingSteps === 1 ? "step" : "steps"} left`}
+      >
+        {pendingSteps}
+      </span>
+    ) : null;
+
+  const activeItem = items.find((item) => item.match(pathname)) ?? items[0];
+
   return (
-    <nav
-      aria-label="Admin sections"
-      className="flex gap-6 overflow-x-auto border-b py-3"
-    >
-      {items.map((item) => {
-        const isActive = item.match(pathname);
-        const isOverview = item.href === base;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "inline-flex items-center gap-1.5 whitespace-nowrap font-medium text-xs uppercase tracking-wide transition-colors duration-150",
-              isActive
-                ? "text-foreground"
-                : "text-[var(--text-tertiary)] hover:text-foreground",
-            )}
+    <>
+      <nav
+        aria-label="Admin sections"
+        className="hidden gap-6 overflow-x-auto border-b py-3 md:flex"
+      >
+        {items.map((item) => {
+          const isActive = item.match(pathname);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "inline-flex items-center gap-1.5 whitespace-nowrap font-medium text-xs uppercase tracking-wide transition-colors duration-150",
+                isActive
+                  ? "text-foreground"
+                  : "text-[var(--text-tertiary)] hover:text-foreground",
+              )}
+            >
+              {item.number && (
+                <span
+                  aria-hidden
+                  className="font-mono tabular-nums text-foreground"
+                >
+                  {item.number}
+                </span>
+              )}
+              <span>{item.label}</span>
+              {stepsPill(item)}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex w-full items-center justify-between border-b md:hidden"
+            aria-label="Open admin sections"
           >
-            {item.number && (
-              <span
-                aria-hidden
-                className="font-mono tabular-nums text-foreground"
-              >
-                {item.number}
-              </span>
-            )}
-            <span>{item.label}</span>
-            {isOverview && pendingSteps > 0 && (
-              <span
-                className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full border px-1.5 font-mono text-[10px] font-semibold tabular-nums"
-                style={{
-                  borderColor: "var(--border-color)",
-                  backgroundColor: "var(--bg-tertiary)",
-                  color: "var(--text-secondary)",
-                }}
-                aria-label={`${pendingSteps} setup ${pendingSteps === 1 ? "step" : "steps"} left`}
-              >
-                {pendingSteps}
-              </span>
-            )}
-          </Link>
-        );
-      })}
-    </nav>
+            <span className="inline-flex items-center gap-1.5 font-medium text-xs uppercase tracking-wide">
+              {activeItem.number && (
+                <span aria-hidden className="font-mono tabular-nums text-foreground">
+                  {activeItem.number}
+                </span>
+              )}
+              <span>{activeItem.label}</span>
+              {stepsPill(activeItem)}
+            </span>
+            <ChevronDown className="size-4 text-muted-foreground" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-72 gap-0">
+          <SheetHeader>
+            <SheetTitle className="font-serif">Admin sections</SheetTitle>
+          </SheetHeader>
+          <nav aria-label="Admin sections" className="flex flex-col px-2">
+            {items.map((item) => {
+              const isActive = item.match(pathname);
+              return (
+                <SheetClose asChild key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-md px-2 py-2.5 text-base transition-colors hover:bg-muted hover:text-foreground",
+                      isActive
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {item.number && (
+                      <span
+                        aria-hidden
+                        className="font-mono text-sm tabular-nums text-foreground"
+                      >
+                        {item.number}
+                      </span>
+                    )}
+                    <span>{item.label}</span>
+                    {stepsPill(item)}
+                  </Link>
+                </SheetClose>
+              );
+            })}
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

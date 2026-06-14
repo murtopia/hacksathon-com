@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isPlatformAdmin } from "@/lib/server/platform-admin-guard";
 import { PostHogIdentify } from "@/components/analytics/posthog-identify";
+import { PromptCaret } from "@/components/site/prompt-caret";
 import { SiteFooter } from "@/components/site/site-footer";
 import { UserMenu } from "@/components/site/user-menu";
 
@@ -30,7 +31,8 @@ export default async function PlatformLayout({
       <header className="sticky top-0 z-50 w-full border-b bg-background">
         <div className="mx-auto flex w-full max-w-[var(--container-default)] items-baseline justify-between px-4 py-[18px]">
           <div className="flex items-baseline gap-6">
-            <Link href="/dashboard" className="flex items-baseline gap-2">
+            <Link href="/dashboard" className="inline-flex items-center gap-1">
+              <PromptCaret className="h-3.5 w-auto text-foreground" />
               <span className="font-serif text-xl leading-none text-foreground">
                 Hacksathon.com
               </span>

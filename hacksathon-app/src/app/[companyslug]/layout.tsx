@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { ParticipantNav } from "@/components/event-nav/participant-nav";
+import { EventMobileNav } from "@/components/event-nav/event-mobile-nav";
 import { PostHogIdentify } from "@/components/analytics/posthog-identify";
+import { PromptCaret } from "@/components/site/prompt-caret";
 import { SiteFooter } from "@/components/site/site-footer";
 import { UserMenu } from "@/components/site/user-menu";
 import { isPlatformAdmin } from "@/lib/server/platform-admin-guard";
@@ -56,25 +58,35 @@ export default async function SlugLayout({ children, params }: LayoutProps) {
       <header className="sticky top-0 z-50 w-full border-b bg-background">
         <div className="mx-auto flex w-full max-w-[var(--container-default)] items-baseline justify-between px-4 py-[18px]">
           <div className="flex items-baseline gap-6">
-            <Link href={`/${ctx.slug}`} className="flex items-baseline gap-2">
+            <Link href={`/${ctx.slug}`} className="inline-flex items-center gap-1">
+              <PromptCaret className="h-3.5 w-auto text-foreground" />
               <span className="font-serif text-xl leading-none text-foreground">
                 Hacksathon.com
               </span>
             </Link>
-            <Separator orientation="vertical" className="h-6 self-center" />
-            <Link
-              href={`/${ctx.slug}`}
-              className="font-serif text-base leading-none text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {ctx.org?.name ?? ctx.event.title}
-            </Link>
+            <div className="hidden items-baseline gap-6 md:flex">
+              <Separator orientation="vertical" className="h-6 self-center" />
+              <Link
+                href={`/${ctx.slug}`}
+                className="font-serif text-base leading-none text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {ctx.org?.name ?? ctx.event.title}
+              </Link>
+            </div>
           </div>
-          <UserMenu
-            fullName={viewer?.user.fullName ?? null}
-            email={viewer?.user.email}
-            avatarUrl={viewer?.user.avatarUrl ?? null}
-            isPlatformAdmin={platformAdmin}
-          />
+          <div className="flex items-center gap-3">
+            <UserMenu
+              fullName={viewer?.user.fullName ?? null}
+              email={viewer?.user.email}
+              avatarUrl={viewer?.user.avatarUrl ?? null}
+              isPlatformAdmin={platformAdmin}
+            />
+            <EventMobileNav
+              slug={ctx.slug}
+              isAdmin={Boolean(viewer?.isAdmin)}
+              eventName={ctx.org?.name ?? ctx.event.title}
+            />
+          </div>
         </div>
       </header>
       <ParticipantNav slug={ctx.slug} isAdmin={Boolean(viewer?.isAdmin)} />

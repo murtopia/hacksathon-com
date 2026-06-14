@@ -2,17 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getEventNavItems } from "@/components/event-nav/sections";
 import { cn } from "@/lib/utils";
 
 interface ParticipantNavProps {
   slug: string;
   isAdmin: boolean;
-}
-
-interface NavItem {
-  href: string;
-  label: string;
-  match: (pathname: string, base: string) => boolean;
 }
 
 /**
@@ -22,56 +17,19 @@ interface NavItem {
  * an additional "Admin" link at the end. The bar is sticky below the
  * platform top bar so participants can hop between sections without
  * scrolling back to the top.
+ *
+ * Desktop-only: below `md` the top bar's `EventMobileNav` hamburger
+ * takes over so the sections never overflow off-screen on phones.
  */
 export function ParticipantNav({ slug, isAdmin }: ParticipantNavProps) {
   const pathname = usePathname();
   const base = `/${slug}`;
-
-  const items: NavItem[] = [
-    {
-      href: base,
-      label: "Home",
-      match: (p, b) => p === b,
-    },
-    {
-      href: `${base}/idea`,
-      label: "Your Idea",
-      match: (p, b) => p.startsWith(`${b}/idea`),
-    },
-    {
-      href: `${base}/blocks`,
-      label: "The Blocks",
-      match: (p, b) => p.startsWith(`${b}/blocks`),
-    },
-    {
-      href: `${base}/idealab`,
-      label: "IdeaLab",
-      match: (p, b) => p.startsWith(`${b}/idealab`),
-    },
-    {
-      href: `${base}/awards`,
-      label: "Hacky Awards",
-      match: (p, b) => p.startsWith(`${b}/awards`),
-    },
-    {
-      href: `${base}/reflections`,
-      label: "Reflections",
-      match: (p, b) => p.startsWith(`${b}/reflections`),
-    },
-  ];
-
-  if (isAdmin) {
-    items.push({
-      href: `${base}/admin`,
-      label: "Hacky Admin",
-      match: (p, b) => p.startsWith(`${b}/admin`),
-    });
-  }
+  const items = getEventNavItems(slug, isAdmin);
 
   return (
     <nav
       aria-label="Event sections"
-      className="sticky top-[var(--header-height)] z-40 border-b bg-background"
+      className="sticky top-[var(--header-height)] z-40 hidden border-b bg-background md:block"
     >
       <div className="mx-auto flex w-full max-w-[var(--container-default)] gap-6 overflow-x-auto px-4 py-3">
         {items.map((item) => {

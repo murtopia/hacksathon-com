@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Lock } from "lucide-react";
-import { AdminSubnav } from "@/components/event-nav/admin-subnav";
 import { loadHelperContext } from "@/lib/helper/loader";
 import { pendingStepCount } from "@/lib/helper/phase";
 import {
@@ -53,6 +52,19 @@ export default async function SlugAdminLayout({
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <h2>Event admin</h2>
+          {pendingSteps > 0 && (
+            <span
+              className="inline-flex items-center gap-1 rounded-[4px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+              style={{
+                backgroundColor: "var(--bg-tertiary)",
+                color: "var(--text-secondary)",
+                borderColor: "var(--border-color)",
+              }}
+              aria-label={`${pendingSteps} setup ${pendingSteps === 1 ? "step" : "steps"} left`}
+            >
+              {pendingSteps} {pendingSteps === 1 ? "step" : "steps"} left
+            </span>
+          )}
           {ctx.event.is_locked && (
             <span
               className="inline-flex items-center gap-1 rounded-[4px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
@@ -72,8 +84,6 @@ export default async function SlugAdminLayout({
           keeps your next step in view.
         </p>
       </div>
-
-      <AdminSubnav slug={ctx.slug} pendingSteps={pendingSteps} />
 
       <div>{children}</div>
     </div>

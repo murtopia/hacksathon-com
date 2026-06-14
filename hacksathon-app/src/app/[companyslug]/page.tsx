@@ -219,21 +219,20 @@ async function ParticipantDashboard({
   const { event, org } = ctx;
   const supabase = await createClient();
 
-  // Admin-only nudge: if this viewer is an event admin and they haven't
-  // finished Phase 1 of setup, surface a quiet banner at the top of
-  // their participant home pointing back into /admin. The dashboard
-  // redirect already covers first touch; this catches admins who
-  // navigate here directly from a bookmark or the back-arrow.
+  // Admin-only entry point: surface a quiet banner at the top of the
+  // participant home that always links back into /admin. The copy flips
+  // on setup state - a nudge while Phase 1 is incomplete, a calm "all
+  // set" once it's done - so admins keep a one-tap route to the back
+  // office from a bookmark or the back-arrow.
   let setupBanner: { href: string; label: string } | null = null;
   if (isAdmin) {
     const helperCtx = await loadHelperContext(ctx);
-    if (!isPhase1Complete(helperCtx)) {
-      setupBanner = {
-        href: slugPath(ctx.slug, "admin"),
-        label:
-          "Your Hacks-a-Thon needs a few details before you invite people.",
-      };
-    }
+    setupBanner = {
+      href: slugPath(ctx.slug, "admin"),
+      label: isPhase1Complete(helperCtx)
+        ? "Your Hacks-a-Thon is all set. Manage it in admin."
+        : "Your Hacks-a-Thon needs a few details before you invite people.",
+    };
   }
 
   const [

@@ -14,26 +14,25 @@ interface ParticipantNavProps {
  * Secondary navigation bar shown on every member-facing slug page.
  *
  * Highlights the active link based on the current pathname. Admins get
- * an additional "Admin" link at the end. The bar is sticky below the
- * platform top bar so participants can hop between sections without
- * scrolling back to the top.
+ * an additional "Admin" link at the end. The slug layout wraps this bar
+ * and the top bar in one sticky container, so they pin together and stay
+ * flush as participants hop between sections.
  *
  * Desktop-only: below `md` the top bar's `EventMobileNav` hamburger
  * takes over so the sections never overflow off-screen on phones.
  */
 export function ParticipantNav({ slug, isAdmin }: ParticipantNavProps) {
   const pathname = usePathname();
-  const base = `/${slug}`;
   const items = getEventNavItems(slug, isAdmin);
 
   return (
     <nav
       aria-label="Event sections"
-      className="sticky top-[var(--header-height)] z-40 hidden border-b bg-background md:block"
+      className="hidden border-b bg-background md:block"
     >
       <div className="mx-auto flex w-full max-w-[var(--container-default)] gap-6 overflow-x-auto px-4 py-3">
         {items.map((item) => {
-          const isActive = item.match(pathname, base);
+          const isActive = item.isActive(pathname);
           const isAdminLink = item.label === "Hacky Admin";
           return (
             <Link

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
-import { ParticipantNav } from "@/components/event-nav/participant-nav";
+import { EventSecondaryNav } from "@/components/event-nav/event-secondary-nav";
 import { EventMobileNav } from "@/components/event-nav/event-mobile-nav";
 import { PostHogIdentify } from "@/components/analytics/posthog-identify";
 import { PromptCaret } from "@/components/site/prompt-caret";
@@ -55,7 +55,8 @@ export default async function SlugLayout({ children, params }: LayoutProps) {
       {viewer?.user.id ? (
         <PostHogIdentify userId={viewer.user.id} email={viewer.user.email} />
       ) : null}
-      <header className="sticky top-0 z-50 w-full border-b bg-background">
+      <div className="sticky top-0 z-50">
+      <header className="w-full border-b bg-background">
         <div className="mx-auto flex w-full max-w-[var(--container-default)] items-baseline justify-between px-4 py-[18px]">
           <div className="flex items-baseline gap-6">
             <Link href={`/${ctx.slug}`} className="inline-flex items-center gap-1">
@@ -89,7 +90,8 @@ export default async function SlugLayout({ children, params }: LayoutProps) {
           </div>
         </div>
       </header>
-      <ParticipantNav slug={ctx.slug} isAdmin={Boolean(viewer?.isAdmin)} />
+      <EventSecondaryNav slug={ctx.slug} isAdmin={Boolean(viewer?.isAdmin)} />
+      </div>
       <main className="mx-auto w-full max-w-[var(--container-default)] flex-1 px-4 py-8">{children}</main>
       <SiteFooter />
     </div>

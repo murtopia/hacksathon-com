@@ -635,7 +635,14 @@ function AddParticipantsDialog({
               />
               <p className="form-hint">
                 $30 per additional participant, up to {MAX_SELF_SERVE_SEATS}{" "}
-                total.
+                total. For 51+ participants, please email{" "}
+                <a
+                  href="mailto:support@hacksathon.com"
+                  className="font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  support@hacksathon.com
+                </a>
+                .
               </p>
             </div>
 

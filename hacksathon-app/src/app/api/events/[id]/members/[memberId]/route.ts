@@ -4,7 +4,6 @@ import {
   requireEventAdmin,
   isErrorResponse,
 } from "@/lib/server/event-admin-guard";
-import { getEventSeatUsage, SEAT_LIMIT_REACHED_MESSAGE } from "@/lib/billing/seats";
 
 export const maxDuration = 10;
 
@@ -97,16 +96,12 @@ export async function PATCH(
     return NextResponse.json({ ok: true, noop: true });
   }
 
-  // Turning participation ON consumes a seat - respect the hard cap.
-  if (nextParticipating) {
-    const usage = await getEventSeatUsage(eventId);
-    if (usage.limit !== null && usage.used >= usage.limit) {
-      return NextResponse.json(
-        { error: SEAT_LIMIT_REACHED_MESSAGE },
-        { status: 409 },
-      );
-    }
-  }
+  // No seat-cap guard here on purpose: this member is already on the
+  // active roster, so flipping their own participation flag back on is
+  // restoring a seat they already held - not adding a new person. The
+  // hard cap lives on the growth paths (invites / joins / approvals);
+  // gating self-toggle would trap an organizer who opted out (or any
+  // event that's already over its limit) with no way back.
 
   const { error } = await admin
     .from("organization_members")

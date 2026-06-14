@@ -37,6 +37,16 @@ For larger orgs, multi-team events, or organizations wanting to run multiple eve
 
 These conversations typically lead to a large single-event rate, an annual license covering unlimited events within a participant ceiling, or a multi-department rollout plan.
 
+### Adding participants after purchase (as-built)
+
+The seat count is no longer fixed at purchase. From the admin **Team** tab, an organizer can self-serve "Add participants" at any time:
+
+- **Delta pricing.** The charge is the *difference* in list price between the new total and the current limit, so a buyer never pays twice for seats they already have. A team that bought 25 and grows to 35 pays exactly `10 x $30 = $300`. The dialog shows the live delta before checkout.
+- **Stripe Checkout.** A `kind=add_seats` session collects payment; on success the event's `participant_limit` is raised (idempotently, via the `event_seat_purchases` ledger) and seats free up immediately.
+- **51+ still routes to support.** Any new total above the 50-seat self-serve ceiling shows the `support@hacksathon.com` custom-quote path instead of a checkout.
+
+The purchased seat count is now a **hard cap**: once an event is full, new email invites, join-link requests, and approvals are blocked with a clear "add participants to make room" message (events with no limit, like demos and the Seven2 case study, stay uncapped). Organizers can opt out of occupying a seat themselves via an "I'm participating" toggle - participants always count.
+
 ### Why this structure works
 
 - **One number to remember:** $995. Everything else is additive and obvious.

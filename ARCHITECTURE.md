@@ -1,6 +1,6 @@
 # Hacksathon.com — Technical Architecture
 
-> As-built reference, May 2026. This reflects what currently ships in
+> As-built reference, June 2026. This reflects what currently ships in
 > `hacksathon-app/`, not the original aspirational design. Where a
 > surface is planned but not yet wired, it is called out explicitly.
 
@@ -13,16 +13,23 @@
 | Data / Auth | Supabase (Postgres + Auth) via `@supabase/ssr` + `@supabase/supabase-js` |
 | AI | Vercel AI SDK v6 (`ai`) with `@ai-sdk/anthropic` (Claude) |
 | Email | Resend (`resend`) + React Email (`@react-email/*`) |
+| Payments | Stripe Checkout (`stripe`) - purchase-first provisioning + add-seats |
+| Analytics | PostHog (`posthog-js` + server capture via `lib/analytics`) |
 | Toasts | `sonner` |
 | Export | `jszip` (document/markdown export) |
 | Icons | `lucide-react` (closed allowlist — see design system) |
 | Hosting | Vercel (production: `hacksathon.com`) |
 
-**Not yet wired:** `stripe` is installed as a dependency but there is no
-billing webhook route or `lib/stripe` integration yet — pricing is
-display-only. There is **no PostHog** and **no Supabase Realtime** usage
-in the codebase today; both appeared in the original design but are not
-built. Live counts on admin surfaces are plain server reads.
+**Billing is live.** Stripe Checkout drives a purchase-first flow:
+checkout Server Actions (`src/app/checkout/actions.ts`), an
+`api/stripe/webhook` fulfillment route, and the `lib/stripe` +
+`lib/billing` layer (pricing, provisioning, seat accounting). See the
+"Billing & Seats" section below. **PostHog is live** for web + product
+analytics (`lib/analytics`, `instrumentation-client.ts`).
+
+**Not yet wired:** there is **no Supabase Realtime** usage in the
+codebase today; it appeared in the original design but is not built.
+Live counts on admin surfaces are plain server reads.
 
 ## Next.js App Router Structure
 
@@ -117,6 +124,8 @@ src/app/api/
 ├── profile/route.ts                            # PATCH name / avatar_url
 ├── settings/password/route.ts                  # POST password change (+ sign out others)
 ├── waitlist/route.ts                           # POST marketing waitlist
+├── support/route.ts                            # POST (public) support / custom-quote message
+├── stripe/webhook/route.ts                     # POST Stripe fulfillment (provision / add-seats)
 ├── organizations/[id]/route.ts                 # PATCH org (name, etc.)
 ├── events/[id]/route.ts                        # PATCH event (incl. date windows)
 ├── events/[id]/logo/route.ts                   # POST / DELETE logo
@@ -124,11 +133,13 @@ src/app/api/
 ├── events/[id]/invites/route.ts                # GET / POST email invites (Resend)
 ├── events/[id]/invites/[inviteId]/route.ts     # DELETE invite
 ├── events/[id]/invites/[inviteId]/resend/route.ts  # POST resend
-├── events/[id]/members/[memberId]/route.ts     # DELETE member
-├── events/[id]/members/[memberId]/approve/route.ts # POST approve pending member
+├── events/[id]/members/[memberId]/route.ts     # DELETE member / PATCH is_participating
+├── events/[id]/members/[memberId]/approve/route.ts # PATCH approve pending member
 ├── events/[id]/members/[memberId]/role/route.ts    # PATCH role (participant/admin)
-├── events/[id]/admin/voting/open/route.ts      # POST open voting
-├── events/[id]/admin/voting/reveal/route.ts    # POST reveal winners
+├── events/[id]/admin/notify/route.ts           # POST notify members (block/voting/reflections/idealab)
+├── events/[id]/admin/voting/{open,close,reveal,publish}/route.ts  # POST voting lifecycle
+├── events/[id]/admin/awards/[awardId]/route.ts # PATCH award (ceremony review)
+├── events/[id]/admin/reflections/status/route.ts           # POST open/close reflections
 ├── events/[id]/admin/reflections/summary/route.ts          # POST generate AI recap
 ├── events/[id]/admin/reflections/summary/approve/route.ts  # POST approve recap
 ├── accept-invite/route.ts                      # POST (public) accept email invite
@@ -146,6 +157,12 @@ src/app/api/
 ├── ideas/[id]/route.ts                          # PATCH / DELETE idea
 └── planning/{brief,session,step,starter-prompt}/route.ts  # ZERO.Prmptr / Blueprint flow
 ```
+
+> **Checkout is a Server Action, not an API route.** Initial purchase and
+> add-seats sessions are created in `src/app/checkout/actions.ts`
+> (`createCheckoutSession`, `createAddSeatsCheckoutSession`); fulfillment
+> lands on `api/stripe/webhook` with a `checkout/success` fallback. See
+> "Billing & Seats."
 
 All admin-only routes call `requireEventAdmin(eventId)` from
 `src/lib/server/event-admin-guard.ts`, which authenticates the user and
@@ -178,7 +195,7 @@ src/components/
 │       ├── event-build-tool.tsx
 │       ├── event-public-showcase.tsx
 │       ├── event-schedule.tsx
-│       ├── participants-panel.tsx   # Roster + invites + JoinLinkBlock
+│       ├── participants-panel.tsx   # Roster + invites + JoinLinkBlock + seat meter / Add participants / participation toggle
 │       ├── award-categories-editor.tsx
 │       ├── voting-window.tsx
 │       ├── reflection-questions-editor.tsx
@@ -221,7 +238,10 @@ src/components/
 │   └── accept-invite-form.tsx
 │
 ├── site/
+│   ├── site-header.tsx              # Marketing header (auth-aware CTAs)
 │   ├── site-footer.tsx
+│   ├── prompt-caret.tsx             # `>` brand mark prepended to the wordmark
+│   ├── mobile-nav.tsx               # Hamburger -> Sheet (marketing, <= md)
 │   └── user-menu.tsx
 │
 └── waitlist/waitlist-form.tsx
@@ -240,6 +260,17 @@ src/lib/
 ├── ai/
 │   ├── model.ts                     # Anthropic model via AI SDK
 │   └── reflection-summary-prompt.ts
+│
+├── billing/                         # Stripe pricing + provisioning + seats
+│   ├── pricing.ts                   # priceForSeats / priceForSeatIncrease
+│   ├── provision.ts                 # provisionPaidEvent + applyAddedSeats (idempotent)
+│   └── seats.ts                     # getEventSeatUsage() (single source of truth)
+│
+├── stripe/client.ts                 # getStripe() singleton
+│
+├── analytics/                       # PostHog
+│   ├── server.ts                    # captureServer() server-side events
+│   └── events.ts                    # AnalyticsEvent enum (shared event names)
 │
 ├── helper/                          # Hacky Helper engine
 │   ├── phase.ts                     # stops/steps, kinds, phase, nextStep
@@ -263,12 +294,17 @@ src/lib/
 ├── datetime/local-input.ts          # datetime-local <-> ISO helpers
 ├── planning/{types,steps,ensure-session,context,prompts,index}.ts
 ├── idealab/{url,types,format-relative-date}.ts
-├── routing/{slug-context,reserved-slugs}.ts
+├── routing/{slug-context,reserved-slugs,site-url}.ts   # site-url.ts -> absolute base URL for callbacks
+├── auth/checkout-intent.ts          # stash/restore checkout intent across login
 ├── server/event-admin-guard.ts      # requireEventAdmin()
+├── server/platform-admin-guard.ts   # requirePlatformAdmin() (Murtopolis console)
 ├── server/rate-limit.ts             # in-process per-IP throttle for public endpoints
 ├── build-tool/labels.ts
 ├── user/display-name.ts
 ├── email/resend.ts                  # sendEmail() wrapper (degrades when key unset)
+├── email/send-purchase-welcome.ts   # buyer welcome + internal purchase notification
+├── email/send-participant-welcome.ts
+├── email/notify-members.ts          # bulk member notifications
 └── utils.ts
 ```
 
@@ -352,15 +388,70 @@ the join-link pending-approval flow.
 
 ### Migrations
 
-`supabase/migrations/00001` → `00027`. Notable recent additions:
+`supabase/migrations/00001` → `00032`. Notable recent additions:
 
-- `00017_organizer_admin` — event invitations + `event-logos` bucket.
-- `00022_avatars_bucket` — avatar storage.
-- `00025_join_link_and_pending_members` — `events.join_token`,
+- `00017_organizer_admin` - event invitations + `event-logos` bucket.
+- `00022_avatars_bucket` - avatar storage.
+- `00025_join_link_and_pending_members` - `events.join_token`,
   `organization_members.status` TEXT + partial index.
-- `00026_profile_last_active` — `profiles.last_active_at` + `touch_my_activity()` RPC.
-- `00027_voting_and_reflections_windows` — `voting_open_at/close_at`,
+- `00026_profile_last_active` - `profiles.last_active_at` + `touch_my_activity()` RPC.
+- `00027_voting_and_reflections_windows` - `voting_open_at/close_at`,
   `reflections_open_at/close_at` with CHECK constraints.
+- `00028_checkout_session` - `events.stripe_checkout_session_id` (UNIQUE;
+  the purchase-first idempotency key).
+- `00029_event_amount_paid` - `events.amount_paid_cents` (collected total,
+  distinct from list `price_cents`).
+- `00030_award_ceremony_and_states` - award ceremony reveal/publish states.
+- `00031_seven2_showcase_seed` - Seven2 case-study showcase seed data.
+- `00032_seat_expansion` - `organization_members.is_participating` +
+  `event_seat_purchases` ledger (add-seats idempotency + audit).
+
+## Billing & Seats
+
+Stripe Checkout, purchase-first. The buyer pays before anything is
+provisioned, and provisioning is idempotent so the webhook and the
+success-page fallback can race safely.
+
+- **Pricing** (`lib/billing/pricing.ts`): $995 base for up to 25 seats,
+  +$30/seat for 26..50, 51+ is "contact sales." `priceForSeats(n)` is the
+  authoritative amount (never trust a client-supplied total);
+  `priceForSeatIncrease(current, new)` returns the delta for an add-on.
+- **Initial purchase**: `createCheckoutSession` (`src/app/checkout/actions.ts`)
+  builds a Stripe session with seat/org metadata. On
+  `checkout.session.completed`, `api/stripe/webhook` calls
+  `provisionPaidEvent` (`lib/billing/provision.ts`) - creates the org,
+  first admin member, event, and seeded blocks/awards/reflections,
+  idempotent on `events.stripe_checkout_session_id`. `checkout/success`
+  runs the same apply as a fallback.
+- **Seat model** (`lib/billing/seats.ts`): `getEventSeatUsage(eventId)`
+  is the single source of truth, returning `{ limit, used, reserved,
+  available, atCapacity }`. `used` = active `organization_members` with
+  `is_participating = true`; `reserved` = pending email invites + pending
+  join-link requests. The UI meter and all enforcement read from it.
+- **Hard cap** (only when `participant_limit IS NOT NULL`): enforced in
+  `invites`, `join/[token]`, `members/[memberId]/approve`, and
+  `accept-invite`. The participation self-toggle is intentionally
+  uncapped (re-enabling your own seat isn't adding a new person).
+- **Add seats** (post-purchase): `createAddSeatsCheckoutSession` charges
+  only the delta and tags the session `kind=add_seats`. The webhook
+  branches to `applyAddedSeats`, idempotent via the `event_seat_purchases`
+  ledger (unique session id), which raises `participant_limit` and
+  accumulates `amount_paid_cents`. The Team page applies the same idempotent
+  fallback on return.
+- **Participation toggle**: organizers choose whether they occupy a seat
+  via `is_participating` (PATCH on `members/[memberId]`); participants are
+  always counted.
+
+```mermaid
+flowchart LR
+  teamPage["Team page: Add participants"] --> action["createAddSeatsCheckoutSession (delta price)"]
+  action --> stripe["Stripe Checkout"]
+  stripe --> webhook["webhook kind=add_seats"]
+  stripe --> successFallback["Team page return (fallback)"]
+  webhook --> apply["applyAddedSeats (idempotent via ledger)"]
+  successFallback --> apply
+  apply --> bump["participant_limit = newLimit"]
+```
 
 ## AI Features
 
@@ -383,11 +474,15 @@ notices.
 
 Two distinct email systems exist:
 
-1. **App-sent (10 templates).** React Email components in `src/emails/`,
+1. **App-sent (11 templates).** React Email components in `src/emails/`,
    rendered by the Resend SDK at runtime. Share `lib/email/email-styles.ts`
    (design tokens) and `lib/email/email-head.tsx` (`@font-face` webfonts);
    updated automatically with each deploy. Preview them in Murtopolis at
-   `/murtopolis/emails`.
+   `/murtopolis/emails`. Covers participant invite + welcome, join-link
+   confirmation, password-changed notice, voting/reflections/IdeaLab
+   notifications, waitlist confirmation, support messages, the buyer
+   **purchase welcome**, and an internal **purchase notification**
+   (to `nick@seven2.com`) on each completed purchase.
 2. **Supabase Auth (4 templates).** Confirm signup, reset password, magic
    link, and change-email, routed through Supabase SMTP configured with
    Resend. These are hand-maintained HTML in the Supabase dashboard; the
@@ -408,5 +503,11 @@ Supabase (production project)
 └── Storage (event-logos, idea-screenshots, avatars)
 
 Resend
-└── Transactional email (invites, join confirmation, security notices)
+└── Transactional email (invites, join confirmation, security notices, purchase)
+
+Stripe
+└── Checkout (initial purchase + add-seats) → api/stripe/webhook fulfillment
+
+PostHog
+└── Web + product analytics (client + server capture)
 ```

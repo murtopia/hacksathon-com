@@ -587,7 +587,7 @@ Inherits all breakpoints from HACKS-DESIGN.md. Platform-specific additions:
 
 | Breakpoint | Platform behavior |
 |---|---|
-| 768px | Left nav collapses to hamburger (Org Admin, Murtopolis); block progress rail becomes top bar (Participant) |
+| 768px | Marketing header nav collapses to a hamburger -> `Sheet` (`MobileNav`); left nav collapses to hamburger (Org Admin, Murtopolis); block progress rail becomes top bar (Participant) |
 | 640px | All column grids → single column; data tables → card list view; awards ceremony full-screen maintained |
 
 **Mobile-optimized surfaces** (must be polished at launch):
@@ -645,6 +645,16 @@ The patterns below were established during build-out and are now load-bearing ac
 - **"Hacks-a-Thon"** — the event-type noun, hyphenated and mixed-case. Use in participant copy and nav labels that refer to *their* event: "Our Hacks-a-Thon", "Welcome to your Hacks-a-Thon", "End the Hacks-a-Thon".
 - One-line audit rule: if the platform is speaking about itself, it's `.com`. If a participant is speaking about the event they're inside, it's `Hacks-a-Thon`.
 - Never use lowercase `hacksathon` (no period) or `hackathon` (different word) in user-facing copy.
+- **Caret brand mark.** The wordmark is prefixed with a `>` prompt caret (the `PromptCaret` component, `src/components/site/prompt-caret.tsx`) in both the site header and footer, evoking a command-line prompt. It renders with `fill="currentColor"` so it inherits the wordmark color, and sits tight to the capital H with `gap-1` (4px) spacing - not the default `gap-2`. Keep that spacing when reusing the lockup.
+
+### Brand Mark, Favicon & App Icons
+
+The same caret is the platform's icon mark across browser tabs and home screens.
+
+- **Favicon:** white-caret-on-black SVG at `src/app/icon.svg` (the inverse of the on-page wordmark, so it reads on a tab strip), plus a legacy `src/app/favicon.ico` for older clients.
+- **Apple touch icon:** `src/app/apple-icon.png` (black caret on white) for iOS home-screen bookmarks.
+- **PWA:** `src/app/manifest.ts` (Next.js metadata route) defines name, theme/background colors, and references `public/icon-192.png` / `public/icon-512.png`.
+- When the mark changes, update all five assets together (SVG favicon, `.ico`, apple icon, both PWA PNGs) so tabs, bookmarks, and installed icons stay in sync.
 
 ### Top Bar (member surfaces)
 
@@ -668,6 +678,14 @@ Every member surface (slug routes, `/dashboard`, `/settings`, etc.) ends with th
 - Copyright line in mono, `--text-tertiary`.
 
 Marketing surfaces use their own footer (denser, includes social links and the gradient accent) — do not collapse them.
+
+### Marketing Header & Mobile Nav
+
+The marketing header (`src/components/site/site-header.tsx`) carries the caret wordmark plus auth-aware CTAs. On narrow viewports its nav must not vanish:
+
+- At `md` and below, the inline desktop links/CTAs are hidden (`hidden md:inline-flex`) and a hamburger button renders instead (`md:hidden`), opening the `MobileNav` (`src/components/site/mobile-nav.tsx`) - a shadcn `Sheet` sliding in from the right.
+- The sheet lists the primary nav links, then the auth CTAs directly beneath them (not pinned to the bottom): `Log in` / `Get Started` when signed out, or a `Dashboard` link when signed in (since the top-bar Dashboard button is hidden on mobile).
+- Each link is wrapped in `SheetClose` so tapping it dismisses the sheet.
 
 ### Social Share Images (OG / Twitter)
 

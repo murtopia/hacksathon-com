@@ -27,7 +27,7 @@ export function ShowcaseRecap({ summary, eyebrow, heading }: ShowcaseRecapProps)
     .filter(Boolean);
 
   return (
-    <section id="recap" className="border-b bg-muted/30">
+    <section id="recap" className="border-b bg-background">
       <div className="mx-auto w-full max-w-[var(--container-narrow)] px-4 py-16 sm:py-20">
         <header className="mb-8 space-y-2">
           <p className="mono-label">{eyebrow ?? "The recap"}</p>

@@ -1,4 +1,4 @@
-import ReactMarkdown from "react-markdown";
+import { ShowcaseRecapBody } from "@/components/showcase/showcase-recap-body";
 
 interface ShowcaseRecapProps {
   summary: string;
@@ -31,7 +31,7 @@ export function ShowcaseRecap({ summary, eyebrow, heading }: ShowcaseRecapProps)
       <div className="mx-auto w-full max-w-[var(--container-narrow)] px-4 py-16 sm:py-20">
         <header className="mb-8 space-y-2">
           <p className="mono-label">{eyebrow ?? "The recap"}</p>
-          <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
+          <h2 className="font-serif text-4xl tracking-tight sm:text-5xl">
             {heading ?? "How it went, in our own words"}
           </h2>
           <p className="lead">
@@ -40,24 +40,7 @@ export function ShowcaseRecap({ summary, eyebrow, heading }: ShowcaseRecapProps)
           </p>
         </header>
 
-        {paragraphs.length > 0 && (
-          <div className="space-y-5">
-            {paragraphs.map((para, i) => (
-              <ReactMarkdown
-                key={i}
-                components={{
-                  p: ({ children }) => (
-                    <p className="font-serif text-[17px] leading-relaxed text-[var(--text-secondary)]">
-                      {children}
-                    </p>
-                  ),
-                }}
-              >
-                {para}
-              </ReactMarkdown>
-            ))}
-          </div>
-        )}
+        <ShowcaseRecapBody paragraphs={paragraphs} />
       </div>
     </section>
   );

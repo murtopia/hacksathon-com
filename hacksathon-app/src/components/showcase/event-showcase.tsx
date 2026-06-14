@@ -55,17 +55,11 @@ export async function EventShowcase({
   const admin = createAdminClient();
 
   const [
-    { data: eventMeta },
     { data: awardRows },
     { data: ideaRows },
     { data: blockRows },
     { data: reflectionRows },
   ] = await Promise.all([
-    admin
-      .from("events")
-      .select("start_date, end_date")
-      .eq("id", event.id)
-      .maybeSingle<{ start_date: string | null; end_date: string | null }>(),
     admin
       .from("awards")
       .select(
@@ -185,11 +179,8 @@ export async function EventShowcase({
       ? event.reflection_summary
       : null;
 
-  const dateRangeLabel = formatEventDates(eventMeta ?? {}, event.created_at);
-
-  const contextLabel = dateRangeLabel
-    ? `${event.title} · ${dateRangeLabel}`
-    : event.title;
+  const contextLabel = event.title;
+  const recapHeading = org?.name ? `The ${org.name} Case Study` : undefined;
 
   // Only advertise anchors for sections that actually render.
   const navItems = [
@@ -203,7 +194,11 @@ export async function EventShowcase({
   const sections = (
     <>
       {approvedRecap && (
-        <ShowcaseRecap summary={approvedRecap} eyebrow={contextLabel} />
+        <ShowcaseRecap
+          summary={approvedRecap}
+          eyebrow={contextLabel}
+          heading={recapHeading}
+        />
       )}
       <IdeaGallery
         ideas={ideas}
@@ -304,47 +299,4 @@ function displayName(
   if (trimmed) return trimmed;
   if (email) return email.split("@")[0];
   return null;
-}
-
-function formatEventDates(
-  event: { start_date?: string | null; end_date?: string | null },
-  fallbackIso: string,
-): string | null {
-  const start = event.start_date
-    ? new Date(`${event.start_date}T00:00:00`)
-    : null;
-  const end = event.end_date ? new Date(`${event.end_date}T00:00:00`) : null;
-
-  try {
-    if (
-      start &&
-      end &&
-      !Number.isNaN(start.getTime()) &&
-      !Number.isNaN(end.getTime())
-    ) {
-      const sameMonth =
-        start.getFullYear() === end.getFullYear() &&
-        start.getMonth() === end.getMonth();
-      if (sameMonth) {
-        return `${new Intl.DateTimeFormat(undefined, {
-          month: "long",
-          day: "numeric",
-        }).format(start)}–${end.getDate()}, ${start.getFullYear()}`;
-      }
-      return `${new Intl.DateTimeFormat(undefined, {
-        month: "long",
-        day: "numeric",
-      }).format(start)} – ${new Intl.DateTimeFormat(undefined, {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }).format(end)}`;
-    }
-    return new Intl.DateTimeFormat(undefined, {
-      month: "long",
-      year: "numeric",
-    }).format(new Date(fallbackIso));
-  } catch {
-    return null;
-  }
 }

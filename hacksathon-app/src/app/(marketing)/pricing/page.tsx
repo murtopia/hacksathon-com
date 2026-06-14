@@ -73,9 +73,20 @@ export default function PricingPage() {
   return (
     <div className="py-20">
       <div className="mx-auto max-w-[var(--container-narrow)] px-4">
+        {/* Hero header */}
+        <header className="mb-12 space-y-2">
+          <p className="mono-label">Pricing</p>
+          <h1 className="font-serif text-4xl tracking-tight sm:text-5xl">
+            Simple Flat Rate Pricing
+          </h1>
+          <p className="lead">
+            Just one price for your entire team and no recurring or subscription
+            fees to worry about.
+          </p>
+        </header>
+
         {/* Hero pricing */}
         <div className="text-center mb-16">
-          <h4 className="mb-6">Pricing</h4>
           <div className="mb-4">
             <span className="font-heading text-7xl md:text-8xl tracking-tight">
               $995

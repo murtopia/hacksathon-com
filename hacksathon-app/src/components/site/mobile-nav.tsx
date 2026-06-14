@@ -1,0 +1,81 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+const navLinks = [
+  { href: "/pricing", label: "Pricing" },
+  { href: "/seven2/final", label: "Case Study" },
+  { href: "/showcase", label: "Showcase" },
+];
+
+/**
+ * Mobile-only nav for the marketing/showcase header. The desktop header
+ * hides its section links below `md`; this hamburger opens a slide-out
+ * Sheet that surfaces those links plus the auth CTAs so navigation never
+ * disappears on phones. Rendered with `md:hidden`; the desktop nav and
+ * CTA buttons take over at `md` and up.
+ */
+export function MobileNav({ isAuthed }: { isAuthed: boolean }) {
+  const [open, setOpen] = useState(false);
+
+  const links = isAuthed
+    ? [...navLinks, { href: "/dashboard", label: "Dashboard" }]
+    : navLinks;
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="md:hidden"
+          aria-label="Open menu"
+        >
+          <Menu />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-72 gap-0">
+        <SheetHeader>
+          <SheetTitle>Menu</SheetTitle>
+        </SheetHeader>
+        <nav className="flex flex-col px-2">
+          {links.map((link) => (
+            <SheetClose asChild key={link.href}>
+              <Link
+                href={link.href}
+                className="rounded-md px-2 py-2.5 text-base text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            </SheetClose>
+          ))}
+        </nav>
+        {!isAuthed && (
+          <div className="mt-3 flex flex-col gap-2 border-t px-4 pt-4">
+            <SheetClose asChild>
+              <Button variant="outline" size="lg" className="w-full" asChild>
+                <Link href="/login">Log in</Link>
+              </Button>
+            </SheetClose>
+            <SheetClose asChild>
+              <Button variant="pill" size="pill" className="w-full" asChild>
+                <Link href="/checkout">Get Started</Link>
+              </Button>
+            </SheetClose>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PromptCaret } from "@/components/site/prompt-caret";
+import { MobileNav } from "@/components/site/mobile-nav";
 import { UserMenu } from "@/components/site/user-menu";
 import { createClient } from "@/lib/supabase/server";
 import { isPlatformAdmin } from "@/lib/server/platform-admin-guard";
@@ -74,20 +75,21 @@ export async function SiteHeader() {
                 avatarUrl={profile?.avatar_url ?? null}
                 isPlatformAdmin={platformAdmin}
               />
-              <Button variant="pill" size="pill" asChild>
+              <Button variant="pill" size="pill" className="hidden md:inline-flex" asChild>
                 <Link href="/dashboard">Dashboard</Link>
               </Button>
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
                 <Link href="/login">Log in</Link>
               </Button>
-              <Button variant="pill" size="pill" asChild>
+              <Button variant="pill" size="pill" className="hidden md:inline-flex" asChild>
                 <Link href="/checkout">Get Started</Link>
               </Button>
             </>
           )}
+          <MobileNav isAuthed={Boolean(user)} />
         </div>
       </div>
     </header>

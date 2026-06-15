@@ -186,7 +186,10 @@ export default function PrivacyPage() {
         </div>
       </section>
 
-      <section className="border-t bg-muted/30 py-12 sm:py-16">
+      <section
+        id="terms"
+        className="scroll-mt-24 border-t bg-muted/30 py-12 sm:py-16"
+      >
         <div className="mx-auto w-full max-w-[var(--container-narrow)] space-y-10 px-4">
           <div>
             <h2 className="text-2xl tracking-tight sm:text-3xl">

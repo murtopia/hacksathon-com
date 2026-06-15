@@ -28,7 +28,7 @@ interface EventMobileNavProps {
  * so navigation never disappears on phones.
  *
  * Context-aware: inside `/[slug]/admin` it lists the admin sections
- * (00-06) plus a "Back to event" link, so the back office has a single
+ * (00-06) plus a "Your event" link, so the back office has a single
  * mobile menu instead of stacking the event hamburger and a separate
  * admin dropdown. Everywhere else it lists the event sections.
  */
@@ -93,7 +93,7 @@ export function EventMobileNav({ slug, isAdmin, eventName }: EventMobileNavProps
                 className="inline-flex items-center gap-1.5 rounded-md px-2 py-2.5 text-base text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <ArrowLeft className="size-4" />
-                <span>Back to event</span>
+                <span>Your event</span>
               </Link>
             </SheetClose>
           </div>

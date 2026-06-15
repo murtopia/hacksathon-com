@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { getAdminNavItems } from "@/components/event-nav/sections";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ export function AdminSubnav({ slug }: AdminSubnavProps) {
       aria-label="Admin sections"
       className="hidden border-b bg-background md:block"
     >
-      <div className="mx-auto flex w-full max-w-[var(--container-default)] gap-6 overflow-x-auto px-4 py-3">
+      <div className="mx-auto flex w-full max-w-[var(--container-default)] items-center gap-6 overflow-x-auto px-4 py-3">
         {items.map((item) => {
           const isActive = item.isActive(pathname);
           return (
@@ -56,6 +57,13 @@ export function AdminSubnav({ slug }: AdminSubnavProps) {
             </Link>
           );
         })}
+        <Link
+          href={`/${slug}`}
+          className="ml-auto inline-flex items-center gap-1.5 whitespace-nowrap font-medium text-xs uppercase tracking-wide text-[var(--text-tertiary)] transition-colors duration-150 hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden />
+          <span>Your event</span>
+        </Link>
       </div>
     </nav>
   );

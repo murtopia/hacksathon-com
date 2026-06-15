@@ -5,6 +5,7 @@ import { MobileNav } from "@/components/site/mobile-nav";
 import { UserMenu } from "@/components/site/user-menu";
 import { createClient } from "@/lib/supabase/server";
 import { isPlatformAdmin } from "@/lib/server/platform-admin-guard";
+import { resolvePrimaryEventForUser } from "@/lib/routing/primary-event";
 
 const navLinkClass =
   "text-muted-foreground hover:text-foreground transition-colors";
@@ -17,11 +18,13 @@ const navLinkClass =
  *   - Signed out: `Log in` + a primary `Get Started` button into the
  *     purchase-first buy flow (`/checkout`, which bounces anon users
  *     through signup and back).
- *   - Signed in: the account menu + a primary `Dashboard` button.
- *     `/dashboard` is a smart stop-over that routes a participant to
- *     their event, an organizer to setup, and a no-event user to the
- *     buy empty-state - so signed-in participants never land on the
- *     purchase form.
+ *   - Signed in with an event: the account menu + role-aware buttons.
+ *     Admins get `Admin` (into the back office) and `Event` (their event
+ *     home); participants get a single `Event` button.
+ *   - Signed in with no event (e.g. a platform admin with no membership,
+ *     or a brand-new user): the account menu + a `Dashboard` button.
+ *     `/dashboard` is a smart stop-over that routes to the buy
+ *     empty-state, so signed-in users never land on the purchase form.
  *
  * No company/context name here by design; this is the Hacksathon.com
  * chrome, identical on every surface it appears.
@@ -35,6 +38,9 @@ export async function SiteHeader() {
   let profile: { full_name: string | null; avatar_url: string | null } | null =
     null;
   let platformAdmin = false;
+  let primaryEvent: Awaited<
+    ReturnType<typeof resolvePrimaryEventForUser>
+  > | null = null;
 
   if (user) {
     const { data } = await supabase
@@ -44,6 +50,7 @@ export async function SiteHeader() {
       .maybeSingle<{ full_name: string | null; avatar_url: string | null }>();
     profile = data ?? null;
     platformAdmin = await isPlatformAdmin();
+    primaryEvent = await resolvePrimaryEventForUser(user.id);
   }
 
   return (
@@ -75,9 +82,37 @@ export async function SiteHeader() {
                 avatarUrl={profile?.avatar_url ?? null}
                 isPlatformAdmin={platformAdmin}
               />
-              <Button variant="pill" size="pill" className="hidden md:inline-flex" asChild>
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
+              {primaryEvent ? (
+                <>
+                  {primaryEvent.isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hidden md:inline-flex"
+                      asChild
+                    >
+                      <Link href={`/${primaryEvent.slug}/admin`}>Admin</Link>
+                    </Button>
+                  )}
+                  <Button
+                    variant="pill"
+                    size="pill"
+                    className="hidden md:inline-flex"
+                    asChild
+                  >
+                    <Link href={`/${primaryEvent.slug}`}>Event</Link>
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="pill"
+                  size="pill"
+                  className="hidden md:inline-flex"
+                  asChild
+                >
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+              )}
             </>
           ) : (
             <>
@@ -89,7 +124,11 @@ export async function SiteHeader() {
               </Button>
             </>
           )}
-          <MobileNav isAuthed={Boolean(user)} />
+          <MobileNav
+            isAuthed={Boolean(user)}
+            eventSlug={primaryEvent?.slug ?? null}
+            isEventAdmin={Boolean(primaryEvent?.isAdmin)}
+          />
         </div>
       </div>
     </header>

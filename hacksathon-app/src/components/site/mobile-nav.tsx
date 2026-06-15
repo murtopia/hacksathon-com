@@ -19,19 +19,42 @@ const navLinks = [
   { href: "/showcase", label: "Showcase" },
 ];
 
+interface MobileNavProps {
+  isAuthed: boolean;
+  /** Vanity slug of the user's primary event, when they have one. */
+  eventSlug?: string | null;
+  /** Whether the user admins their primary event. */
+  isEventAdmin?: boolean;
+}
+
 /**
  * Mobile-only nav for the marketing/showcase header. The desktop header
  * hides its section links below `md`; this hamburger opens a slide-out
  * Sheet that surfaces those links plus the auth CTAs so navigation never
  * disappears on phones. Rendered with `md:hidden`; the desktop nav and
  * CTA buttons take over at `md` and up.
+ *
+ * Signed-in links mirror the desktop buttons: an admin gets `Admin` +
+ * `Event`, a participant gets `Event`, and a no-event user keeps the
+ * `Dashboard` stop-over.
  */
-export function MobileNav({ isAuthed }: { isAuthed: boolean }) {
+export function MobileNav({
+  isAuthed,
+  eventSlug = null,
+  isEventAdmin = false,
+}: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
-  const links = isAuthed
-    ? [...navLinks, { href: "/dashboard", label: "Dashboard" }]
-    : navLinks;
+  const authLinks = eventSlug
+    ? [
+        ...(isEventAdmin
+          ? [{ href: `/${eventSlug}/admin`, label: "Admin" }]
+          : []),
+        { href: `/${eventSlug}`, label: "Event" },
+      ]
+    : [{ href: "/dashboard", label: "Dashboard" }];
+
+  const links = isAuthed ? [...navLinks, ...authLinks] : navLinks;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

@@ -18,7 +18,7 @@ export function getEventNavItems(slug: string, isAdmin: boolean): NavItem[] {
   const items: NavItem[] = [
     {
       href: base,
-      label: "Home",
+      label: "Event Home",
       isActive: (p) => p === base,
     },
     {

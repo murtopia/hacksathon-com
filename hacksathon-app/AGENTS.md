@@ -6,7 +6,9 @@ This version has breaking changes - APIs, conventions, and file structure may al
 
 # Workflow
 
-- After a successful `npm run build`, prefer deploying to production (`vercel --prod` from the repo root) so Nick can review the change on the live site, rather than spinning up local dev/prod servers for testing. This environment also has no outbound internet to Supabase, so local pages that need the DB can't be eyeballed anyway.
+- **Deploy via push-to-deploy.** Vercel's Git integration is connected to this repo (`murtopia/hacksathon-com`), and pushing `main` auto-deploys to production (verified working). The flow for shipping a change is: run a successful `npm run build` to catch errors locally, then `git commit` and `git push origin main`. The push triggers the production deploy, so Nick can review it on the live site. Note: the git root is one level above this app (`hacksathon-app/`); Vercel's Root Directory is set to `hacksathon-app`, so deploys build correctly from the subdirectory.
+- **Avoid `vercel --prod`.** We used to deploy uncommitted work via the CLI, which bypassed git and left commits unpushed. Don't do that anymore - commit and push instead so production always maps to a pushed commit (and the code is backed up on GitHub). Only fall back to the CLI if push-to-deploy is confirmed broken.
+- Don't spin up local dev/prod servers for testing: this environment has no outbound internet to Supabase, so local pages that need the DB can't be eyeballed anyway.
 
 # Writing style
 

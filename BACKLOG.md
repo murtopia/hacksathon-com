@@ -34,9 +34,10 @@ built: each tool in `src/lib/build-tool/labels.ts` has an `affiliate` flag that
 drives `rel="sponsored"` on outbound links. Full status + enrollment URLs live in
 `hacksathon-app/docs/build-tools-and-affiliates.md`. Remaining follow-ups:
 
-- **Lovable affiliate link.** Application is submitted/pending. Once approved,
-  set `affiliateUrl` to the real referral link and flip `affiliate: true` on the
-  `lovable` entry in `src/lib/build-tool/labels.ts` (the doc has the exact diff).
+- **Lovable affiliate link.** ✅ Done — approved via impact.com (2026-06-16) and
+  live in `src/lib/build-tool/labels.ts` (`affiliate: true`, real link). Optional
+  future tweak: swap in an impact.com deep link if we ever want to land traffic
+  on a specific Lovable page (not needed today).
 - **Other programs.** Verify Base44/Emergent affiliate programs before enabling;
   Bolt, v0, Cursor, Claude Code, ChatGPT, and Google AI Studio have no usable
   program today (Replit is credits-only). Revisit if any launch one.

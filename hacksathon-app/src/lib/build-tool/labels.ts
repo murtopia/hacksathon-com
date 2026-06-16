@@ -80,8 +80,11 @@ const RECOGNIZED_TOOL_META: Record<RecognizedBuildTool, RecognizedToolMeta> = {
   lovable: {
     label: "Lovable",
     url: "https://lovable.dev",
-    affiliateUrl: "https://lovable.dev",
-    affiliate: false,
+    // Live impact.com affiliate link (approved 2026-06-16). `url` stays the
+    // plain homepage for the informational "pointed at lovable.dev" note;
+    // this is the outbound link we get credit for.
+    affiliateUrl: "https://lovablelabs.pxf.io/c/7413626/3802905/49205",
+    affiliate: true,
     category: "recommended",
     blurb: "Best for non-technical teams. Fastest path from idea to a live app.",
     selectable: true,

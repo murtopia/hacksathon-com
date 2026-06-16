@@ -29,7 +29,7 @@ Each tool in `RECOGNIZED_TOOL_META` carries:
 | --- | --- |
 | `label` | Display name |
 | `url` | Homepage / learn-more |
-| `affiliateUrl` | Outbound link surfaced in the picker (today = homepage for all) |
+| `affiliateUrl` | Outbound link surfaced in the picker (Lovable = live impact.com link; homepage for the rest) |
 | `affiliate` | `true` only when `affiliateUrl` is a real enrolled link (adds `rel="sponsored"`) |
 | `category` | `recommended` / `builder` / `owned` / `dev` |
 | `blurb` | One-line description |
@@ -46,7 +46,7 @@ Each tool in `RECOGNIZED_TOOL_META` carries:
 
 | Tool | Program | Status / notes | Enrollment |
 | --- | --- | --- | --- |
-| **Lovable** | Affiliate | **Applied - pending.** Their page advertises up to $100 per first-time subscriber; directories list ~20% recurring for 12 months, 60-day cookie, manual approval. Per-account link issued **after** approval. | `lovable.dev/partners/affiliates` |
+| **Lovable** | Affiliate | **Approved and LIVE (2026-06-16, via impact.com).** `affiliate: true` in `labels.ts`; outbound Lovable links carry our referral code and `rel="sponsored"`. Live link: `https://lovablelabs.pxf.io/c/7413626/3802905/49205`. | impact.com (Lovable Labs program) |
 | **Replit** | Referral (credits) | $10 in credits for you + the friend when they upgrade to Core. This is credits, not a sponsored cash link, so we treat it as learn-more (`affiliate: false`). Enterprise resellers: `replit.com/partners`. | `replit.com/refer` |
 | **Cursor** | Referral (limited) | $25 usage credit per referral; referee gets 50% off first month. Limited-release, eligibility-gated (active paid sub, clean history, regular use). No public affiliate program. | `cursor.com/dashboard/referrals` |
 | **Bolt.new** | None | StackBlitz docs explicitly state no affiliate/sponsorship program. | - |
@@ -57,22 +57,21 @@ Each tool in `RECOGNIZED_TOOL_META` carries:
 | **Claude Code** | None | Included with Claude plans (owned). | - |
 | **ChatGPT / Codex** | None | Included with ChatGPT plans (owned). | - |
 
-**Bottom line:** no tool has `affiliate: true` today. Only Lovable has a real
-program we've applied to; the rest either have no program or only credit-based
+**Bottom line:** Lovable is the only tool with `affiliate: true` and a live
+link (via impact.com). The rest either have no program or only credit-based
 referrals that don't fit a sponsored outbound link.
 
-## Wiring in the Lovable link (once approved)
+## Lovable affiliate link (LIVE)
 
-When the Lovable affiliate application is approved and you have your personal
-referral link, edit the `lovable` entry in
-[`labels.ts`](../src/lib/build-tool/labels.ts):
+Approved via impact.com on 2026-06-16. The `lovable` entry in
+[`labels.ts`](../src/lib/build-tool/labels.ts) is wired up:
 
 ```ts
 lovable: {
   label: "Lovable",
   url: "https://lovable.dev",
-  affiliateUrl: "https://lovable.dev/?via=YOUR_CODE", // <- real referral link
-  affiliate: true,                                     // <- flip to true
+  affiliateUrl: "https://lovablelabs.pxf.io/c/7413626/3802905/49205", // live impact.com link
+  affiliate: true,
   category: "recommended",
   blurb: "Best for non-technical teams. Fastest path from idea to a live app.",
   selectable: true,
@@ -82,8 +81,16 @@ lovable: {
 
 Setting `affiliate: true` automatically adds `rel="noopener noreferrer
 sponsored"` to every outbound Lovable link (hero card "Learn more" + explore
-rows). No other changes are needed. Repeat the same pattern for any other tool
-whose program we enroll in.
+rows). `url` stays the plain homepage so the informational "pointed at
+lovable.dev" note reads cleanly; the affiliate link is what we actually link to.
+
+**Deep links (optional, not used).** impact.com lets you generate a link to a
+specific landing page (e.g. a particular Lovable feature/pricing page). We don't
+need this today - the default program link above lands on the Lovable homepage,
+which is the right entry point for our audience. If we ever want to send traffic
+to a specific page, generate a deep link in impact.com and swap it into
+`affiliateUrl`. Repeat the same `affiliate: true` pattern for any other tool we
+later enroll in.
 
 ## Logos
 

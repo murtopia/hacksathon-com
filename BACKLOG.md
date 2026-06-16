@@ -28,9 +28,21 @@ dashboard. Potential follow-ups:
 
 ## Build tools / integrations
 
-- **Real affiliate URLs.** Replace the placeholder affiliate links (currently
-  the tools' homepages) in `src/lib/build-tool/labels.ts` with real affiliate
-  URLs once we have them.
+The build-tool picker is now Lovable-first (recommended hero card + bring-your-own
+dropdown + a links-only "explore other tools" section). The affiliate plumbing is
+built: each tool in `src/lib/build-tool/labels.ts` has an `affiliate` flag that
+drives `rel="sponsored"` on outbound links. Full status + enrollment URLs live in
+`hacksathon-app/docs/build-tools-and-affiliates.md`. Remaining follow-ups:
+
+- **Lovable affiliate link.** Application is submitted/pending. Once approved,
+  set `affiliateUrl` to the real referral link and flip `affiliate: true` on the
+  `lovable` entry in `src/lib/build-tool/labels.ts` (the doc has the exact diff).
+- **Other programs.** Verify Base44/Emergent affiliate programs before enabling;
+  Bolt, v0, Cursor, Claude Code, ChatGPT, and Google AI Studio have no usable
+  program today (Replit is credits-only). Revisit if any launch one.
+- **Marketing-page Lovable callout.** Feature Lovable (recommended build tool)
+  on the pricing and/or homepage; the approved dark wordmark asset is ready in
+  `Claude Planning Docs/lovable-brand/`. Deferred from the Lovable-first round.
 
 ## Awards ceremony (deferred from the ceremony spec)
 

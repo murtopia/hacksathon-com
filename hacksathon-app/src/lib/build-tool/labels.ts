@@ -24,23 +24,54 @@ export const RECOGNIZED_BUILD_TOOLS = [
   "lovable",
   "bolt",
   "v0",
-  "cursor",
   "replit",
   "google-ai-studio",
+  "cursor",
+  "windsurf",
+  "base44",
+  "emergent",
+  "claude-code",
+  "chatgpt",
 ] as const;
 
 export type RecognizedBuildTool = (typeof RECOGNIZED_BUILD_TOOLS)[number];
 
+/**
+ * How a recognized tool is grouped in the admin picker:
+ *   - `recommended` - the first-class default (Lovable), shown as the hero card.
+ *   - `builder`     - prompt-to-app builders for non-coders.
+ *   - `owned`       - tools companies likely already pay for / get for free.
+ *   - `dev`         - developer-oriented IDEs/agents.
+ */
+export type BuildToolCategory = "recommended" | "builder" | "owned" | "dev";
+
 interface RecognizedToolMeta {
   label: string;
-  /** Public homepage. */
+  /** Public homepage, or a learn-more page. */
   url: string;
   /**
-   * Outbound link surfaced on the admin picker's "Learn more" action.
-   * Placeholder = the homepage today; swap in real affiliate/referral
-   * URLs here when they exist (single source of truth).
+   * Outbound link surfaced on the picker's "Learn more" / explore actions.
+   * Today this equals the homepage for every tool. When a real affiliate or
+   * referral link exists, swap it in here AND flip `affiliate` to true so the
+   * outbound anchor gets `rel="sponsored"`. This file is the single source of
+   * truth - do not duplicate the registry elsewhere.
    */
   affiliateUrl: string;
+  /**
+   * True only when `affiliateUrl` is a real, enrolled affiliate/referral link
+   * (so outbound anchors render `rel="sponsored"`). No tool qualifies yet;
+   * Lovable flips to true once the affiliate application is approved.
+   */
+  affiliate: boolean;
+  category: BuildToolCategory;
+  /** Short, one-line description shown in the picker and explore list. */
+  blurb: string;
+  /**
+   * True = appears in the picker as a choosable event build tool (and renders
+   * the showcase "Built with X" chip). False = explore-only: surfaced as an
+   * outbound link for discovery, never stored as the event's build tool.
+   */
+  selectable: boolean;
   /** Path under /public to a full-color logo. */
   logo: string;
 }
@@ -50,37 +81,111 @@ const RECOGNIZED_TOOL_META: Record<RecognizedBuildTool, RecognizedToolMeta> = {
     label: "Lovable",
     url: "https://lovable.dev",
     affiliateUrl: "https://lovable.dev",
-    logo: "/build-tools/lovable.svg",
+    affiliate: false,
+    category: "recommended",
+    blurb: "Best for non-technical teams. Fastest path from idea to a live app.",
+    selectable: true,
+    logo: "/build-tools/lovable.png",
   },
   bolt: {
     label: "Bolt",
     url: "https://bolt.new",
     affiliateUrl: "https://bolt.new",
+    affiliate: false,
+    category: "builder",
+    blurb: "Fast generation with code access.",
+    selectable: true,
     logo: "/build-tools/bolt.svg",
   },
   v0: {
     label: "v0 by Vercel",
     url: "https://v0.dev",
     affiliateUrl: "https://v0.dev",
+    affiliate: false,
+    category: "builder",
+    blurb: "Polished React and Next.js interfaces from prompts.",
+    selectable: true,
     logo: "/build-tools/v0.svg",
-  },
-  cursor: {
-    label: "Cursor",
-    url: "https://cursor.com",
-    affiliateUrl: "https://cursor.com",
-    logo: "/build-tools/cursor.svg",
   },
   replit: {
     label: "Replit",
     url: "https://replit.com",
     affiliateUrl: "https://replit.com",
+    affiliate: false,
+    category: "builder",
+    blurb: "All-in-one browser IDE with event credits.",
+    selectable: true,
     logo: "/build-tools/replit.svg",
   },
   "google-ai-studio": {
     label: "Google AI Studio",
     url: "https://aistudio.google.com",
     affiliateUrl: "https://aistudio.google.com",
+    affiliate: false,
+    category: "owned",
+    blurb: "Free Gemini playground for quick prototypes.",
+    selectable: true,
     logo: "/build-tools/google-ai-studio.svg",
+  },
+  cursor: {
+    label: "Cursor",
+    url: "https://cursor.com",
+    affiliateUrl: "https://cursor.com",
+    affiliate: false,
+    category: "dev",
+    blurb: "Developer-focused AI code editor.",
+    selectable: false,
+    logo: "/build-tools/cursor.svg",
+  },
+  windsurf: {
+    label: "Windsurf",
+    url: "https://windsurf.com",
+    affiliateUrl: "https://windsurf.com",
+    affiliate: false,
+    category: "dev",
+    blurb: "Agent-first developer tool.",
+    selectable: false,
+    logo: "/build-tools/windsurf.svg",
+  },
+  base44: {
+    label: "Base44",
+    url: "https://base44.com",
+    affiliateUrl: "https://base44.com",
+    affiliate: false,
+    category: "builder",
+    blurb: "Easiest for non-coders.",
+    selectable: false,
+    logo: "/build-tools/base44.svg",
+  },
+  emergent: {
+    label: "Emergent",
+    url: "https://emergent.sh",
+    affiliateUrl: "https://emergent.sh",
+    affiliate: false,
+    category: "builder",
+    blurb: "Full-stack builder.",
+    selectable: false,
+    logo: "/build-tools/emergent.svg",
+  },
+  "claude-code": {
+    label: "Claude Code",
+    url: "https://claude.com/product/claude-code",
+    affiliateUrl: "https://claude.com/product/claude-code",
+    affiliate: false,
+    category: "owned",
+    blurb: "Included with Claude plans.",
+    selectable: false,
+    logo: "/build-tools/claude-code.svg",
+  },
+  chatgpt: {
+    label: "ChatGPT / Codex",
+    url: "https://openai.com/codex",
+    affiliateUrl: "https://openai.com/codex",
+    affiliate: false,
+    category: "owned",
+    blurb: "Included with ChatGPT plans.",
+    selectable: false,
+    logo: "/build-tools/chatgpt.svg",
   },
 };
 
@@ -156,6 +261,12 @@ export interface BuildToolMeta {
   homepageUrl: string | null;
   /** Outbound "Learn more" link (affiliate placeholder = homepage today). */
   affiliateUrl: string | null;
+  /** True when `affiliateUrl` is a real affiliate link (=> rel="sponsored"). */
+  affiliate: boolean;
+  /** Grouping category, or null for BYO/custom values. */
+  category: BuildToolCategory | null;
+  /** One-line description, or null for BYO/custom values. */
+  blurb: string | null;
   /** Full-color logo path under /public, or null for a lettermark fallback. */
   logo: string | null;
 }
@@ -176,6 +287,9 @@ export function buildToolMeta(
       label: meta.label,
       homepageUrl: meta.url,
       affiliateUrl: meta.affiliateUrl,
+      affiliate: meta.affiliate,
+      category: meta.category,
+      blurb: meta.blurb,
       logo: meta.logo,
     };
   }
@@ -184,6 +298,45 @@ export function buildToolMeta(
     label: norm === BYO_BUILD_TOOL ? BYO_BUILD_TOOL_LABEL : GENERIC_BUILD_TOOL_LABEL,
     homepageUrl: null,
     affiliateUrl: null,
+    affiliate: false,
+    category: null,
+    blurb: null,
     logo: null,
+  };
+}
+
+/**
+ * The recommended first-class default surfaced as the picker's hero card.
+ */
+export const RECOMMENDED_BUILD_TOOL: RecognizedBuildTool = "lovable";
+
+/**
+ * Recognized tools an organizer can actually pick as the event build tool
+ * (everything with `selectable: true`). Drives the picker dropdown and the
+ * showcase "Built with X" chip. The recommended default is included here too.
+ */
+export const SELECTABLE_BUILD_TOOLS: RecognizedBuildTool[] =
+  RECOGNIZED_BUILD_TOOLS.filter(
+    (value) => RECOGNIZED_TOOL_META[value].selectable,
+  );
+
+/**
+ * Explore-only tools (never stored as the event build tool) surfaced as
+ * outbound links for discovery, grouped for the "explore other tools"
+ * section: prompt-to-app `builders` for non-coders, and `owned`/`dev` tools
+ * companies likely already have.
+ */
+export function getExploreBuildTools(): {
+  builders: BuildToolMeta[];
+  owned: BuildToolMeta[];
+} {
+  const exploreOnly = RECOGNIZED_BUILD_TOOLS.filter(
+    (value) => !RECOGNIZED_TOOL_META[value].selectable,
+  ).map((value) => buildToolMeta(value));
+  return {
+    builders: exploreOnly.filter((meta) => meta.category === "builder"),
+    owned: exploreOnly.filter(
+      (meta) => meta.category === "owned" || meta.category === "dev",
+    ),
   };
 }

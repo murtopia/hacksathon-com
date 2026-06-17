@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,10 +51,11 @@ export default function HomePage() {
             Run a world-class Hacks-a-Thon at your company
           </h1>
           <p className="mt-6 max-w-2xl font-serif text-xl italic leading-snug text-[var(--text-secondary)] sm:text-2xl lg:text-3xl">
-            A turnkey platform for running a structured, AI-powered Hacks-a-Thon.
-            It takes your team from idea to a real, working app in short,
-            time-blocked sessions over a few weeks, not one long day, so it fits
-            around everyone&apos;s schedule. No coding experience required.
+            A turnkey platform for running a structured, AI-educating,
+            culture-building Hacks-a-Thon. It takes your team from ideas to real,
+            working apps in short, time-blocked sessions over a few weeks, not
+            one long day, so it fits around everyone&apos;s schedule. No coding
+            experience required.
           </p>
 
           <div className="mt-10 grid grid-cols-2 gap-4 border-y py-5 sm:grid-cols-4">
@@ -137,6 +139,31 @@ export default function HomePage() {
                 </CardContent>
               </Card>
             ))}
+            <Card className="w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]">
+              <CardHeader>
+                <CardTitle className="text-lg">We Recommend Lovable</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  The simplest way to turn a prompt into a live app. Find out
+                  more:
+                </p>
+                <a
+                  href="https://lovablelabs.pxf.io/c/7413626/3802905/49205"
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  className="mt-5 inline-block"
+                >
+                  <Image
+                    src="/lovable-wordmark.svg"
+                    alt="Lovable"
+                    width={911}
+                    height={155}
+                    className="h-7 w-auto"
+                  />
+                </a>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>

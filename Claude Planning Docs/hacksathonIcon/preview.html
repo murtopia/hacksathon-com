@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Icon asset preview</title>
+<style>
+ body{margin:0;padding:40px 24px;background:#f5f4f1;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;color:#0d0d0d}
+ .wrap{max-width:900px;margin:0 auto}
+ h1{font-size:22px;font-weight:600;margin:0 0 4px}.sub{font-size:14px;color:#6b6b6b;margin:0 0 28px}
+ .label{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#9a9a9a;margin:30px 0 12px}
+ .strip{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;background:#fff;border:1px solid #e8e6e1;border-radius:14px;padding:24px}
+ .strip.dark{background:#1c1c1e;border-color:#2a2a2c}
+ .item{display:flex;flex-direction:column;align-items:center;gap:8px}
+ .item span{font-size:11px;color:#9a9a9a}.strip.dark .item span{color:#8a8a8a}
+ img{display:block;border-radius:22%}
+ .tab{display:inline-flex;align-items:center;gap:8px;background:#dfdfe2;border-radius:8px 8px 0 0;padding:8px 14px 10px;margin-top:6px}
+ .tab img{border-radius:4px}.tab span{font-size:13px;color:#333}
+</style></head><body><div class="wrap">
+ <h1>Hacksathon.com icon assets</h1>
+ <p class="sub">Black caret on white everywhere, reversed white-on-black for the favicon.</p>
+
+ <div class="label">Primary, black on white (OAuth + app icons)</div>
+ <div class="strip">
+   <div class="item"><img src="icon-512.png" width="128" height="128"><span>512</span></div>
+   <div class="item"><img src="icon-192.png" width="96" height="96"><span>192</span></div>
+   <div class="item"><img src="icon-180.png" width="64" height="64"><span>180</span></div>
+ </div>
+
+ <div class="label">On a dark surface</div>
+ <div class="strip dark">
+   <div class="item"><img src="icon-512.png" width="128" height="128"><span>512</span></div>
+   <div class="item"><img src="icon-192.png" width="96" height="96"><span>192</span></div>
+ </div>
+
+ <div class="label">Favicon, white on black</div>
+ <div class="strip">
+   <div class="item"><img src="favicon-48.png" width="96" height="96"><span>48</span></div>
+   <div class="item"><img src="favicon-32.png" width="64" height="64"><span>32</span></div>
+   <div class="item"><img src="favicon-16.png" width="32" height="32"><span>16</span></div>
+   <div class="item"><div class="tab"><img src="favicon-16.png" width="16" height="16"><span>Hacksathon.com</span></div><span>in a tab</span></div>
+ </div>
+</div></body></html>

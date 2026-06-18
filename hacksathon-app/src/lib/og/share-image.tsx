@@ -129,22 +129,25 @@ export async function resolveLogo(
   }
 }
 
-function HMark({ size = 112 }: { size?: number }): ReactElement {
+// Brand prompt-caret mark (white on near-black), mirroring app/icon.svg. The
+// caret's 90deg rotation is baked into the path coordinates so the inner SVG
+// stays a single satori-safe <path> (no nested transforms).
+function CaretMark({ size = 112 }: { size?: number }): ReactElement {
   return (
     <div
       style={{
         display: "flex",
         width: size,
         height: size,
-        background: COLORS.ink,
-        borderRadius: 18,
+        background: "#0d0d0d",
+        borderRadius: 22 * (size / 100),
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 32 32">
+      <svg width={size * 0.8} height={size * 0.8} viewBox="0 0 100 100">
         <path
-          d="M8 7 L12 7 L12 14 L20 14 L20 7 L24 7 L24 25 L20 25 L20 18 L12 18 L12 25 L8 25 Z"
+          d="M75 50 L36 73 Q33 75 30 77 L30 64 Q33 63 35 61 L54 50 L35 39 Q33 37 30 36 L30 23 Q33 25 36 27 Z"
           fill="#FFFFFF"
         />
       </svg>
@@ -210,7 +213,7 @@ export function ShareImage({
       <div style={{ display: "flex", alignItems: "center" }}>
         {showWordmark ? (
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <HMark size={112} />
+            <CaretMark size={112} />
             <span style={{ fontSize: 64, color: COLORS.ink }}>
               Hacksathon.com
             </span>

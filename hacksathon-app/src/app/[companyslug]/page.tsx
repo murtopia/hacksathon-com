@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -25,11 +24,11 @@ import {
   slugPath,
   type SlugContext,
 } from "@/lib/routing/slug-context";
+import { deriveWindowStatus } from "@/lib/blocks/status";
 import {
-  deriveWindowStatus,
-  isMineDone,
-  nextOpenBlock,
-} from "@/lib/blocks/status";
+  deriveNextStep,
+  formatRelativeBlockTime,
+} from "@/lib/dashboard/next-step";
 import { loadHelperContext } from "@/lib/helper/loader";
 import { isPhase1Complete } from "@/lib/helper/phase";
 import {
@@ -38,11 +37,27 @@ import {
   isRecognizedBuildTool,
   isByoBuildTool,
 } from "@/lib/build-tool/labels";
-import { statusLabel, type IdeaStatus } from "@/lib/idealab/types";
 
 interface PageProps {
   params: Promise<{ companyslug: string }>;
 }
+
+// Plain-language path shown on the participant home to calm the
+// "how do I even start my first prompt" barrier.
+const HOW_IT_WORKS: ReadonlyArray<{ title: string; body: string }> = [
+  {
+    title: "Start with an idea",
+    body: "Something you wish existed. It can be small - the best projects often are.",
+  },
+  {
+    title: "Let the Blueprint write your first prompt",
+    body: "Answer a few questions and we turn your idea into a build-ready brief and a copy-paste prompt. No prompting skills needed.",
+  },
+  {
+    title: "Build it and show it off",
+    body: "Paste the prompt into your build tool, shape it step by step, then demo it at the showcase.",
+  },
+];
 
 // ============================================
 // generateMetadata
@@ -239,10 +254,8 @@ async function ParticipantDashboard({
     { data: blockRows },
     { data: ideaRow },
     { data: briefRows },
-    { data: sessionRows },
-    { data: completionRows },
     { data: voteRows },
-    { data: reflectionRows },
+    { count: ideasCount },
   ] = await Promise.all([
     supabase
       .from("blocks")
@@ -264,21 +277,10 @@ async function ParticipantDashboard({
       }>(),
     supabase
       .from("project_briefs")
-      .select("id, project_name, updated_at")
+      .select("id")
       .eq("event_id", event.id)
       .eq("user_id", userId)
-      .order("updated_at", { ascending: false }),
-    supabase
-      .from("planning_sessions")
-      .select("id, status, updated_at")
-      .eq("event_id", event.id)
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: false }),
-    supabase
-      .from("block_completions")
-      .select("block_key")
-      .eq("event_id", event.id)
-      .eq("user_id", userId),
+      .limit(1),
     supabase
       .from("votes")
       .select("id")
@@ -286,11 +288,9 @@ async function ParticipantDashboard({
       .eq("user_id", userId)
       .limit(1),
     supabase
-      .from("reflections")
-      .select("id")
-      .eq("event_id", event.id)
-      .eq("user_id", userId)
-      .limit(1),
+      .from("ideas")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", event.id),
   ]);
 
   const now = new Date();
@@ -298,50 +298,52 @@ async function ParticipantDashboard({
   const hasBrief = Array.isArray(briefRows) && briefRows.length > 0;
   const ideaCompleted = ideaRow?.status === "completed";
   const hasVote = Array.isArray(voteRows) && voteRows.length > 0;
-  const hasReflection =
-    Array.isArray(reflectionRows) && reflectionRows.length > 0;
-  const votingRevealed = event.voting_status === "revealed";
-  const completionsSet = new Set<string>(
-    ((completionRows ?? []) as { block_key: string }[]).map((r) => r.block_key),
-  );
 
-  const blocksForNext = ((blockRows ?? []) as Array<{
-    id: string;
-    block_key: string;
-    title: string;
-    subtitle: string | null;
-    scheduled_date: string | null;
-    duration_minutes: number;
-    sort_order: number;
-  }>).map((b, i) => {
-    const windowStatus = deriveWindowStatus(
-      b.scheduled_date,
-      b.duration_minutes,
-      now,
-    );
-    const mineDone = isMineDone({
-      blockKey: b.block_key,
-      windowStatus,
-      completionsSet,
-      hasIdea,
-      hasBrief,
-      ideaCompleted,
-      hasVote,
-      hasReflection,
-      votingRevealed,
-    });
-    return {
-      blockKey: b.block_key,
-      windowStatus,
-      mineDone,
-      sortOrder: i,
-      data: { id: b.id, title: b.title, subtitle: b.subtitle, blockKey: b.block_key },
-    };
+  // Progress-driven primary action (idea -> Blueprint/first prompt ->
+  // build -> showcase), independent of the schedule.
+  const nextStep = deriveNextStep({
+    hasIdea,
+    hasBrief,
+    ideaCompleted,
+    votingStatus: event.voting_status,
+    hasVote,
+    toolName: isRecognizedBuildTool(event.build_tool)
+      ? buildToolLabel(event.build_tool)
+      : null,
   });
 
-  const next = nextOpenBlock(blocksForNext);
-  const nextBlock = next?.data ?? null;
-  const nextBlockWindow = next?.windowStatus ?? "upcoming";
+  // Schedule awareness: the active block (if any) or the soonest dated
+  // upcoming block, surfaced as a small "happening now / next" line.
+  const scheduledBlocks = ((blockRows ?? []) as Array<{
+    block_key: string;
+    title: string;
+    scheduled_date: string | null;
+    duration_minutes: number;
+  }>).map((b) => ({
+    blockKey: b.block_key,
+    title: b.title,
+    scheduledDate: b.scheduled_date,
+    windowStatus: deriveWindowStatus(b.scheduled_date, b.duration_minutes, now),
+  }));
+
+  const activeBlock = scheduledBlocks.find((b) => b.windowStatus === "active");
+  const upcomingBlock = scheduledBlocks
+    .filter((b) => b.windowStatus === "upcoming" && b.scheduledDate)
+    .sort(
+      (a, b) =>
+        new Date(a.scheduledDate as string).getTime() -
+        new Date(b.scheduledDate as string).getTime(),
+    )[0];
+
+  let scheduleHint: string | null = null;
+  if (activeBlock) {
+    scheduleHint = `Happening now: ${activeBlock.blockKey} ${activeBlock.title}`;
+  } else if (upcomingBlock) {
+    const when = formatRelativeBlockTime(upcomingBlock.scheduledDate, now);
+    scheduleHint = when
+      ? `Next: ${upcomingBlock.blockKey} ${upcomingBlock.title} - ${when}`
+      : `Next: ${upcomingBlock.blockKey} ${upcomingBlock.title}`;
+  }
 
   const logoUrl = event.logo_url ?? org?.logo_url ?? null;
   const orgName = org?.name ?? "";
@@ -355,10 +357,6 @@ async function ParticipantDashboard({
     typeof (event.settings as Record<string, unknown>).slack_url === "string"
       ? ((event.settings as Record<string, unknown>).slack_url as string)
       : null;
-
-  const planningDocCount =
-    (Array.isArray(briefRows) ? briefRows.length : 0) +
-    (Array.isArray(sessionRows) ? sessionRows.length : 0);
 
   const dateWindow = formatDateWindow(
     (blockRows ?? []) as Array<{ scheduled_date: string | null }>,
@@ -466,85 +464,75 @@ async function ParticipantDashboard({
         )}
       </header>
 
-      {/* Your idea - the dashboard's primary feature */}
-      <YourIdeaCard
-        slug={ctx.slug}
-        idea={ideaRow}
-        planningDocCount={planningDocCount}
-      />
+      {/* Your next step - the dashboard's primary, progress-driven action */}
+      <section className="space-y-5 border-l-2 border-primary/40 pl-6">
+        <div className="space-y-1.5">
+          <p className="mono-label">{nextStep.eyebrow}</p>
+          <h3 className="font-serif text-2xl font-normal leading-snug text-foreground sm:text-3xl">
+            {nextStep.title}
+          </h3>
+          {nextStep.tip && (
+            <p className="pt-1 text-sm text-muted-foreground">{nextStep.tip}</p>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Button asChild variant="pill" size="pill">
+            <Link href={slugPath(ctx.slug, nextStep.to)}>
+              {nextStep.cta}
+              <ArrowRight />
+            </Link>
+          </Button>
+          {scheduleHint && (
+            <span className="mono-label text-[var(--text-tertiary)]">
+              {scheduleHint}
+            </span>
+          )}
+        </div>
+      </section>
 
-      {/* Next block CTA */}
-      {nextBlock && (
-        <Card>
-          <CardHeader>
-            <p className="mono-label">
-              {nextBlock.blockKey === "+01" && event.voting_status === "open"
-                ? "Voting is open"
-                : nextBlockWindow === "active"
-                  ? "Happening now"
-                  : "Up next"}
-            </p>
-            <CardTitle className="flex items-baseline gap-4 font-serif text-2xl">
-              <span className="font-mono text-sm font-bold uppercase tracking-wide text-foreground">
-                {nextBlock.blockKey}
+      {/* How your Hacks-a-Thon works - plain-language path */}
+      <section className="space-y-5 border-t pt-8">
+        <p className="mono-label">How your Hacks-a-Thon works</p>
+        <ol className="space-y-5">
+          {HOW_IT_WORKS.map((step, i) => (
+            <li key={step.title} className="flex gap-4">
+              <span className="font-mono text-sm font-bold text-[var(--text-tertiary)]">
+                {String(i + 1).padStart(2, "0")}
               </span>
-              {nextBlock.title}
-            </CardTitle>
-            {nextBlock.subtitle && (
-              <CardDescription>{nextBlock.subtitle}</CardDescription>
-            )}
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="pill" size="pill">
-              <Link
-                href={slugPath(
-                  ctx.slug,
-                  `blocks/${encodeURIComponent(nextBlock.blockKey)}`,
-                )}
-              >
-                {nextBlock.blockKey === "+01" && event.voting_status === "open"
-                  ? "Cast your votes"
-                  : nextBlockWindow === "active"
-                    ? "Jump in"
-                    : "Open this block"}
-                <ArrowRight />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+              <div className="space-y-1">
+                <p className="font-serif text-lg text-foreground">
+                  {step.title}
+                </p>
+                <p className="text-sm text-muted-foreground">{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* IdeaLab teaser */}
+      {typeof ideasCount === "number" && ideasCount > 0 && (
+        <section className="border-t pt-8">
+          <Link
+            href={slugPath(ctx.slug, "idealab")}
+            className="group inline-flex items-center gap-2 text-foreground"
+          >
+            <span className="font-serif text-lg">
+              {ideasCount} idea{ideasCount === 1 ? "" : "s"} from your team so
+              far
+            </span>
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </section>
       )}
 
-      {/* Quiet links row for skimmers */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <QuietLink
-          href={slugPath(ctx.slug, "blocks")}
-          title="All blocks"
-          subtitle="The full timeline"
-        />
-        <QuietLink
-          href={slugPath(ctx.slug, "idealab")}
-          title="IdeaLab"
-          subtitle="Every idea this event"
-        />
-        <QuietLink
-          href={slugPath(ctx.slug, "awards")}
-          title="Hacky Awards"
-          subtitle={
-            event.voting_status === "open"
-              ? "Voting is open"
-              : event.voting_status === "revealed"
-                ? event.results_published_at
-                  ? "Winners"
-                  : "Results soon"
-                : "Vote later"
-          }
-        />
-        <QuietLink
-          href={slugPath(ctx.slug, "reflections")}
-          title="Reflections"
-          subtitle={hasReflection ? "Edit your answers" : "Share your take"}
-        />
-      </section>
+      {/* Public showcase note (public events, pre-publish) */}
+      {event.public_showcase && !event.results_published_at && (
+        <p className="border-t pt-8 text-sm text-[var(--text-tertiary)]">
+          Your public showcase publishes when results go live at the end of the
+          event.
+        </p>
+      )}
 
       {slackUrl && (
         <Card>
@@ -564,88 +552,6 @@ async function ParticipantDashboard({
         </Card>
       )}
     </div>
-  );
-}
-
-function YourIdeaCard({
-  slug,
-  idea,
-  planningDocCount,
-}: {
-  slug: string;
-  idea: { id: string; title: string; pitch: string | null; status: string } | null;
-  planningDocCount: number;
-}) {
-  if (!idea) {
-    return (
-      <Card className="border-dashed">
-        <CardHeader>
-          <CardTitle className="text-xl">Your big idea</CardTitle>
-          <CardDescription>
-            Every Hacks-a-Thon starts with a spark. Add the idea you want to
-            build during this event - keep it short and a little bit wild.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="pill" size="pill">
-            <Link href={slugPath(slug, "idea/new")}>
-              Add your idea
-              <ArrowRight />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">
-            {statusLabel(idea.status as IdeaStatus)}
-          </Badge>
-          {planningDocCount > 0 && (
-            <Badge variant="secondary">
-              {planningDocCount} planning doc{planningDocCount === 1 ? "" : "s"}
-            </Badge>
-          )}
-        </div>
-        <CardTitle className="text-2xl">{idea.title}</CardTitle>
-        {idea.pitch && <CardDescription>{idea.pitch}</CardDescription>}
-      </CardHeader>
-      <CardFooter className="gap-2">
-        <Button asChild variant="pill" size="pill">
-          <Link href={slugPath(slug, "idea")}>
-            Open your idea
-            <ArrowRight />
-          </Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link href={slugPath(slug, "idealab")}>See the IdeaLab</Link>
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-}
-
-function QuietLink({
-  href,
-  title,
-  subtitle,
-}: {
-  href: string;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group block rounded-[4px] border p-4 transition-colors hover:border-foreground/40"
-    >
-      <p className="font-serif text-base text-foreground">{title}</p>
-      <p className="mt-1 mono-label">{subtitle}</p>
-    </Link>
   );
 }
 

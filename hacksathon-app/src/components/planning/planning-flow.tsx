@@ -12,6 +12,33 @@ import type {
   ProjectBrief,
 } from "@/lib/planning/types";
 
+/**
+ * fetch() with an abort-based timeout so a hung request fails into the
+ * existing Retry UI instead of spinning forever (the browser default has
+ * no practical timeout). Timeouts are set above the server's maxDuration
+ * for the LLM brief call so we only trip on a genuinely stalled
+ * connection, not a legitimately slow generation.
+ */
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Brief synthesis is an LLM call (server maxDuration 60s); the client
+// guard sits just above that. The starter prompt is template-built and
+// fast, so it gets a tighter ceiling.
+const BRIEF_TIMEOUT_MS = 70_000;
+const STARTER_PROMPT_TIMEOUT_MS = 30_000;
+
 interface PlanningFlowProps {
   session: PlanningSession;
   initialBrief?: ProjectBrief | null;
@@ -288,11 +315,15 @@ export function PlanningFlow({
     setBriefGenerating(true);
     setBriefError(null);
     try {
-      const res = await fetch("/api/planning/brief", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planningSessionId: session.id }),
-      });
+      const res = await fetchWithTimeout(
+        "/api/planning/brief",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planningSessionId: session.id }),
+        },
+        BRIEF_TIMEOUT_MS,
+      );
 
       if (res.ok) {
         const data = await res.json();
@@ -340,14 +371,18 @@ export function PlanningFlow({
     setBriefUpdating(true);
     setBriefError(null);
     try {
-      const res = await fetch("/api/planning/brief", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          planningSessionId: session.id,
-          regenerate: true,
-        }),
-      });
+      const res = await fetchWithTimeout(
+        "/api/planning/brief",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            planningSessionId: session.id,
+            regenerate: true,
+          }),
+        },
+        BRIEF_TIMEOUT_MS,
+      );
 
       if (res.ok) {
         const data = await res.json();
@@ -381,11 +416,15 @@ export function PlanningFlow({
   async function fetchStarterPrompt() {
     setStarterPromptError(null);
     try {
-      const res = await fetch("/api/planning/starter-prompt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planningSessionId: session.id }),
-      });
+      const res = await fetchWithTimeout(
+        "/api/planning/starter-prompt",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planningSessionId: session.id }),
+        },
+        STARTER_PROMPT_TIMEOUT_MS,
+      );
       if (res.ok) {
         const data = await res.json();
         setStarterPrompt(data.starterPrompt);

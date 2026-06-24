@@ -101,18 +101,35 @@ export async function POST(req: Request) {
 
   let text: string;
   try {
-    const result = await generateText({
-      model: planningModel,
-      system: `${systemPrompt}\n\n---\n\n${BRIEF_GENERATION_INSTRUCTION}`,
-      messages: [
-        ...aiMessages,
-        {
-          role: "user",
-          content: userInstruction,
-        },
-      ],
-      maxOutputTokens: 6000,
-    });
+    const runGenerate = () =>
+      generateText({
+        model: planningModel,
+        system: `${systemPrompt}\n\n---\n\n${BRIEF_GENERATION_INSTRUCTION}`,
+        messages: [
+          ...aiMessages,
+          {
+            role: "user",
+            content: userInstruction,
+          },
+        ],
+        maxOutputTokens: 6000,
+      });
+
+    let result: Awaited<ReturnType<typeof runGenerate>>;
+    try {
+      result = await runGenerate();
+    } catch (firstError) {
+      // One quick retry to ride out transient model hiccups (overload,
+      // rate limit, blip) before surfacing an error to the participant.
+      // This is the failure mode where a manual "Retry" used to work.
+      console.warn("[planning/brief] generateText retrying after error", {
+        sessionId: session.id,
+        error:
+          firstError instanceof Error ? firstError.message : String(firstError),
+      });
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      result = await runGenerate();
+    }
     text = result.text;
   } catch (error) {
     // Make model failures loud in Vercel logs and surface a 502 to the

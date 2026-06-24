@@ -143,6 +143,13 @@ export function BlueprintFlowDialog({
     [onBriefChanged, onOpenChange],
   );
 
+  // Clearing the error lets the lazy-creation effect run again (it bails
+  // while an error is set), so this doubles as the Retry trigger.
+  const handleRetry = useCallback(() => {
+    creating.current = false;
+    setErrorMessage(null);
+  }, []);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -171,9 +178,14 @@ export function BlueprintFlowDialog({
 
         <div className="overflow-y-auto px-6 py-6">
           {errorMessage ? (
-            <p className="mt-12 text-center font-serif text-base text-muted-foreground">
-              {errorMessage}
-            </p>
+            <div className="mt-12 flex flex-col items-center gap-4 text-center">
+              <p className="font-serif text-base text-muted-foreground">
+                {errorMessage}
+              </p>
+              <Button variant="pill" size="pill" onClick={handleRetry}>
+                Try again
+              </Button>
+            </div>
           ) : !session ? (
             <div className="mt-12 text-center">
               <div

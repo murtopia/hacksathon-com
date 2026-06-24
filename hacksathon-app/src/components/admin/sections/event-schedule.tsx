@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Check, Save } from "lucide-react";
+import { Calendar, CalendarPlus, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,8 @@ export interface ScheduleBlock {
 
 interface EventScheduleSectionProps {
   eventId: string;
+  /** Event vanity slug - used to build the admin .ics export links. */
+  slug: string;
   blocks: ScheduleBlock[];
   isLocked: boolean;
 }
@@ -48,6 +50,7 @@ interface EventScheduleSectionProps {
  */
 export function EventScheduleSection({
   eventId: _eventId,
+  slug,
   blocks,
   isLocked,
 }: EventScheduleSectionProps) {
@@ -56,6 +59,7 @@ export function EventScheduleSection({
     () => [...blocks].sort((a, b) => a.sort_order - b.sort_order),
     [blocks],
   );
+  const scheduledCount = sorted.filter((b) => b.scheduled_date).length;
 
   if (sorted.length === 0) {
     return (
@@ -71,6 +75,16 @@ export function EventScheduleSection({
 
   return (
     <div className="space-y-6">
+      {scheduledCount > 0 && (
+        <div className="flex justify-end">
+          <Button asChild variant="pill" size="pill">
+            <a href={`/${slug}/schedule.ics`}>
+              <CalendarPlus />
+              Add whole schedule to calendar
+            </a>
+          </Button>
+        </div>
+      )}
       <ol
         className={cn(
           "relative pl-16",
@@ -80,7 +94,12 @@ export function EventScheduleSection({
         )}
       >
         {sorted.map((block) => (
-          <BlockRow key={block.id} block={block} isLocked={isLocked} />
+          <BlockRow
+            key={block.id}
+            block={block}
+            slug={slug}
+            isLocked={isLocked}
+          />
         ))}
       </ol>
       <p
@@ -96,9 +115,11 @@ export function EventScheduleSection({
 
 function BlockRow({
   block,
+  slug,
   isLocked,
 }: {
   block: ScheduleBlock;
+  slug: string;
   isLocked: boolean;
 }) {
   const router = useRouter();
@@ -227,6 +248,19 @@ function BlockRow({
             <Save className="mr-1.5 size-3" />
             Save
           </Button>
+          {isScheduled && (
+            <Button asChild size="sm" variant="ghost">
+              <a
+                href={`/${slug}/schedule.ics?block=${encodeURIComponent(
+                  block.block_key,
+                )}`}
+                title="Add this block to your calendar"
+              >
+                <CalendarPlus className="mr-1.5 size-3" />
+                Add to calendar
+              </a>
+            </Button>
+          )}
         </div>
       </div>
     </li>

@@ -6,6 +6,7 @@ import {
   EventScheduleSection,
   type ScheduleBlock,
 } from "@/components/admin/sections/event-schedule";
+import { AdminStepNav } from "@/components/admin/admin-step-nav";
 import { resolveSlugContext } from "@/lib/routing/slug-context";
 
 export const metadata: Metadata = {
@@ -75,9 +76,12 @@ export default async function SlugAdminSchedulePage({ params }: PageProps) {
 
       <EventScheduleSection
         eventId={ctx.event.id}
+        slug={ctx.slug}
         blocks={blocks}
         isLocked={ctx.event.is_locked}
       />
+
+      <AdminStepNav slug={ctx.slug} current="03" />
     </div>
   );
 }

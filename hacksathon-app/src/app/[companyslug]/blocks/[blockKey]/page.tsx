@@ -24,7 +24,10 @@ import type {
   BallotIdea,
   BallotInitialPick,
 } from "@/components/blocks/award-ballot";
-import { ReflectionsScreen } from "@/components/blocks/reflections-screen";
+import {
+  ReflectionsScreen,
+  type ReflectionStatus,
+} from "@/components/blocks/reflections-screen";
 import type {
   ReflectionQuestion,
   ReflectionAnswer,
@@ -212,6 +215,7 @@ export default async function SlugBlockPage({ params }: PageProps) {
         slackUrl={slackUrl}
         votingStatus={ctx.event.voting_status}
         resultsPublished={Boolean(ctx.event.results_published_at)}
+        reflectionStatus={ctx.event.reflection_status}
         buildTool={ctx.event.build_tool}
         slug={ctx.slug}
       />
@@ -242,6 +246,7 @@ async function BlockBody({
   slackUrl,
   votingStatus,
   resultsPublished,
+  reflectionStatus,
   buildTool,
   slug,
 }: {
@@ -257,6 +262,7 @@ async function BlockBody({
   slackUrl: string | null;
   votingStatus: VotingStatus;
   resultsPublished: boolean;
+  reflectionStatus: ReflectionStatus;
   buildTool: string;
   slug: string;
 }) {
@@ -322,7 +328,13 @@ async function BlockBody({
     );
   }
   if (blockKey === "+02") {
-    return <ReflectionsBody eventId={eventId} userId={userId} />;
+    return (
+      <ReflectionsBody
+        eventId={eventId}
+        userId={userId}
+        status={reflectionStatus}
+      />
+    );
   }
 
   return null;
@@ -434,9 +446,11 @@ async function HackyAwardsBody({
 async function ReflectionsBody({
   eventId,
   userId,
+  status,
 }: {
   eventId: string;
   userId: string;
+  status: ReflectionStatus;
 }) {
   const supabase = await createClient();
 
@@ -472,6 +486,7 @@ async function ReflectionsBody({
       eventId={eventId}
       questions={questions}
       initialAnswers={initialAnswers}
+      status={status}
     />
   );
 }

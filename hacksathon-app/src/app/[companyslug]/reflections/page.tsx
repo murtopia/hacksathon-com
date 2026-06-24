@@ -84,6 +84,7 @@ export default async function SlugReflectionsPage({ params }: PageProps) {
         eventId={eventId}
         questions={questions}
         initialAnswers={initialAnswers}
+        status={ctx.event.reflection_status}
       />
     </div>
   );

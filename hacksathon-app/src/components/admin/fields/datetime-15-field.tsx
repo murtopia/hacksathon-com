@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { flushSync } from "react-dom";
 import { cn } from "@/lib/utils";
 
 interface DateTime15FieldProps {
@@ -11,6 +12,14 @@ interface DateTime15FieldProps {
   disabled?: boolean;
   /** Emits the combined local string `YYYY-MM-DDTHH:mm`, or "" when cleared. */
   onChange: (next: string) => void;
+  /**
+   * Optional `YYYY-MM-DD` to seed the date input with the first time the
+   * user opens an empty picker. A native date calendar always opens to
+   * its current value's month (today when empty), so we set the value on
+   * pointer-down - before the picker renders - to steer which month it
+   * opens to. Nothing happens on load or when a value already exists.
+   */
+  defaultDateWhenEmpty?: string;
 }
 
 /**
@@ -37,6 +46,7 @@ export function DateTime15Field({
   value,
   disabled = false,
   onChange,
+  defaultDateWhenEmpty,
 }: DateTime15FieldProps) {
   const { datePart, timePart } = useMemo(() => splitLocal(value), [value]);
 
@@ -50,6 +60,13 @@ export function DateTime15Field({
     onChange(`${nextDate}T${nextTime || "09:00"}`);
   }
 
+  function handlePointerDown() {
+    if (disabled || datePart || !defaultDateWhenEmpty) return;
+    // Apply synchronously so the input's DOM value is the seeded date
+    // before the browser opens the native calendar on this same gesture.
+    flushSync(() => emit(defaultDateWhenEmpty, timePart));
+  }
+
   return (
     <div className="flex gap-2">
       <input
@@ -57,6 +74,7 @@ export function DateTime15Field({
         type="date"
         value={datePart}
         disabled={disabled}
+        onPointerDown={handlePointerDown}
         onChange={(e) => emit(e.target.value, timePart)}
         className={fieldClass}
       />

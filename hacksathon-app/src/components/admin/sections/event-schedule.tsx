@@ -61,6 +61,23 @@ export function EventScheduleSection({
   );
   const scheduledCount = sorted.filter((b) => b.scheduled_date).length;
 
+  // Per-block default date for an empty picker: the nearest earlier block
+  // that already has a start time, falling back to today for the first
+  // (or when no earlier block is scheduled). Used only to steer which
+  // month the native calendar opens to - it never auto-fills on load.
+  const defaultDatesById = useMemo(() => {
+    const result: Record<string, string> = {};
+    const today = todayLocalDate();
+    let lastScheduledDate: string | null = null;
+    for (const block of sorted) {
+      result[block.id] = lastScheduledDate ?? today;
+      if (block.scheduled_date) {
+        lastScheduledDate = isoToLocalDate(block.scheduled_date);
+      }
+    }
+    return result;
+  }, [sorted]);
+
   if (sorted.length === 0) {
     return (
       <div className="rounded-[4px] border border-dashed p-8 text-center">
@@ -99,6 +116,7 @@ export function EventScheduleSection({
             block={block}
             slug={slug}
             isLocked={isLocked}
+            defaultDateWhenEmpty={defaultDatesById[block.id]}
           />
         ))}
       </ol>
@@ -117,10 +135,12 @@ function BlockRow({
   block,
   slug,
   isLocked,
+  defaultDateWhenEmpty,
 }: {
   block: ScheduleBlock;
   slug: string;
   isLocked: boolean;
+  defaultDateWhenEmpty: string;
 }) {
   const router = useRouter();
   const [scheduledLocal, setScheduledLocal] = useState(
@@ -213,6 +233,7 @@ function BlockRow({
             value={scheduledLocal}
             disabled={isLocked || pending}
             onChange={setScheduledLocal}
+            defaultDateWhenEmpty={defaultDateWhenEmpty}
           />
         </AdminField>
         <AdminField
@@ -275,4 +296,18 @@ function isoToLocalInput(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
     d.getHours(),
   )}:${pad(d.getMinutes())}`;
+}
+
+function isoToLocalDate(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function todayLocalDate(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }

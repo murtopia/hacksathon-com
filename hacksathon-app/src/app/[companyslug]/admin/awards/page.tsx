@@ -11,6 +11,7 @@ import { EventPublicShowcaseSection } from "@/components/admin/sections/event-pu
 import { VotingControls } from "@/components/admin/voting-controls";
 import { VotingWindowSection } from "@/components/admin/sections/voting-window";
 import { PreCeremonyReview } from "@/components/admin/sections/pre-ceremony-review";
+import { AdminStepNav } from "@/components/admin/admin-step-nav";
 import { resolveSlugContext } from "@/lib/routing/slug-context";
 
 export const metadata: Metadata = {
@@ -125,6 +126,8 @@ export default async function SlugAdminAwardsPage({ params }: PageProps) {
         categories={(categoryRows as AwardCategoryRow[]) ?? []}
         isLocked={ctx.event.is_locked}
       />
+
+      <AdminStepNav slug={ctx.slug} current="05" />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { EventTeamChatSection } from "@/components/admin/sections/event-team-chat";
 import { EventBuildToolSection } from "@/components/admin/sections/event-build-tool";
+import { AdminStepNav } from "@/components/admin/admin-step-nav";
 import { resolveSlugContext } from "@/lib/routing/slug-context";
 
 export const metadata: Metadata = {
@@ -53,6 +54,8 @@ export default async function SlugAdminIntegrationsPage({ params }: PageProps) {
         initialConfirmed={buildToolConfirmed}
         isLocked={event.is_locked}
       />
+
+      <AdminStepNav slug={ctx.slug} current="02" />
     </div>
   );
 }

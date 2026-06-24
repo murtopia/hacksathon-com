@@ -5,6 +5,7 @@ import { EventWelcomeSection } from "@/components/admin/sections/event-welcome";
 import { EventLogoSection } from "@/components/admin/sections/event-logo";
 import { EventVanityUrlSection } from "@/components/admin/sections/event-vanity-url";
 import { OrgBasicsSection } from "@/components/admin/sections/org-basics";
+import { AdminStepNav } from "@/components/admin/admin-step-nav";
 import { resolveSlugContext } from "@/lib/routing/slug-context";
 
 export const metadata: Metadata = {
@@ -77,6 +78,8 @@ export default async function SlugAdminIdentityPage({ params }: PageProps) {
         initialConfirmed={vanityConfirmed}
         isLocked={event.is_locked}
       />
+
+      <AdminStepNav slug={ctx.slug} current="01" />
     </div>
   );
 }

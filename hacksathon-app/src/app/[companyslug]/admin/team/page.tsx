@@ -14,6 +14,7 @@ import {
   resolveSlugContext,
   resolveSlugViewer,
 } from "@/lib/routing/slug-context";
+import { AdminStepNav } from "@/components/admin/admin-step-nav";
 import { buildJoinUrl } from "@/lib/join/tokens";
 import { getEventSeatUsage } from "@/lib/billing/seats";
 import { applyAddedSeats } from "@/lib/billing/provision";
@@ -211,6 +212,8 @@ export default async function SlugAdminTeamPage({
         pendingRequests={pendingRequests}
         seatUsage={seatUsage}
       />
+
+      <AdminStepNav slug={ctx.slug} current="04" />
     </div>
   );
 }

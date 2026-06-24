@@ -12,6 +12,7 @@ import {
   ReflectionResponses,
   type ReflectionQuestionGroup,
 } from "@/components/admin/sections/reflection-responses";
+import { AdminStepNav } from "@/components/admin/admin-step-nav";
 import { resolveSlugContext } from "@/lib/routing/slug-context";
 
 export const metadata: Metadata = {
@@ -109,6 +110,8 @@ export default async function SlugAdminReflectionsPage({ params }: PageProps) {
         eventId={eventId}
         questions={questions}
       />
+
+      <AdminStepNav slug={ctx.slug} current="06" />
     </div>
   );
 }

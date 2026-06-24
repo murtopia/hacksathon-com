@@ -873,16 +873,23 @@ function ProjectBriefCardInline({ brief }: { brief: ProjectBrief }) {
       window.removeEventListener("afterprint", cleanup);
     };
     window.addEventListener("afterprint", cleanup);
-    window.print();
+    // Wait a frame so the print-only layout is applied before the dialog
+    // opens, otherwise some browsers capture the pre-layout (blank) state.
+    requestAnimationFrame(() => window.print());
   }
 
+  // The print stylesheet hides everything except `.print-blueprint-area`
+  // (see globals.css). Without this wrapper, "Save as PDF" from the
+  // timeline printed an empty page.
   return (
-    <ProjectBriefCard
-      brief={brief}
-      onCopyBlueprint={copy}
-      onDownloadPrd={() => downloadBriefMarkdown(brief)}
-      onSaveAsPdf={pdf}
-    />
+    <div className="print-blueprint-area">
+      <ProjectBriefCard
+        brief={brief}
+        onCopyBlueprint={copy}
+        onDownloadPrd={() => downloadBriefMarkdown(brief)}
+        onSaveAsPdf={pdf}
+      />
+    </div>
   );
 }
 

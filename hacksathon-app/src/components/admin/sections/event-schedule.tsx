@@ -206,6 +206,7 @@ function BlockRow({
           "absolute top-[6px] size-[13px] rounded-full border-2 border-foreground bg-background transition-colors",
           "-left-[52px] max-sm:-left-[34px] max-sm:size-[11px]",
           isScheduled && "bg-foreground",
+          dirty && !isScheduled && "border-dashed",
         )}
       />
       <header className="flex flex-wrap items-baseline gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-1">
@@ -254,6 +255,12 @@ function BlockRow({
           />
         </AdminField>
         <div className="flex items-center gap-2 pb-[2px]">
+          {dirty && !pending && (
+            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground">
+              <span aria-hidden className="size-1.5 rounded-full bg-foreground" />
+              Unsaved
+            </span>
+          )}
           {savedAt && !dirty && !pending && (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Check className="size-3" />
@@ -269,7 +276,7 @@ function BlockRow({
             <Save className="mr-1.5 size-3" />
             Save
           </Button>
-          {isScheduled && (
+          {isScheduled && !dirty && (
             <Button asChild size="sm" variant="ghost">
               <a
                 href={`/${slug}/schedule.ics?block=${encodeURIComponent(

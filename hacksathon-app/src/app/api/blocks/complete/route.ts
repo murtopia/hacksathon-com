@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { ALL_BLOCK_KEYS, type BlockKey } from "@/lib/blocks/status";
+import { isValidBlockKey } from "@/lib/blocks/status";
 
 export const maxDuration = 15;
 
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   if (!eventId) {
     return NextResponse.json({ error: "eventId is required" }, { status: 400 });
   }
-  if (!ALL_BLOCK_KEYS.includes(blockKey as BlockKey)) {
+  if (!isValidBlockKey(blockKey)) {
     return NextResponse.json({ error: "Invalid blockKey" }, { status: 400 });
   }
 

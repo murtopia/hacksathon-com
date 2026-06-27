@@ -44,6 +44,44 @@ export const ALL_BLOCK_KEYS: ReadonlyArray<BlockKey> = [
   "+02",
 ];
 
+/**
+ * Base keys that admins can add extra "continuation" sessions for (a big
+ * team needs more than one Shark Tank pitch slot or Showcase window).
+ * Extra sessions get an instance key like `02-2` / `FINAL-3` that derives
+ * its behavior from the base via {@link baseBlockKey}.
+ */
+export const EXTENDABLE_BASE_KEYS = ["02", "FINAL"] as const;
+export type ExtendableBaseKey = (typeof EXTENDABLE_BASE_KEYS)[number];
+
+/** Max extra sessions per extendable base (base + this many instances). */
+export const MAX_EXTRA_PER_TYPE = 3;
+
+const INSTANCE_KEY_RE = /^(02|FINAL)-(\d+)$/;
+
+/**
+ * Map a block key to the base key whose behavior it inherits. Instance
+ * keys (`02-2`, `FINAL-3`) collapse to their base (`02`, `FINAL`); every
+ * other key returns unchanged. This is what lets extra sessions render
+ * the same participant screen and completion rule as the original.
+ */
+export function baseBlockKey(key: string): string {
+  const match = key.match(INSTANCE_KEY_RE);
+  return match ? match[1] : key;
+}
+
+/** True for an admin-added extra session (e.g. `02-2`, `FINAL-3`). */
+export function isInstanceBlockKey(key: string): boolean {
+  return INSTANCE_KEY_RE.test(key);
+}
+
+/** A canonical key or a valid `02`/`FINAL` instance key. */
+export function isValidBlockKey(key: string): boolean {
+  return (
+    (ALL_BLOCK_KEYS as ReadonlyArray<string>).includes(key) ||
+    isInstanceBlockKey(key)
+  );
+}
+
 export type WindowStatus = "upcoming" | "active" | "completed";
 
 /**
@@ -116,7 +154,8 @@ export function isMineDone({
   if (windowStatus === "completed") return true;
   if (completionsSet.has(blockKey)) return true;
 
-  switch (blockKey) {
+  // Instance sessions (e.g. 02-2, FINAL-2) inherit their base's rule.
+  switch (baseBlockKey(blockKey)) {
     case "01":
       return hasIdea;
     case "03":

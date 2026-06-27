@@ -4,6 +4,7 @@ import {
   requireEventAdmin,
   isErrorResponse,
 } from "@/lib/server/event-admin-guard";
+import { isInstanceBlockKey } from "@/lib/blocks/status";
 
 export const maxDuration = 10;
 
@@ -115,4 +116,71 @@ export async function PATCH(
   }
 
   return NextResponse.json({ ok: true, block: updated });
+}
+
+/**
+ * Delete an extra "continuation" session.
+ *
+ * Admin-only and instance-only: canonical blocks (the original 10 keys)
+ * can never be removed, so this refuses any block_key that isn't an
+ * instance like `02-2` / `FINAL-3`. Refuses when the event is locked.
+ * Best-effort cleanup of any block_completions written for the key.
+ */
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: blockId } = await params;
+
+  const admin = createAdminClient();
+  const { data: blockRow } = await admin
+    .from("blocks")
+    .select("id, event_id, block_key")
+    .eq("id", blockId)
+    .maybeSingle<{ id: string; event_id: string; block_key: string }>();
+
+  if (!blockRow) {
+    return NextResponse.json({ error: "Block not found" }, { status: 404 });
+  }
+
+  if (!isInstanceBlockKey(blockRow.block_key)) {
+    return NextResponse.json(
+      { error: "Only extra sessions can be removed." },
+      { status: 400 },
+    );
+  }
+
+  const ctx = await requireEventAdmin(blockRow.event_id);
+  if (isErrorResponse(ctx)) return ctx;
+
+  const { data: eventRow } = await admin
+    .from("events")
+    .select("is_locked")
+    .eq("id", blockRow.event_id)
+    .single<{ is_locked: boolean }>();
+
+  if (eventRow?.is_locked) {
+    return NextResponse.json(
+      { error: "Event is locked - schedule can't be changed." },
+      { status: 409 },
+    );
+  }
+
+  const { error: deleteError } = await admin
+    .from("blocks")
+    .delete()
+    .eq("id", blockId);
+
+  if (deleteError) {
+    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  }
+
+  // Best-effort: clear any completion rows for this instance key.
+  await admin
+    .from("block_completions")
+    .delete()
+    .eq("event_id", blockRow.event_id)
+    .eq("block_key", blockRow.block_key);
+
+  return NextResponse.json({ ok: true });
 }

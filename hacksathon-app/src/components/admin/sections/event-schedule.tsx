@@ -2,12 +2,18 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, CalendarPlus, Check, Save } from "lucide-react";
+import { Calendar, CalendarPlus, Check, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminField } from "@/components/admin/admin-section";
 import { DateTime15Field } from "@/components/admin/fields/datetime-15-field";
+import {
+  baseBlockKey,
+  EXTENDABLE_BASE_KEYS,
+  isInstanceBlockKey,
+  MAX_EXTRA_PER_TYPE,
+} from "@/lib/blocks/status";
 import { cn } from "@/lib/utils";
 
 export interface ScheduleBlock {
@@ -49,17 +55,42 @@ interface EventScheduleSectionProps {
  * that matches organizer intent - nobody schedules a block at 9:30:42.
  */
 export function EventScheduleSection({
-  eventId: _eventId,
+  eventId,
   slug,
   blocks,
   isLocked,
 }: EventScheduleSectionProps) {
-  void _eventId;
   const sorted = useMemo(
     () => [...blocks].sort((a, b) => a.sort_order - b.sort_order),
     [blocks],
   );
   const scheduledCount = sorted.filter((b) => b.scheduled_date).length;
+
+  // For each extendable group (Shark Tank / Showcase), figure out which
+  // row is the group's last one - the "Add another session" button sits
+  // right after it. Instances always land directly after their base, so
+  // the group is contiguous in sort order.
+  const addAfter = useMemo(() => {
+    const result: Record<
+      string,
+      { baseKey: string; label: string; capReached: boolean }
+    > = {};
+    for (const base of EXTENDABLE_BASE_KEYS) {
+      const group = sorted.filter((b) => baseBlockKey(b.block_key) === base);
+      if (group.length === 0) continue;
+      const last = group[group.length - 1];
+      const baseRow = group.find((b) => b.block_key === base) ?? group[0];
+      const instanceCount = group.filter((b) =>
+        isInstanceBlockKey(b.block_key),
+      ).length;
+      result[last.id] = {
+        baseKey: base,
+        label: `Add another ${baseRow.title} session`,
+        capReached: instanceCount >= MAX_EXTRA_PER_TYPE,
+      };
+    }
+    return result;
+  }, [sorted]);
 
   // Per-block default date for an empty picker: the nearest earlier block
   // that already has a start time, falling back to today for the first
@@ -110,15 +141,29 @@ export function EventScheduleSection({
           "max-sm:pl-10 max-sm:before:left-[10px]",
         )}
       >
-        {sorted.map((block) => (
-          <BlockRow
-            key={block.id}
-            block={block}
-            slug={slug}
-            isLocked={isLocked}
-            defaultDateWhenEmpty={defaultDatesById[block.id]}
-          />
-        ))}
+        {sorted.map((block) => {
+          const add = addAfter[block.id];
+          return (
+            <BlockRow
+              key={block.id}
+              block={block}
+              slug={slug}
+              isLocked={isLocked}
+              defaultDateWhenEmpty={defaultDatesById[block.id]}
+              isInstance={isInstanceBlockKey(block.block_key)}
+              addSession={
+                add
+                  ? {
+                      eventId,
+                      baseKey: add.baseKey,
+                      label: add.label,
+                      capReached: add.capReached,
+                    }
+                  : null
+              }
+            />
+          );
+        })}
       </ol>
       <p
         className="font-mono text-[10px] uppercase tracking-[0.1em]"
@@ -131,16 +176,27 @@ export function EventScheduleSection({
   );
 }
 
+interface AddSessionConfig {
+  eventId: string;
+  baseKey: string;
+  label: string;
+  capReached: boolean;
+}
+
 function BlockRow({
   block,
   slug,
   isLocked,
   defaultDateWhenEmpty,
+  isInstance,
+  addSession,
 }: {
   block: ScheduleBlock;
   slug: string;
   isLocked: boolean;
   defaultDateWhenEmpty: string;
+  isInstance: boolean;
+  addSession: AddSessionConfig | null;
 }) {
   const router = useRouter();
   const [scheduledLocal, setScheduledLocal] = useState(
@@ -150,6 +206,7 @@ function BlockRow({
     block.duration_minutes != null ? String(block.duration_minutes) : "",
   );
   const [pending, startTransition] = useTransition();
+  const [removing, startRemoving] = useTransition();
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
   const initialLocal = isoToLocalInput(block.scheduled_date);
@@ -194,6 +251,26 @@ function BlockRow({
       }
       toast.success(`Saved ${block.title}.`);
       setSavedAt(Date.now());
+      router.refresh();
+    });
+  }
+
+  function handleRemove() {
+    if (
+      !window.confirm(
+        `Remove "${block.title}"? This extra session will be deleted.`,
+      )
+    ) {
+      return;
+    }
+    startRemoving(async () => {
+      const res = await fetch(`/api/blocks/${block.id}`, { method: "DELETE" });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? "Couldn't remove session.");
+        return;
+      }
+      toast.success(`Removed ${block.title}.`);
       router.refresh();
     });
   }
@@ -289,9 +366,76 @@ function BlockRow({
               </a>
             </Button>
           )}
+          {isInstance && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleRemove}
+              disabled={isLocked || removing || pending}
+              title="Remove this extra session"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Trash2 className="mr-1.5 size-3" />
+              {removing ? "Removing…" : "Remove"}
+            </Button>
+          )}
         </div>
       </div>
+
+      {addSession && (
+        <AddSessionButton config={addSession} isLocked={isLocked} />
+      )}
     </li>
+  );
+}
+
+function AddSessionButton({
+  config,
+  isLocked,
+}: {
+  config: AddSessionConfig;
+  isLocked: boolean;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  function handleAdd() {
+    startTransition(async () => {
+      const res = await fetch(`/api/blocks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: config.eventId,
+          baseKey: config.baseKey,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(body?.error ?? "Couldn't add session.");
+        return;
+      }
+      toast.success("Added an extra session.");
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="mt-4">
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={handleAdd}
+        disabled={isLocked || pending || config.capReached}
+        title={
+          config.capReached
+            ? `You can add at most ${MAX_EXTRA_PER_TYPE} extra sessions.`
+            : undefined
+        }
+      >
+        <Plus className="mr-1.5 size-3" />
+        {pending ? "Adding…" : config.label}
+      </Button>
+    </div>
   );
 }
 

@@ -33,8 +33,10 @@ import type {
   ReflectionAnswer,
 } from "@/components/blocks/reflection-form";
 import {
+  baseBlockKey,
   deriveWindowStatus,
   formatScheduledDate,
+  isValidBlockKey,
   type WindowStatus,
 } from "@/lib/blocks/status";
 import {
@@ -58,19 +60,6 @@ type BlockKey =
   | "FINAL"
   | "+01"
   | "+02";
-
-const VALID_BLOCK_KEYS: ReadonlySet<BlockKey> = new Set<BlockKey>([
-  "ZERO",
-  "01",
-  "02",
-  "03",
-  "04",
-  "05",
-  "06",
-  "FINAL",
-  "+01",
-  "+02",
-]);
 
 interface PageProps {
   params: Promise<{ companyslug: string; blockKey: string }>;
@@ -108,7 +97,12 @@ export default async function SlugBlockPage({ params }: PageProps) {
   if (!ctx) notFound();
 
   const blockKey = decodeURIComponent(rawBlockKey);
-  if (!VALID_BLOCK_KEYS.has(blockKey as BlockKey)) notFound();
+  if (!isValidBlockKey(blockKey)) notFound();
+
+  // Extra "continuation" sessions (e.g. 02-2, FINAL-2) inherit the base
+  // key's screen + completion rule. Only 02/FINAL ever get instances, so
+  // the redirect-only keys below stay exact-match.
+  const baseKey = baseBlockKey(blockKey);
 
   const viewer = await resolveSlugViewer(companyslug);
   if (!viewer)
@@ -157,7 +151,7 @@ export default async function SlugBlockPage({ params }: PageProps) {
     .select("block_key")
     .eq("event_id", ctx.event.id)
     .eq("user_id", viewer.user.id)
-    .eq("block_key", blockKey)
+    .eq("block_key", baseKey)
     .maybeSingle<{ block_key: string }>();
 
   const windowStatus = deriveWindowStatus(
@@ -201,7 +195,7 @@ export default async function SlugBlockPage({ params }: PageProps) {
       </header>
 
       <BlockBody
-        blockKey={blockKey as BlockKey}
+        blockKey={baseKey as BlockKey}
         block={block}
         eventId={ctx.event.id}
         userId={viewer.user.id}

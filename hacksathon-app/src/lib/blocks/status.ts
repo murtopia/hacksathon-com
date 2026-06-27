@@ -112,8 +112,15 @@ export function instanceBlockTitle(
   return `${baseTitle} (Part ${partNumber})`;
 }
 
-/** Label for the "Add another session" button under an extendable group. */
+/**
+ * Label for the "Add another session" button under an extendable group.
+ * Shark Tank and build sessions use a fixed, clean label (the event's
+ * own block title can be long/custom, e.g. "Shark Tank, Minus the
+ * Sharks", which reads poorly in a button); Showcase keeps the event's
+ * title so renames still surface.
+ */
 export function addSessionLabel(baseKey: string, baseTitle: string): string {
+  if (baseKey === "02") return "Add another Shark Tank session";
   if (baseKey === "06") return "Add another build session";
   return `Add another ${baseTitle} session`;
 }

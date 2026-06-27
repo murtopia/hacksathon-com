@@ -46,17 +46,18 @@ export const ALL_BLOCK_KEYS: ReadonlyArray<BlockKey> = [
 
 /**
  * Base keys that admins can add extra "continuation" sessions for (a big
- * team needs more than one Shark Tank pitch slot or Showcase window).
- * Extra sessions get an instance key like `02-2` / `FINAL-3` that derives
- * its behavior from the base via {@link baseBlockKey}.
+ * team needs more than one Shark Tank pitch slot, more build time, or a
+ * longer Showcase). Extra sessions get an instance key like `02-2` /
+ * `06-2` / `FINAL-3` that derives its behavior from the base via
+ * {@link baseBlockKey}.
  */
-export const EXTENDABLE_BASE_KEYS = ["02", "FINAL"] as const;
+export const EXTENDABLE_BASE_KEYS = ["02", "06", "FINAL"] as const;
 export type ExtendableBaseKey = (typeof EXTENDABLE_BASE_KEYS)[number];
 
 /** Max extra sessions per extendable base (base + this many instances). */
 export const MAX_EXTRA_PER_TYPE = 3;
 
-const INSTANCE_KEY_RE = /^(02|FINAL)-(\d+)$/;
+const INSTANCE_KEY_RE = /^(02|06|FINAL)-(\d+)$/;
 
 /**
  * Map a block key to the base key whose behavior it inherits. Instance
@@ -69,17 +70,52 @@ export function baseBlockKey(key: string): string {
   return match ? match[1] : key;
 }
 
-/** True for an admin-added extra session (e.g. `02-2`, `FINAL-3`). */
+/** True for an admin-added extra session (e.g. `02-2`, `06-2`, `FINAL-3`). */
 export function isInstanceBlockKey(key: string): boolean {
   return INSTANCE_KEY_RE.test(key);
 }
 
-/** A canonical key or a valid `02`/`FINAL` instance key. */
+/** The numeric suffix of an instance key (`06-2` -> 2), or null. */
+export function instancePartNumber(key: string): number | null {
+  const match = key.match(INSTANCE_KEY_RE);
+  return match ? Number(match[2]) : null;
+}
+
+/** A canonical key or a valid `02`/`06`/`FINAL` instance key. */
 export function isValidBlockKey(key: string): boolean {
   return (
     (ALL_BLOCK_KEYS as ReadonlyArray<string>).includes(key) ||
     isInstanceBlockKey(key)
   );
+}
+
+/**
+ * Title for a new extra session. Build sessions (`06`) use continued
+ * numbering off the base title ("Build Session 3" -> "Build Session 4"
+ * for the first extra); Shark Tank / Showcase use a "(Part N)" suffix.
+ * `partNumber` is the instance suffix (>= 2).
+ */
+export function instanceBlockTitle(
+  baseKey: string,
+  baseTitle: string,
+  partNumber: number,
+): string {
+  if (baseKey === "06") {
+    const match = baseTitle.match(/^(.*?)(\d+)\s*$/);
+    if (match) {
+      const prefix = match[1];
+      const baseNumber = Number(match[2]);
+      return `${prefix}${baseNumber + (partNumber - 1)}`;
+    }
+    return `${baseTitle} (Part ${partNumber})`;
+  }
+  return `${baseTitle} (Part ${partNumber})`;
+}
+
+/** Label for the "Add another session" button under an extendable group. */
+export function addSessionLabel(baseKey: string, baseTitle: string): string {
+  if (baseKey === "06") return "Add another build session";
+  return `Add another ${baseTitle} session`;
 }
 
 export type WindowStatus = "upcoming" | "active" | "completed";

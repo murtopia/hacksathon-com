@@ -6,8 +6,8 @@ import {
 } from "@/lib/server/event-admin-guard";
 import {
   EXTENDABLE_BASE_KEYS,
+  instanceBlockTitle,
   MAX_EXTRA_PER_TYPE,
-  type ExtendableBaseKey,
 } from "@/lib/blocks/status";
 
 export const maxDuration = 10;
@@ -148,7 +148,7 @@ export async function POST(req: Request) {
     .insert({
       event_id: eventId,
       block_key: newKey,
-      title: `${base.title} (Part ${nextNumber})`,
+      title: instanceBlockTitle(baseKey, base.title, nextNumber),
       subtitle: base.subtitle,
       description: base.description,
       purpose: base.purpose,

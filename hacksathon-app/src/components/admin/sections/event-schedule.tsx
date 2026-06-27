@@ -2,15 +2,25 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, CalendarPlus, Check, Plus, Save, Trash2 } from "lucide-react";
+import {
+  Ban,
+  Calendar,
+  CalendarPlus,
+  Check,
+  Plus,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminField } from "@/components/admin/admin-section";
 import { DateTime15Field } from "@/components/admin/fields/datetime-15-field";
 import {
+  addSessionLabel,
   baseBlockKey,
   EXTENDABLE_BASE_KEYS,
+  instancePartNumber,
   isInstanceBlockKey,
   MAX_EXTRA_PER_TYPE,
 } from "@/lib/blocks/status";
@@ -85,11 +95,31 @@ export function EventScheduleSection({
       ).length;
       result[last.id] = {
         baseKey: base,
-        label: `Add another ${baseRow.title} session`,
+        label: addSessionLabel(base, baseRow.title),
         capReached: instanceCount >= MAX_EXTRA_PER_TYPE,
       };
     }
     return result;
+  }, [sorted]);
+
+  // Only the highest-numbered instance of each group can be removed, so
+  // numbering stays contiguous (peel off the top). Collect those ids.
+  const removableIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const base of EXTENDABLE_BASE_KEYS) {
+      const instances = sorted.filter(
+        (b) => baseBlockKey(b.block_key) === base && isInstanceBlockKey(b.block_key),
+      );
+      if (instances.length === 0) continue;
+      const top = instances.reduce((max, b) =>
+        (instancePartNumber(b.block_key) ?? 0) >
+        (instancePartNumber(max.block_key) ?? 0)
+          ? b
+          : max,
+      );
+      ids.add(top.id);
+    }
+    return ids;
   }, [sorted]);
 
   // Per-block default date for an empty picker: the nearest earlier block
@@ -150,7 +180,7 @@ export function EventScheduleSection({
               slug={slug}
               isLocked={isLocked}
               defaultDateWhenEmpty={defaultDatesById[block.id]}
-              isInstance={isInstanceBlockKey(block.block_key)}
+              canRemove={removableIds.has(block.id)}
               addSession={
                 add
                   ? {
@@ -188,14 +218,14 @@ function BlockRow({
   slug,
   isLocked,
   defaultDateWhenEmpty,
-  isInstance,
+  canRemove,
   addSession,
 }: {
   block: ScheduleBlock;
   slug: string;
   isLocked: boolean;
   defaultDateWhenEmpty: string;
-  isInstance: boolean;
+  canRemove: boolean;
   addSession: AddSessionConfig | null;
 }) {
   const router = useRouter();
@@ -366,7 +396,7 @@ function BlockRow({
               </a>
             </Button>
           )}
-          {isInstance && (
+          {canRemove && (
             <Button
               size="sm"
               variant="ghost"
@@ -432,8 +462,16 @@ function AddSessionButton({
             : undefined
         }
       >
-        <Plus className="mr-1.5 size-3" />
-        {pending ? "Adding…" : config.label}
+        {config.capReached ? (
+          <Ban className="mr-1.5 size-3" />
+        ) : (
+          <Plus className="mr-1.5 size-3" />
+        )}
+        {config.capReached
+          ? "Maximum additions reached"
+          : pending
+            ? "Adding…"
+            : config.label}
       </Button>
     </div>
   );

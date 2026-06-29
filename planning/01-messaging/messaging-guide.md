@@ -1,13 +1,14 @@
 # Hacks-a-Thon Messaging Guide
 
-**Status:** Working
-**Version:** v1.2
+**Status:** Working  
+**Version:** v1.3  
 **Purpose:** Source of truth for Hacks-a-Thon positioning, messaging, website copy, sales language, content strategy, and website architecture.
 
 ## Foundation
 
 - [[../company-foundation|Company Foundation]]
 - [[messaging-foundation|Messaging - Foundation]]
+- [[core-messaging-principles|Core Messaging Principles]]
 - [[category-definition|Category Definition]]
 - [[core-beliefs|Core Beliefs]]
 - [[brand-voice|Brand Voice]]

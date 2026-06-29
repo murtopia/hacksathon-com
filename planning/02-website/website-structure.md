@@ -1,105 +1,89 @@
 # Website Structure
 
-**Status:** Working  
-**Purpose:** Protect the agreed public website architecture and prevent unnecessary restructuring between conversations.
+**Status:** Locked
+**Purpose:** Define the public information architecture for the Hacks-a-Thon website.
 
-## Recommended Top-Level Navigation
+## Primary Navigation
 
 1. Home
-2. Platform
-3. Solutions
-4. Pricing
-5. Resources
-6. About / Case Study
+2. The Program
+3. How It Works
+4. Built For
+5. Pricing
+6. Resources
+
+## Footer Navigation
+
+- About
+- Seven2 Case Study
+- Contact
+- Privacy
+- Terms
+
+## Guiding Principle
+
+Each page should answer one primary question.
 
 ## Home
+Purpose: Sell the transformation.
 
-Primary job: communicate the transformation and why Hacks-a-Thon matters.
+Question: Why should I care?
 
-The homepage should sell:
+## The Program
+Purpose: Explain everything included.
 
-- AI adoption as the business outcome.
-- Human confidence as the mechanism.
-- Shared creation as the culture-building experience.
-- Self-service exploration through interactive demos.
+Question: What exactly am I buying?
 
-The homepage should not carry every product detail.
+Includes:
+- IdeaLab
+- Blueprint
+- Playbook
+- Admin Dashboard
+- Participant Experience
+- Hacky Awards
+- Recap
+- Interactive Admin Demo
+- Interactive Participant Demo
 
-## Platform
+## How It Works
+Purpose: Explain the methodology.
 
-Primary job: explain what the customer gets and how the platform works.
+Question: Why does this approach succeed?
 
-Key sections:
+Topics:
+- Multi-week format
+- Structured process
+- Inclusive by design
+- Fits around real work
+- Built for non-technical employees
+- Solving real business problems
+- Why creating builds confidence
 
-- Admin experience
-- Participant experience
-- Idea submission
-- Guided playbooks
-- Event structure
-- Interactive demos
-- Showcase / Shark Tank-style presentation
-- Recap and proof of momentum
+## Built For
+Purpose: Show how the program adapts for different organizations.
 
-## Solutions
+Question: Will this work for my organization?
 
-Primary job: provide vertical-specific entry points.
+Launch pages:
+- Your Organization
+- Marketing & Creative Agencies
 
-At launch:
-
-- General company / organization solution page
-- Marketing and creative agencies solution page
-
-Later verticals may include:
-
+Future:
 - Healthcare
 - Manufacturing
-- Financial services
-- Education
+- Financial Services
+- Higher Education
 - Government
+- Construction
 - Legal
-- Technology companies
 - Nonprofits
+- Technology
 
 ## Pricing
-
-Primary job: make the purchase decision feel simple and easy to justify.
-
-Pricing should be framed against:
-
-- Failed AI adoption
-- Low-value training
-- Consultants
-- Traditional team-building events
-- The cost of employees not knowing where to begin
+Purpose: Make getting started simple.
 
 ## Resources
+Purpose: Build authority around Organizational AI Adoption through articles, videos, templates, downloads, and case studies.
 
-Primary job: long-term education, SEO, and thought leadership.
-
-Resources should build authority around Organizational AI Adoption, AI confidence, culture through creation, and the human side of AI transformation.
-
-## About / Case Study
-
-Primary job: tell the Seven2 origin story and provide proof.
-
-This page should explain:
-
-- Why Hacks-a-Thon was created.
-- What happened inside Seven2.
-- What participants experienced.
-- Why the team kept creating after the event.
-- Why this became a product.
-
-## CTA Direction
-
-Primary CTA language to test:
-
-- See How It Works
-- Explore the Platform
-- Start Your Hacks-a-Thon
-
-Current preferred CTA:
-
-**See How It Works**
-
-Interactive demos are the preferred self-service conversion path.
+## About
+Purpose: Tell Nick's founder story, the tools he built that led to Hacks-a-Thon, why it exists, and the vision for empowering every employee to create with AI.

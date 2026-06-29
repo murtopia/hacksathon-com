@@ -1,7 +1,7 @@
 # Hacks-a-Thon Messaging Guide
 
 **Status:** Working  
-**Version:** v1.1  
+**Version:** v1.2  
 **Purpose:** Source of truth for Hacks-a-Thon positioning, messaging, website copy, sales language, and content strategy.
 
 ## Foundation
@@ -10,11 +10,28 @@
 - [[messaging-foundation|Messaging - Foundation]]
 - [[category-definition|Category Definition]]
 - [[core-beliefs|Core Beliefs]]
+- [[core-messaging-principles|Core Messaging Principles]]
 - [[brand-voice|Brand Voice]]
 - [[participant-journey|Participant Journey]]
 - [[walls-we-dont-cross|Brand Principles]]
 - [[hacks-a-thon-flywheel|Hacks-a-Thon Flywheel]]
 - [[transformation-story|Transformation Story]]
+
+## Current Messaging Thesis
+
+Hacks-a-Thon helps organizations accelerate AI adoption by turning overwhelmed employees into confident creators.
+
+The product should not be framed as “a hackathon.” The hackathon-style event is the format. The business outcome is AI adoption. The human mechanism is confidence through creation.
+
+## Homepage Messaging Rules
+
+- Lead with the adoption problem, not the event format.
+- Make the AI ecosystem feel overwhelming but solvable.
+- Emphasize confidence as the transformation.
+- Use “tools” more often than “software.”
+- Be accurate about what participants create: projects, tools, websites, automations, workflows, experiments, prototypes, and solutions.
+- Keep the Seven2 origin story present but do not let it overtake the homepage.
+- Use interactive demos as the preferred self-service conversion path.
 
 ## Website Copy
 
@@ -36,6 +53,7 @@
 
 - [[../00-home/project-summary|Project Summary]]
 - [[../00-home/project-dashboard|Project Dashboard]]
+- [[../00-home/session-notes|Session Notes]]
 - [[../08-planning/decision-log|Decision Log]]
 - [[../08-planning/decisions|Decisions]]
 - [[../08-planning/parking-lot|Parking Lot]]

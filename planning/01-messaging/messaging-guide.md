@@ -1,8 +1,8 @@
 # Hacks-a-Thon Messaging Guide
 
-**Status:** Working  
-**Version:** v1.1  
-**Purpose:** Source of truth for Hacks-a-Thon positioning, messaging, website copy, sales language, and content strategy.
+**Status:** Working
+**Version:** v1.2
+**Purpose:** Source of truth for Hacks-a-Thon positioning, messaging, website copy, sales language, content strategy, and website architecture.
 
 ## Foundation
 
@@ -16,8 +16,9 @@
 - [[hacks-a-thon-flywheel|Hacks-a-Thon Flywheel]]
 - [[transformation-story|Transformation Story]]
 
-## Website Copy
+## Website
 
+- [[../02-website/website-structure|Website Structure]]
 - [[../02-website/homepage-copy|Homepage Copy]]
 - [[../02-website/platform-page|Platform Page]]
 - [[../02-website/pricing-page|Pricing Page]]

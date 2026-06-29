@@ -8,7 +8,7 @@ Foundation and website messaging.
 
 Branch: `planning-docs-v1`  
 PR: #1  
-Status: Planning workspace and foundational docs are being added.
+Status: Planning workspace, foundational docs, memory docs, and website structure notes are being added.
 
 ## Locked Documents
 
@@ -22,6 +22,8 @@ Status: Planning workspace and foundational docs are being added.
 - Messaging Guide
 - Transformation Story
 - Homepage Copy
+- Website Structure
+- Resources Strategy
 - Platform Page
 - Pricing Page
 - Solutions Overview
@@ -34,6 +36,7 @@ Status: Planning workspace and foundational docs are being added.
 - Founder Notes
 - Market Notes
 - Moments That Matter
+- Project Memory
 
 ## Next Task
 
@@ -45,3 +48,4 @@ Finalize Homepage v1.
 - Final self-service CTA language.
 - Pricing framing.
 - How much of the Seven2 story should appear on the homepage versus case study pages.
+- How Resources should be prioritized after launch.

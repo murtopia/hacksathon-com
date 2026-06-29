@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2
+
+- Added `project-memory.md` to preserve future ideas and context between chats.
+- Added `website-structure.md` to protect the agreed public website architecture.
+- Added `resources-strategy.md` to capture future Resources section and content engine ideas.
+- Updated project dashboard with memory and website structure documents.
+- Updated workflow: save to Git more frequently as documents get close or locked.
+
 ## v1.1
 
 - Added company foundation.

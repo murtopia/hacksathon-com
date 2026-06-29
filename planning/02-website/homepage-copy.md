@@ -1,45 +1,111 @@
 # Homepage Copy
 
+**Status:** Working  
+**Version:** v1.0  
+**Purpose:** Canonical working copy for the Hacks-a-Thon homepage.
+
+## Section Status
+
+- Locked: Hero
+- Locked: The Problem
+- Locked: A Different Way to Adopt AI
+- Locked: Designed to Create Real AI Adoption
+- Working: Social Proof
+- Working: The Outcome
+- Working: Final CTA
+
+---
+
+## Hero
+
+**Status:** Locked
+
+**Eyebrow**  
+Helping every employee adopt AI. Proven with real non-technical teams.
+
+**Headline**  
+Accelerate AI Adoption by Empowering Every Employee to Create Solutions
+
+**Subheadline**  
+Hacks-a-Thon gives every employee a clear, guided path to creating practical solutions with AI, building confidence that lasts long after the event ends.
+
+**Supporting Statement**  
+The result? Greater AI adoption, lasting AI confidence, and a culture where innovation comes from everyone, not just technical teams.
+
+**CTA**  
+See How It Works
+
+---
+
+## The Problem
+
+**Status:** Locked
+
+### AI isn't your biggest challenge.
+
+### Adoption is.
+
+Most companies already have access to AI. Many have invested in AI tools and training. Yet employees are overwhelmed and don't know where to begin.
+
+They're unsure which tools to trust or how AI fits into the work they do every day. Without confidence, adoption slows.
+
+---
+
+## A Different Way to Adopt AI
+
+**Status:** Locked
+
+Companies don't adopt AI.
+
+People do.
+
+People don't become confident by watching someone else use AI.
+
+They become confident by creating.
+
+Hacks-a-Thon gives employees a guided path to build something real. That first success changes how they think about what they can do with AI.
+
+People don't leave with more information.
+
+They leave with confidence.
+
+**CTA**  
+See How It Works
+
+---
+
+## Designed to Create Real AI Adoption
+
+**Status:** Locked
+
+People build confidence fastest when they create something they genuinely care about.
+
+That's why we encourage participants to begin with something they genuinely want to create.
+
+That first success changes how they think about what they can do with AI.
+
+Before long, they're seeing opportunities to use AI everywhere.
+
+---
+
+## Social Proof
+
 **Status:** Working
 
-## Goal
+Participant quotes and proof should move higher than the old homepage version and support the transformation story.
 
-Sell the vision: Hacks-a-Thon helps organizations accelerate AI adoption by empowering every employee to confidently create solutions.
+---
 
-The homepage should lead with the business problem and transformation, not just the hackathon format.
+## The Outcome
 
-## Strategic Direction
+**Status:** Working
 
-People are not buying a hackathon. They are buying a faster, more human path to AI adoption.
+This section should reinforce the mission: helping people realize they can create solutions they never thought possible.
 
-The homepage should make the visitor feel:
+---
 
-- AI adoption is a people problem, not just a technology problem.
-- Employees are overwhelmed and unsure where to begin.
-- Hacks-a-Thon gives teams a clear, fun, guided way to start creating with AI.
-- The result is both AI adoption and culture building.
+## Final CTA
 
-## Hero Lines to Explore
+**Status:** Working
 
-- Help your team confidently create with AI.
-- Accelerate AI adoption. Empower every employee to create.
-- Give your team the confidence to create with AI.
-
-## CTA Direction
-
-Primary CTA should be self-service.
-
-Preferred CTA: **See How It Works**
-
-Secondary CTA may point to interactive demos:
-
-- Explore the Admin Experience
-- Experience the Participant Journey
-
-## Copy Notes
-
-- Do not overuse hackathon language in the hero.
-- Use tools more often than software.
-- Avoid saying participants create AI-powered tools in every case. More accurate: participants use AI to create projects, tools, websites, automations, or solutions.
-- Clarify that people do leave with information, but more importantly, they leave with confidence.
-- Include the overwhelming AI ecosystem problem: too many tools, too much noise, unclear who to trust.
+The CTA should remain self-service and point toward seeing how the program works.

@@ -1,7 +1,43 @@
 # Project Memory
 
-**Status:** Living  
-**Purpose:** Capture valuable ideas, future directions, website structure decisions, content ideas, and open threads that should not be lost between conversations.
+Status: Living
+Version: 1.1.0
+Last Updated: 2026-06-30 CDT
+Last Updated By: Nick + ChatGPT
+
+Purpose:
+Captures valuable ideas, future directions, website structure decisions, content ideas, and open threads that should not be lost between conversations.
+
+Source of Truth:
+GitHub
+
+Depends On:
+- planning/company-foundation.md
+- planning/00-home/project-summary.md
+- planning/DOCUMENT_INDEX.md
+- planning/WORKFLOW.md
+
+Used By:
+- Future planning sessions
+- Website strategy
+- Product strategy
+- Resources planning
+
+Lock Status:
+Locked sections:
+- Workflow Decisions
+- Website Structure To Protect
+- Ideas To Protect
+
+Working sections:
+- Resources Section Ideas
+- Future Products and Offers
+- Open Questions
+
+Next Review:
+After The Program page is locked.
+
+---
 
 This file is different from `project-summary.md`.
 
@@ -14,30 +50,44 @@ This file is different from `project-summary.md`.
 - Use the GitHub repository as the durable memory for Hacks-a-Thon.
 - Save to Git more frequently as documents become close or decisions are locked.
 - At the end of meaningful work, report whether anything remains to push.
-- Before starting a new chat, read: `company-foundation.md`, `project-summary.md`, `project-memory.md`, and `project-dashboard.md`.
+- Before starting a new chat, read `planning/WORKFLOW.md`, `planning/DOCUMENT_INDEX.md`, `planning/company-foundation.md`, `planning/00-home/project-summary.md`, `planning/00-home/project-memory.md`, and `planning/00-home/project-dashboard.md`.
+- Update document metadata, `planning/CHANGELOG.md`, and `planning/DOCUMENT_INDEX.md` when documents change.
+- Preserve raw research separately from synthesized insights.
 
 ## Website Structure To Protect
 
 The site should remain focused and self-service.
 
-Primary structure:
+Primary navigation:
 
 1. Home
-2. Platform
-3. Solutions
-4. Pricing
-5. Resources
-6. About / Case Study
+2. The Program
+3. How It Works
+4. Built For
+5. Pricing
+6. Resources
+
+Footer:
+
+- About
+- Seven2 Case Study
+- Contact
+- Privacy
+- Terms
 
 Notes:
 
 - Do not overcomplicate the architecture early.
-- Solutions should become the home for vertical landing pages.
-- At launch, Solutions should include a general company page and an agency-specific page.
-- The agency landing page is the first vertical because small ad agencies are the initial go-to-market focus.
+- Each page has one job.
+- Do not duplicate content between pages.
 - The homepage should sell the value and transformation, not explain every feature.
-- The platform page should explain the admin and participant experiences, including the interactive demos.
+- The Program page should answer, “What exactly am I buying?”
+- How It Works should explain the methodology.
+- Built For should provide audience-specific entry points.
 - Pricing should make the decision feel easy without underselling the value.
+- Resources should become the long-term education and traffic engine.
+- About should tell the founder story.
+- Seven2 Case Study should carry the deeper proof story.
 
 ## Resources Section Ideas
 
@@ -75,16 +125,19 @@ Current focus remains selling the flagship Hacks-a-Thon program.
 
 ## Future Documents To Create
 
+- The Program page
+- How It Works page
+- Built For overview
+- Your Organization page
+- Marketing and Creative Agencies page
+- Pricing Narrative
+- Resources Strategy
+- About page
+- Seven2 Case Study Expansion
+- Product Hunt Brief
 - The AI Adoption Problem
 - The Psychology of AI Adoption
 - Why This Works
-- Website Structure
-- Resources Strategy
-- Agency Landing Page Strategy
-- Pricing Narrative
-- Sales Narrative
-- Product Hunt Brief
-- Seven2 Case Study Expansion
 
 ## Ideas To Protect
 
@@ -100,9 +153,20 @@ Current focus remains selling the flagship Hacks-a-Thon program.
 
 ## Open Questions
 
-- Final homepage hero headline.
 - Best language for AI confidence vs. AI literacy.
-- How much Seven2 origin story belongs on the homepage.
+- How much Seven2 origin story belongs on About vs. Seven2 Case Study.
 - Whether the public-facing category should remain Organizational AI Adoption.
 - How bold the pricing page should be.
 - How quickly to introduce future education programs after launch.
+
+## Change History
+
+### v1.1.0
+- Added metadata header.
+- Updated workflow decisions to reference the new documentation system.
+- Standardized architecture around The Program.
+- Added About and Seven2 Case Study footer structure.
+- Updated future documents list.
+
+### v1.0.0
+- Initial project memory.

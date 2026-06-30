@@ -1,7 +1,7 @@
 # Hacks-a-Thon Messaging Guide
 
 **Status:** Working  
-**Version:** v1.2  
+**Version:** v1.3  
 **Purpose:** Source of truth for Hacks-a-Thon positioning, messaging, website copy, sales language, and content strategy.
 
 ## Foundation
@@ -36,13 +36,15 @@ The product should not be framed as “a hackathon.” The hackathon-style event
 ## Website Copy
 
 - [[../02-website/homepage-copy|Homepage Copy]]
-- [[../02-website/platform-page|Platform Page]]
+- [[../02-website/the-program|The Program]]
+- [[../02-website/website-structure|Website Structure]]
 - [[../02-website/pricing-page|Pricing Page]]
 - [[../02-website/solutions-overview|Solutions Overview]]
 - [[../02-website/agencies-solution-page|Agencies Solution Page]]
 
 ## Research
 
+- [[../06-research/participant-reflections|Participant Reflections]]
 - [[../06-research/participant-insights|Participant Insights]]
 - [[../06-research/proof|Proof]]
 - [[../06-research/founder-notes|Founder Notes]]
@@ -51,10 +53,19 @@ The product should not be framed as “a hackathon.” The hackathon-style event
 
 ## Planning
 
+- [[../WORKFLOW|Workflow]]
+- [[../DOCUMENT_INDEX|Document Index]]
+- [[../CHANGELOG|Changelog]]
 - [[../00-home/project-summary|Project Summary]]
 - [[../00-home/project-dashboard|Project Dashboard]]
 - [[../00-home/session-notes|Session Notes]]
 - [[../08-planning/decision-log|Decision Log]]
 - [[../08-planning/decisions|Decisions]]
 - [[../08-planning/parking-lot|Parking Lot]]
-- [[../08-planning/changelog|Changelog]]
+
+## Change History
+
+### v1.3
+- Updated Website Copy links to use The Program instead of Platform.
+- Added Documentation System links.
+- Added Participant Reflections as a research source.

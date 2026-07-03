@@ -1,7 +1,7 @@
 # Project Dashboard
 
 Status: Living
-Version: 1.1.0
+Version: 1.2.0
 Last Updated: 2026-06-30 CDT
 Last Updated By: Nick + ChatGPT
 
@@ -32,19 +32,19 @@ Working sections:
 - Open Questions
 
 Next Review:
-After The Program page is locked.
+After Everything Included is locked.
 
 ---
 
 ## Current Phase
 
-Documentation system and The Program page.
+The Program page.
 
 ## Git Status
 
 Branch: `main`  
 Repo: `murtopia/hacksathon-com`  
-Status: Planning workspace, foundational docs, messaging docs, website structure notes, homepage direction, documentation workflow, and participant reflections are committed.
+Status: Planning workspace, foundational docs, messaging docs, website structure notes, homepage direction, documentation workflow, participant reflections, and The Program hero are committed.
 
 ## Documentation Workflow Requirement
 
@@ -59,7 +59,7 @@ Before meaningful work, read:
 - `planning/00-home/session-notes.md`
 - `planning/01-messaging/core-messaging-principles.md`
 - `planning/01-messaging/messaging-guide.md`
-- The relevant active page document
+- `planning/02-website/the-program.md`
 
 ## Locked Documents
 
@@ -105,25 +105,44 @@ Before meaningful work, read:
 - Project Summary
 - Project Memory
 
-## Next Task
+## The Program Progress
 
-Continue The Program page.
+Locked:
 
-Current page job:
+- Page Purpose
+- Page Job
+- Section Sequence
+- Hero / Program Overview
 
-**Answer: What exactly am I buying?**
+Next:
 
-Include:
+- Everything Included
+
+Upcoming:
 
 - IdeaLab
 - Blueprint
 - Playbook
 - Admin Dashboard
 - Participant Experience
+- Interactive Demos
 - Hacky Awards
 - Recap
-- Interactive demos
-- Everything included
+- Final CTA
+
+## Next Task
+
+Draft and refine the Everything Included section for The Program page.
+
+Goal:
+Show what the customer receives in a concrete, buyer-friendly way without overstating that Hacks-a-Thon includes every outside AI or vibe coding tool needed to participate.
+
+Important guardrails:
+
+- Do not imply Hacks-a-Thon makes people AI masters.
+- Do not imply every outside AI creation platform is included.
+- Make the program feel substantial without calling it a massive AI adoption program.
+- Make the page approachable for mixed-experience teams, including beginners, regular AI users, and expert developers.
 
 ## Open Questions
 
@@ -134,6 +153,12 @@ Include:
 - Whether the homepage should include a lightweight pricing teaser or keep pricing entirely separate.
 
 ## Change History
+
+### v1.2.0
+- Updated current phase to The Program page.
+- Recorded The Program hero as locked.
+- Set Everything Included as the next task.
+- Added guardrails around AI confidence, mixed-experience teams, and outside AI creation tools.
 
 ### v1.1.0
 - Added metadata header.

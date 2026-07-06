@@ -12,14 +12,14 @@
 - **2 projects** still in progress at event close
 - **13 participants submitted reflections** (84 responses across 7 questions)
 - **15 participants voted** in the Hacky Awards (90 total votes across 6 categories)
-- **Event duration:** ~6 weeks, Feb–Apr 2026, run in 30–45 minute time-blocked sessions
+- **Event duration:** about 2.5 weeks, spring 2026, run in 30–45 minute time-blocked sessions
 
 ---
 
 ## 1. The Biggest Wins — What Made This Work
 
 ### The completion rate was extraordinary
-14 out of ~22 participants shipped a working product with a live URL. For a non-technical team with no prior coding experience, a **64% completion rate in 6 weeks of part-time work** is the headline stat. In traditional hackathons even among developers, many teams fail to ship. This number alone validates the entire format.
+14 out of ~22 participants shipped a working product with a live URL. For a non-technical team with no prior coding experience, a **64% completion rate in about two and a half weeks of part-time work** is the headline stat. In traditional hackathons even among developers, many teams fail to ship. This number alone validates the entire format.
 
 ### Personal passion projects out-performed work projects
 The top three award-winning projects — Drift (bedtime stories), Cut-up Lyric Generator, and Even Grounds (coffee journaling) — were all deeply personal. None were about work. The format's explicit encouragement of "silly" or passion-driven ideas directly produced the most engaged participants and the most polished outcomes. Adam Simons put it bluntly: *"I loved seeing my coworkers' presentations that were based on products that were less work or productivity related. It makes the whole project a lot of fun."*
@@ -309,7 +309,7 @@ The event created significant creative momentum — 9 of 13 reflectors said they
 | Award votes cast | 90 |
 | Best in Show margin | 12 of 15 votes (80%) |
 | Participants wanting to continue building | 9 of 13 (69%) |
-| Event duration | ~6 weeks, part-time |
+| Event duration | ~2.5 weeks, part-time (could compress to ~1 week with more availability) |
 | Time per session | 30–45 minutes |
 
 ---

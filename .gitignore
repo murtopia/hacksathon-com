@@ -17,3 +17,6 @@ node_modules/
 # Design source files (large binaries, not versioned in git)
 Hacks Art Files/
 *.psd
+
+# Superseded planning experiment (homepage copy recovered into Claude Planning Update 2026-07-06)
+Hacks-a-Thon Obsidian/

@@ -139,7 +139,7 @@ export function CheckoutForm() {
         </Button>
         <p className="form-hint text-center">
           Secure checkout by Stripe. Have a promo code? Enter it on the next
-          screen.
+          screen - your total updates before you&apos;re charged.
         </p>
       </div>
     </form>

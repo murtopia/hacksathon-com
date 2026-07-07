@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ next?: string | string[] }>;
+  searchParams: Promise<{ next?: string | string[]; error?: string | string[] }>;
 }
 
 /**
@@ -32,7 +32,8 @@ interface PageProps {
  * generic "Welcome back" greeting.
  */
 export default async function LoginPage({ searchParams }: PageProps) {
-  const { next } = await searchParams;
+  const { next, error } = await searchParams;
+  const authError = (Array.isArray(error) ? error[0] : error) === "auth";
   const joinPreview = await previewJoinDestination(next);
   const checkout = !joinPreview && isCheckoutNext(next);
   const eventPreview =
@@ -80,6 +81,16 @@ export default async function LoginPage({ searchParams }: PageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {authError && (
+            <div
+              role="alert"
+              className="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+            >
+              We couldn&apos;t finish signing you in. Please try again - and if
+              it keeps happening, try opening the site in your regular browser
+              instead of an in-app one.
+            </div>
+          )}
           <Suspense fallback={<div className="h-64" aria-hidden />}>
             <AuthForm mode="login" />
           </Suspense>

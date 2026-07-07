@@ -66,16 +66,32 @@ export async function updateSession(request: NextRequest) {
     !pathname.startsWith("/callback")
   ) {
     const url = request.nextUrl.clone();
+    const returnTo = pathname + request.nextUrl.search;
     url.pathname = "/login";
-    url.searchParams.set("redirect", pathname);
+    url.search = "";
+    url.searchParams.set("next", returnTo);
     return NextResponse.redirect(url);
   }
 
   if (user && (pathname === "/login" || pathname === "/signup")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+    // Preserve buy/join intent: an already-authenticated visitor landing
+    // on an auth page with `?next=/checkout` (or any safe internal path)
+    // should continue there, not get parked on the dashboard.
+    const next = safeNextPath(request.nextUrl.searchParams.get("next"));
+    return NextResponse.redirect(new URL(next ?? "/dashboard", request.url));
   }
 
   return supabaseResponse;
+}
+
+/**
+ * Only ever redirect to a relative path inside this site. Mirrors the
+ * sanitization in `AuthForm` so `?next=` can't be used as an open
+ * redirect.
+ */
+function safeNextPath(value: string | null): string | null {
+  if (!value) return null;
+  if (!value.startsWith("/")) return null;
+  if (value.startsWith("//")) return null;
+  return value;
 }

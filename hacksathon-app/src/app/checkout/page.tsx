@@ -38,6 +38,10 @@ export default async function CheckoutPage() {
             One flat price for the whole event. Pay now, then set everything up
             with the Hacky Helper guiding you.
           </p>
+          <p className="text-sm text-muted-foreground">
+            Have a promo code? You&apos;ll enter it on the payment screen - your
+            total updates before you pay.
+          </p>
         </div>
 
         <CheckoutForm />

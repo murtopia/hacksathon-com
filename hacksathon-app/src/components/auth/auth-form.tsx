@@ -105,11 +105,17 @@ export function AuthForm({
         }
       }
 
+      // Thread `next` through the confirmation email so buy/join intent
+      // (e.g. /checkout) survives the round trip instead of dumping the
+      // user on the dashboard after they confirm.
+      const emailRedirectTo = nextPath
+        ? `${window.location.origin}/callback?next=${encodeURIComponent(nextPath)}`
+        : `${window.location.origin}/callback`;
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/callback`,
+          emailRedirectTo,
           data: { full_name: fullName || undefined },
         },
       });

@@ -127,6 +127,10 @@ export default async function DashboardPage() {
         <Button asChild variant="pill" size="pill" className="mt-6">
           <Link href="/checkout">Buy your Hacks-a-Thon</Link>
         </Button>
+        <p className="text-muted-foreground mt-4 text-xs">
+          Have a promo code? Head to checkout and enter it on the payment
+          screen - your total updates before you pay.
+        </p>
       </div>
 
       <Card>

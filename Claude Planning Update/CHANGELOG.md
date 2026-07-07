@@ -1,7 +1,7 @@
 # Changelog
 
 Status: Living
-Version: 1.9.0
+Version: 1.12.0
 Last Updated: 2026-07-06 CDT
 Last Updated By: Nick + Claude
 
@@ -36,6 +36,11 @@ Every meaningful planning save.
 
 ### Added
 
+- Triaged the external ChatGPT audit (Hacksathon_Website_Review_Master_Audit.docx, placed in 02-website/) and applied the five accepted items: the homepage Seven2 proof strip (homepage-copy.md v1.3), the "Couldn't we just run our own hackathon?" FAQ, After Purchase mini-flow, and extended Let's Talk line (pricing-page.md v1.1.0), and the What Seven2 Proved bullets (case-study.md v1.1.0). Regenerated full-site-copy-export.md with all five. Deferred repetition and product-clarifier notes to the cohesion pass as watch-items. Rejected with reasons: Built For broadening (proof-gated rule), Pricing value-comparison framing (deliberately retired), guarantee language (never invent promises). Full rulings in the project dashboard.
+
+- Created and locked 02-website/case-study.md (v1.0.0): the Seven2 Case Study, the eighth and final page. The live /seven2 Public Showcase adopted as the foundation, wrapped in a locked narrative layer: "Every single person shipped." opener with stat band, The Setup, How It Ran ("Steal it"), a one-line AI-recap reframe, and What Happened After. Implementation checklist recorded for Nick's Cursor pass (including restoring the Hacky Awards and Reflections blocks that failed to translate to the page).
+- Established Verified Numbers in 06-research/proof.md (Nick, 2026-07-06): 19 participants, 19 projects, 19 shipped, 100% completion, ~2.5 weeks, spring 2026, 0 outside facilitators. Corrected session-1-learnings-synthesis.md (banner plus metrics table), which had 22 participants / 14 completed / 64%.
+- Created and locked 02-website/about.md (v1.0.0): the About page, first person. Hero "More ideas than time," the agency years (Seven2 2004 with Tyler Lafferty, 14Four, Strategy Labs with Ramsey Pruchnik), Been Watching's five-year limbo as the someone-should-build-that beat, the vibe-coding unlock with Tony Rosland credited and linked, HyperChrono's three deaths before its March 2026 App Store launch, the tools-nobody-used insight, the aha moment, and the creatives-have-superpowers close. Nick's raw origin story preserved in 06-research/founder-notes.md. Seventh locked page; only the Seven2 Case Study remains.
 - Created and locked 02-website/resources.md (v1.0.0): the Resource Library. Strategy locked: problem-based doors instead of media-type categories (I'm just getting started / I'm leading a team / I want to create / I want proof), pillars as internal taxonomy only, AI Field Notes hosted on Hacksathon.com as the X/LinkedIn content engine (Nick's call: distribution and backlinks belong on the domain that sells), ungated at launch, launch-safe scope. Page copy locked including the contextual footer CTA "See How the Hacks-a-Thon Works" for visitors arriving from outside links. Eight-article launch roadmap plus Field Notes cadence; templates slotted as the first post-launch gated addition; ChatGPT brain-dump ideas absorbed with the nonexistent-Playbook reference corrected. Sixth locked page.
 - Completed and locked the Pricing page (02-website/pricing-page.md v1.0.0). Live page structure adopted as locked copy, plus a new Why One Flat Price section (whole-team rationale, ~$40/person, the pizza line) and a new How Much Time Does This Take? FAQ. Corrections applied: IdeaLab sparks/comments claim removed (feature doesn't exist), team chat integration reworded to team chat link. Comparison framing (consultants, failed training) retired in favor of transparency. Live-site correction list recorded for Nick's Cursor pass. Fifth locked page of the site.
 - Added Additional Platform Facts to the Component Reference in the-program.md from the live pricing page (starter prompt tuned to build tool, branded invites, awards slideshow, vanity URLs, custom branding, chat-link accuracy note, no-sparks/comments note).
@@ -48,6 +53,11 @@ Every meaningful planning save.
 - Added Public Showcase and The Blocks schedule model (ten blocks, 15 to 60 minutes each, admin-scheduled, repeatable pitch/build/showcase sessions) to the Component Reference in the-program.md, confirmed via product screenshots.
 
 ### Updated
+
+- Captured Nick's full founder origin story as raw research in 06-research/founder-notes.md (agency history, the imagegen era, Been Watching, HyperChrono's four rounds, Tony Rosland mentorship, the IdeaLab flight build, ZERO.Prmptr and edit.prmptr, the book, the first Hacks-a-Thon, the aha).
+- GitHub Desktop set up; first full backup of Claude Planning Update pushed to murtopia/hacksathon-com (51 files; the 22 remote ChatGPT-era commits pulled and merged cleanly). Hacks-a-Thon Obsidian folder added to .gitignore as superseded.
+- Resolved the /seven2 URL mystery: /seven2/final, /case-study, and /showcase all redirect to /seven2 by design (URL-restructure workaround). Pricing correction list item softened to an optional tidy-up.
+- ALL EIGHT PAGES OF THE SITE ARE NOW LOCKED. The copy mission's remaining step is the site-wide cohesion pass.
 
 - Recovered the locked homepage copy. It was written 2026-06-29 during the ChatGPT sessions but saved only to the Obsidian folder (homepage-copy-v1.md) and never reached the GitHub repo, so the 2026-07-05 mirror missed it. Consolidated into 02-website/homepage-copy.md (now v1.2, Locked). Verify against the live site during the cohesion pass.
 - Added a Workspace Map to the project dashboard documenting all sibling folders and their provenance (verified by file dates): Claude Planning Update is current; Claude Planning Docs (April 2026), ChatGPT Planning Docs, and strategy-inputs are historical product-era work; the Obsidian folder is now truly superseded.
@@ -107,6 +117,15 @@ Every meaningful planning save.
 - Replaced `planning/02-website/platform-page.md` with `planning/02-website/the-program.md`.
 
 ## Change History
+
+### v1.12.0
+- Added the external-audit triage entry: five accepted items applied, rulings recorded.
+
+### v1.11.0
+- Added the Case Study completion, verified-numbers correction, and all-eight-pages-locked entries.
+
+### v1.10.0
+- Added the About completion, founder-story capture, and GitHub backup entries.
 
 ### v1.9.0
 - Added the Resources completion entry.

@@ -3,6 +3,17 @@
 **Status:** Research  
 **Purpose:** Capture real evidence that supports the Hacks-a-Thon methodology and positioning.
 
+## Verified Numbers (Nick, 2026-07-06)
+
+The authoritative Seven2 pilot statistics. These supersede the figures in Claude Planning Docs/session-1-learnings-synthesis.md (which stated 22 participants, 14 completed, 64%).
+
+- 19 participants: the entire company, including Nick.
+- 19 projects, one per participant.
+- 19 shipped working builds. 100% completion.
+- Duration: about 2.5 weeks, part-time, spring 2026 (no specific dates used publicly, per Nick).
+- 0 outside facilitators.
+- Nearly all participants non-technical.
+
 ## Seven2 Internal Hacks-a-Thon
 
 The Seven2 Hacks-a-Thon proved the methodology internally before turning it into a product.

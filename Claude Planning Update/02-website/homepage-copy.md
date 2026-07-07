@@ -1,7 +1,7 @@
 # Homepage Copy
 
 **Status:** Locked (pending final cohesion pass at end of project)
-**Version:** v1.2
+**Version:** v1.3
 **Last Updated:** 2026-07-06 CDT by Nick + Claude
 **Purpose:** Capture the locked homepage copy and the positioning direction behind it.
 
@@ -30,6 +30,8 @@ The result? Greater AI adoption, lasting AI confidence, and a culture where inno
 Most companies already have access to AI. Many have invested in AI tools and training. Yet employees are overwhelmed and don't know where to begin.
 
 They're unsure which tools to trust or how AI fits into the work they do every day. Without confidence, adoption slows.
+
+**Proof strip (added 2026-07-06 per audit):** Proven at Seven2: 19 participants. 19 projects. 100% shipped. About two and a half weeks, between client work.
 
 ### A Different Way to Adopt AI
 
@@ -197,6 +199,9 @@ Secondary CTA may point to interactive demos:
 - Keep the Seven2 origin story as credibility and proof, then move the full story to the About / Case Study page.
 
 ## Change History
+
+### v1.3
+- Added the Seven2 proof strip after The Problem section, per the accepted external-audit recommendation (Nick approved 2026-07-06). Needs implementing on the live homepage.
 
 ### v1.2
 - Recovered the locked homepage copy (2026-06-29, from the Obsidian folder) and consolidated it into this document. Status moved to Locked pending the cohesion pass.

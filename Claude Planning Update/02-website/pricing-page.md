@@ -1,7 +1,7 @@
 # Pricing Page
 
 Status: Locked (pending final cohesion pass at end of project)
-Version: 1.0.0
+Version: 1.1.0
 Last Updated: 2026-07-06 CDT
 Last Updated By: Nick + Claude
 
@@ -68,7 +68,9 @@ $30 per additional participant, up to 50.
 **Buy Your Hacks-a-Thon**
 Purchase now, then set everything up with the Hacky Helper.
 
-Running this for more than 50 people? **Let's talk**
+**After purchase:** Buy your event → Meet the Hacky Helper → Invite your team → Schedule the blocks → Run it and showcase.
+
+Running this for more than 50 people? **Let's talk.** Larger events and multi-team rollouts welcome.
 
 ### 2. Team Size Breakpoints
 
@@ -131,6 +133,10 @@ You purchase your event up front, then set everything up - the Hacky Helper walk
 
 The platform is the facilitator. The Hacky Helper walks you through setup step by step, every block carries participant-facing instructions and purpose, and the whole format is structured to run without outside help. You run it. That's the point.
 
+#### Couldn't we just run our own hackathon?
+
+You could. That's how this started, and it took months of design, a pile of custom tools, and a full pilot to get a version where everyone actually finishes. That's what you're buying: the guided blocks that remove every reason to stall, the Blueprint planning that keeps projects from collapsing, the Hacky Helper running the checklist, and the pitches, awards, and showcase that turn "I'll try" into "I shipped." A shared doc and a demo day can start a hackathon. This one finishes.
+
 #### Is the AI build tool included?
 
 No. Your price covers the Hacksathon platform. The AI build tools your team uses to actually build - Lovable, Cursor, v0, Replit, Google AI Studio, and others - are separate products, and many teams already have one through their company plan. You pick a default (or let participants choose their own) during setup.
@@ -152,7 +158,10 @@ For Nick to apply in Cursor (the locked copy above already reflects them):
 2. "Team chat integration - Slack, Discord, or Teams" overstates the feature. It is a field where the admin keeps the team's chat URL. Change to "Team chat link - one place for your Slack, Discord, or Teams URL."
 3. Add the Why One Flat Price section after the breakpoints table.
 4. Add the "How much time does this take?" FAQ (second position), linking to The Program page.
-5. Footer inconsistency noticed during fetch: the header Case Study link points to /seven2/final while the final CTA points to /case-study. Worth unifying when convenient.
+5. Resolved: the header Case Study link (/seven2/final) and final CTA (/case-study) both redirect to /seven2 by design (a URL-restructure workaround, confirmed by Nick 2026-07-06). Optional tidy-up only: point both links directly at /seven2 someday so the redirects aren't load-bearing.
+6. Add the "Couldn't we just run our own hackathon?" FAQ after the facilitation question (audit-accepted, 2026-07-06).
+7. Add the After Purchase mini-flow under the price card: Buy your event → Meet the Hacky Helper → Invite your team → Schedule the blocks → Run it and showcase.
+8. Extend the Let's Talk line: "Larger events and multi-team rollouts welcome."
 
 ## Confirmed Pricing Facts
 
@@ -168,6 +177,10 @@ Confirmed by Nick via product and site screenshots 2026-07-06, and the live page
 - Facilitation is not a human service; the platform is the facilitator (self-serve by design).
 
 ## Change History
+
+### v1.1.0
+- Audit-accepted additions (Nick approved 2026-07-06): the "Couldn't we just run our own hackathon?" FAQ, the After Purchase mini-flow, and the extended Let's Talk line. Live-site correction list extended accordingly.
+- Audit rulings logged: rejected the value-comparison-vs-workshops suggestion (comparison framing was deliberately retired) and the soft-guarantee idea (never invent promises).
 
 ### v1.0.0
 - Locked the full page: live structure adopted, Why One Flat Price added, time-commitment FAQ added, sparks/comments and chat-integration corrections applied.

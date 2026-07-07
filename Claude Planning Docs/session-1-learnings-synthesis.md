@@ -2,6 +2,8 @@
 ## Seven2 Hacks-a-Thon — Complete Analysis Report
 *Prepared for Hacksathon.com product development*
 
+> **CORRECTION (2026-07-06, Nick):** The participant and completion figures in this document are wrong. Verified numbers: **19 participants (the whole company), 19 projects, 19 shipped — 100% completion**, in about **2.5 weeks** (spring 2026). See Claude Planning Update/06-research/proof.md for the authoritative stats. Do not cite 22 participants, 14 completions, or 64% anywhere.
+
 ---
 
 ## Overview of the Data Set
@@ -300,10 +302,10 @@ The event created significant creative momentum — 9 of 13 reflectors said they
 
 | Metric | Value |
 |---|---|
-| Participants | ~22 |
+| Participants | 19 (corrected 2026-07-06; originally listed as ~22) |
 | Ideas submitted | 32 |
-| Completed projects (live URL) | 14 |
-| Completion rate | ~64% |
+| Completed projects (live URL) | 19 (corrected 2026-07-06; originally listed as 14) |
+| Completion rate | 100% (corrected 2026-07-06; originally listed as ~64%) |
 | Participants with coding experience | ~2 (Nick, Jeremy — everyone else non-technical) |
 | Reflection submissions | 13 |
 | Award votes cast | 90 |

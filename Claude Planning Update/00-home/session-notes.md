@@ -1,7 +1,7 @@
 # Session Notes
 
 Status: Living
-Version: 1.8.0
+Version: 1.11.0
 Last Updated: 2026-07-06 CDT
 Last Updated By: Nick + Claude
 
@@ -34,7 +34,7 @@ At the end of the next meaningful planning session.
 
 ## Current Session Summary (2026-07-06)
 
-Program page drafting session that kept going. Five full pages were completed and locked: The Program, How It Works, Built For, Pricing, and Resources (all v1.0.0). With the homepage, six of the site's pages are now locked pending the final cohesion pass. The session also recovered the locked homepage copy and mapped the whole workspace.
+Program page drafting session that became the whole-site session. Seven full pages were completed and locked in one day: The Program, How It Works, Built For, Pricing, Resources, About, and the Seven2 Case Study (all v1.0.0). With the homepage, ALL EIGHT PAGES of the site are now locked pending the final cohesion pass. The session also recovered the locked homepage copy, mapped the whole workspace, captured Nick's founder origin story, established the verified pilot numbers, and completed the first full GitHub backup.
 
 What happened:
 
@@ -57,6 +57,10 @@ What happened:
 - Mid-save, the Filesystem extension dropped and Nick restored it by toggling the extension and restarting Claude Desktop. No work was lost; the locked copy was preserved in chat and saved after reconnection.
 - Pricing was locked by adopting the live page (fetched from hacksathon.com/pricing) as the base, adding Why One Flat Price (whole-team rationale, ~$40/person, the pizza line) and a How Much Time Does This Take? FAQ. Comparison framing retired: buyers already know consultants and training are expensive; transparency is the persuasion. Corrections: IdeaLab has no sparks/comments (live page overstates; fix pending), and "team chat integration" is really a chat-link field (reworded). New platform facts from the live page added to the Component Reference. The dead Organizer Demo Environment idea was confirmed dead and recorded in Claude's memory edits so it never resurfaces.
 - Resources was locked from a ChatGPT brain dump Nick pasted in, filtered through the workspace: problem-based doors won over media-type categories, Field Notes stays on Hacksathon.com as the X/LinkedIn distribution engine (Nick's call), pillars became internal taxonomy, the nonexistent Playbook was caught in the dump's spotlight list, and the launch scope was capped so Resources can't delay Product Hunt. Page copy locked including the contextual "See How the Hacks-a-Thon Works" footer CTA for cold visitors from social links.
+- GitHub Desktop was set up and the first full backup pushed: 51 files committed (all of Claude Planning Update plus the session-1 correction and gitignore), the 22 remote ChatGPT-era commits pulled and merged cleanly, Obsidian folder gitignored. From now on the sync ritual is: open Desktop, review changes, commit, push.
+- About was written interview-style: Nick freestyled his full origin story (preserved raw in founder-notes.md), Claude asked five gap questions (the Been Watching moment, the HyperChrono launch feeling, Tony credit, self-description, the clients-banned-AI call), and the page locked after one word change (jealous to envious). Structural insight: Nick IS the participant journey, and "the tool nobody used" proves the-format-is-the-product in his own biography. About-vs-Case-Study resolved: About = the why with two event paragraphs; Case Study = the full Seven2 story.
+- The Case Study locked as the live /seven2 Public Showcase (the product demonstrating itself) plus a four-section narrative layer: "Every single person shipped." with stat band, The Setup, How It Ran ("Steal it"), the recap reframe, and What Happened After. Major fact correction from Nick: 19 participants, 19 projects, 19 shipped, 100% completion (the research doc's 22/14/64% was wrong; corrected in the synthesis doc, authoritative numbers now in proof.md). Spring 2026 confirmed as the official public phrasing, no specific dates. The /seven2/final, /case-study, and /showcase URLs all deliberately redirect to /seven2. Nick is separately restoring the Hacky Awards and Reflections blocks on the page and has the implementation checklist in case-study.md.
+- Nick ran the full-site export through a ChatGPT audit (21 sections, scored 9.2 overall). Claude triaged it into accept/modify/reject. Five accepted and applied: homepage proof strip, DIY-objection Pricing FAQ, After Purchase mini-flow, extended Let's Talk line, What Seven2 Proved bullets. Repetition and product-clarifier notes deferred to the cohesion pass as watch-items. Rejected: Built For broadening (proof-gated rule), Pricing comparison framing (deliberately retired), guarantee language. Rulings recorded in the dashboard; audit docx files archived in 02-website/ and indexed. Export regenerated.
 
 ## Important Decisions (2026-07-06)
 
@@ -70,7 +74,7 @@ What happened:
 
 ## Current Priority (2026-07-06)
 
-Six pages locked. Next: the About page (founder story; resolve the About-vs-Case-Study split while drafting; sources are transformation-story.md, founder-notes.md, company-foundation.md). Then the Seven2 Case Study (a live version exists; likely adopt-and-polish), then the site-wide cohesion pass. Nick's pending to-dos: the GitHub push (later today) and the live-site corrections in pricing-page.md.
+ALL EIGHT PAGES LOCKED, audit revisions folded in. Final step of the copy mission: the site-wide cohesion pass (checklist plus audit watch-items in the project dashboard). Nick's implementation to-dos are listed in the dashboard, now including the homepage proof strip and the extended Pricing correction list. GitHub sync still pending for all post-Resources work.
 
 ---
 
@@ -120,6 +124,15 @@ Read these first:
 - `06-research/participant-reflections.md`
 
 ## Change History
+
+### v1.11.0
+- Recorded the external audit triage and the five applied revisions.
+
+### v1.10.0
+- Recorded the Case Study lock and the verified numbers. All eight pages locked; cohesion pass is the final step.
+
+### v1.9.0
+- Recorded About completion, the founder-story capture, and the completed GitHub backup. One page remains: the Seven2 Case Study.
 
 ### v1.8.0
 - Recorded Resources completion. Priority moved to About. GitHub push pending later today.

@@ -14,9 +14,12 @@ import {
 } from "@/components/ui/sheet";
 
 const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/the-program", label: "The Program" },
+  { href: "/how-it-works", label: "How It Works" },
+  { href: "/built-for", label: "Built For" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/seven2/final", label: "Case Study" },
-  { href: "/showcase", label: "Showcase" },
+  { href: "/resources", label: "Resources" },
 ];
 
 interface MobileNavProps {

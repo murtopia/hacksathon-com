@@ -33,20 +33,20 @@ export function SiteFooter() {
             </a>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-6 text-sm">
-            <Link href="/pricing" className={navLinkClass}>
-              Pricing
+            <Link href="/about" className={navLinkClass}>
+              About
             </Link>
-            <Link href="/seven2/final" className={navLinkClass}>
-              Case Study
+            <Link href="/seven2" className={navLinkClass}>
+              Seven2 Case Study
             </Link>
-            <span className="text-muted-foreground/40" aria-hidden>
-              |
-            </span>
             <Link href="/support" className={navLinkClass}>
-              Support
+              Contact
             </Link>
             <Link href="/privacy" className={navLinkClass}>
               Privacy
+            </Link>
+            <Link href="/terms" className={navLinkClass}>
+              Terms
             </Link>
           </nav>
           <p className="text-sm text-muted-foreground">

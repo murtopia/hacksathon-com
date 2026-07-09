@@ -63,14 +63,23 @@ export async function SiteHeader() {
           </span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm md:flex">
+          <Link href="/" className={navLinkClass}>
+            Home
+          </Link>
+          <Link href="/the-program" className={navLinkClass}>
+            The Program
+          </Link>
+          <Link href="/how-it-works" className={navLinkClass}>
+            How It Works
+          </Link>
+          <Link href="/built-for" className={navLinkClass}>
+            Built For
+          </Link>
           <Link href="/pricing" className={navLinkClass}>
             Pricing
           </Link>
-          <Link href="/seven2/final" className={navLinkClass}>
-            Case Study
-          </Link>
-          <Link href="/showcase" className={navLinkClass}>
-            Showcase
+          <Link href="/resources" className={navLinkClass}>
+            Resources
           </Link>
         </nav>
         <div className="flex items-center gap-3">

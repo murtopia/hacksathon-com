@@ -70,12 +70,25 @@ export async function generateMetadata({
   if (!ctx) return { title: "Event" };
 
   const { event, org } = ctx;
-  const title = org?.name ? `${event.title} · ${org.name}` : event.title;
-  const description = event.public_showcase
-    ? event.results_published_at
-      ? `Winners, every idea, and the recap from ${event.title}.`
-      : `${event.title} - coming soon to Hacksathon.com.`
-    : `Sign in to ${event.title} on Hacksathon.com.`;
+
+  // The seeded Seven2 case study carries the locked marketing framing.
+  const isSeven2CaseStudy =
+    org?.slug === "seven2" &&
+    event.public_showcase &&
+    Boolean(event.results_published_at);
+
+  const title = isSeven2CaseStudy
+    ? "Seven2 Case Study: Every Single Person Shipped"
+    : org?.name
+      ? `${event.title} · ${org.name}`
+      : event.title;
+  const description = isSeven2CaseStudy
+    ? "In spring 2026, Seven2, a 19-person creative agency, ran the first Hacks-a-Thon. 19 participants, 19 projects, 100% completion. See every project."
+    : event.public_showcase
+      ? event.results_published_at
+        ? `Winners, every idea, and the recap from ${event.title}.`
+        : `${event.title} - coming soon to Hacksathon.com.`
+      : `Sign in to ${event.title} on Hacksathon.com.`;
 
   // OG/Twitter images are provided by the colocated `opengraph-image.tsx`
   // / `twitter-image.tsx` (generated EB Garamond cards). Setting `images`

@@ -6,6 +6,8 @@ interface ShowcaseRecapProps {
   eyebrow?: string;
   /** Optional bold headline. Defaults to "How it went, in our own words". */
   heading?: string;
+  /** Optional teaser line under the heading, replacing the default. */
+  subhead?: string;
 }
 
 /**
@@ -17,7 +19,12 @@ interface ShowcaseRecapProps {
  * generous line-height, plain typography. The recap is the human story of
  * the event - it shouldn't shout.
  */
-export function ShowcaseRecap({ summary, eyebrow, heading }: ShowcaseRecapProps) {
+export function ShowcaseRecap({
+  summary,
+  eyebrow,
+  heading,
+  subhead,
+}: ShowcaseRecapProps) {
   const trimmed = summary.trim();
   if (!trimmed) return null;
 
@@ -35,8 +42,8 @@ export function ShowcaseRecap({ summary, eyebrow, heading }: ShowcaseRecapProps)
             {heading ?? "How it went, in our own words"}
           </h2>
           <p className="lead">
-            How it went in our own words, well at least in this AI summary of
-            our reflections
+            {subhead ??
+              "How it went in our own words, well at least in this AI summary of our reflections"}
           </p>
         </header>
 

@@ -25,7 +25,7 @@ export function Seven2Opening() {
     <section className="border-b py-20 md:py-24">
       <div className="mx-auto w-full max-w-[var(--container-default)] px-4">
         <h1 className="max-w-3xl font-serif text-5xl font-normal leading-[1.05] tracking-tight sm:text-6xl">
-          Every single person shipped.
+          The Seven2 Case Study
         </h1>
         <p className="mt-8 max-w-[640px] font-serif text-lg leading-relaxed text-[var(--text-secondary)]">
           In spring 2026, Seven2, a 19-person creative agency, ran the first

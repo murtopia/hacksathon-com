@@ -87,19 +87,11 @@ export default function TheProgramPage() {
               team.
             </p>
           </div>
-          <div className="mt-10">
-            <Button variant="pill" size="pill" asChild>
-              <Link href="#what-you-get">Explore What&apos;s Included</Link>
-            </Button>
-          </div>
         </div>
       </section>
 
       {/* 2. What You Get */}
-      <section
-        id="what-you-get"
-        className="scroll-mt-24 border-b py-20 bg-muted/30"
-      >
+      <section className="border-b py-20 bg-muted/30">
         <div className="mx-auto w-full max-w-[var(--container-narrow)] px-4">
           <h2 className="font-serif text-3xl font-normal tracking-tight sm:text-4xl">
             What You Get
@@ -138,6 +130,15 @@ export default function TheProgramPage() {
               designed to work alongside whichever tool your organization
               chooses.
             </p>
+          </div>
+
+          <div className="mt-12 flex flex-col items-start gap-3 sm:flex-row">
+            <Button variant="pill" size="pill" className="px-8" asChild>
+              <Link href="/checkout">Buy Your Hacks-a-Thon</Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/pricing">See Pricing</Link>
+            </Button>
           </div>
         </div>
       </section>

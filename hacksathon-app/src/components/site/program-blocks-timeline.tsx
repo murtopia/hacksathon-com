@@ -15,31 +15,32 @@ const PROGRAM_BLOCKS: ReadonlyArray<{
   blockKey: string;
   title: string;
   subtitle?: string;
-  durationMinutes: number;
+  /** Display label; the Showcase Showdown runs as a range by team size. */
+  duration: string;
 }> = [
-  { blockKey: "ZERO", title: "Kickoff", durationMinutes: 15 },
-  { blockKey: "01", title: "Sprint to the IdeaLab", durationMinutes: 30 },
+  { blockKey: "ZERO", title: "Kickoff", duration: "15 min" },
+  { blockKey: "01", title: "Sprint to the IdeaLab", duration: "30 min" },
   {
     blockKey: "02",
     title: "Shark Tank, Minus the Sharks",
-    durationMinutes: 45,
+    duration: "45 min",
   },
   {
     blockKey: "03",
     title: "Documentation Is Everything",
-    durationMinutes: 30,
+    duration: "30 min",
   },
   {
     blockKey: "04",
     title: "Here We Go!",
     subtitle: "Build Session 1",
-    durationMinutes: 45,
+    duration: "45 min",
   },
-  { blockKey: "05", title: "Build Session 2", durationMinutes: 45 },
-  { blockKey: "06", title: "Your Final Build Session", durationMinutes: 45 },
-  { blockKey: "FINAL", title: "Showcase Showdown", durationMinutes: 120 },
-  { blockKey: "+01", title: "Hacky Awards", durationMinutes: 30 },
-  { blockKey: "+02", title: "Reflections", durationMinutes: 20 },
+  { blockKey: "05", title: "Build Session 2", duration: "45 min" },
+  { blockKey: "06", title: "Your Final Build Session", duration: "45 min" },
+  { blockKey: "FINAL", title: "Showcase Showdown", duration: "60 to 120 min" },
+  { blockKey: "+01", title: "Hacky Awards", duration: "30 min" },
+  { blockKey: "+02", title: "Reflections", duration: "20 min" },
 ];
 
 export function ProgramBlocksTimeline() {
@@ -73,7 +74,7 @@ export function ProgramBlocksTimeline() {
               </span>
             )}
             <span className="whitespace-nowrap rounded-[2px] bg-muted px-2 py-0.5 font-mono text-xs font-medium text-muted-foreground">
-              {block.durationMinutes} min
+              {block.duration}
             </span>
           </div>
         </li>

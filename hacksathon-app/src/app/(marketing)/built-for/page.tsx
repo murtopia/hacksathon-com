@@ -34,11 +34,11 @@ export default function BuiltForPage() {
         </div>
       </section>
 
-      {/* Your Organization */}
+      {/* Built for any organization */}
       <section className="border-b py-20 bg-muted/30">
         <div className="mx-auto w-full max-w-[var(--container-narrow)] px-4">
           <h2 className="font-serif text-3xl font-normal tracking-tight sm:text-4xl">
-            Your Organization
+            Built for any organization.
           </h2>
           <div className="mt-8 space-y-5 font-serif text-lg leading-relaxed text-[var(--text-secondary)]">
             <p>

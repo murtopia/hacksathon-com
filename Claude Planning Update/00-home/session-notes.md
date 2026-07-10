@@ -1,8 +1,8 @@
 # Session Notes
 
 Status: Living
-Version: 1.11.0
-Last Updated: 2026-07-06 CDT
+Version: 1.13.0
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -32,7 +32,48 @@ At the end of the next meaningful planning session.
 
 ---
 
-## Current Session Summary (2026-07-06)
+## Current Session Summary (2026-07-07)
+
+THE SITE-WIDE COHESION PASS: run, ruled, and applied. Then Nick's personal review pass, triaged and applied the same day. The copy mission is complete.
+
+Review pass (later the same day):
+
+- Nick converted the review copy to a Google Doc, marked it up, and returned it as a .docx (his Google Doc lives on a different account than the one connected to Claude, so .docx handoff is the working pattern). Claude extracted it, diffed it word-by-word against the locked copy, and triaged six edits and three notes.
+- Applied edits: Program What You Get intro ("a guided program where every piece exists"); the IdeaLab blurb tightened ("Every Hacks-a-Thon starts with ideas."); Pricing first FAQ retitled "What's included in a Hacks-a-Thon?" with "Every Hacks-a-Thon gets"; DIY FAQ opens "Yep, you could."
+- NEW NAMING RULE: "the Blueprint" in prose, site-wide (Nick's ruling; matches the IdeaLab pattern; no "AI" modifier). Applied across The Program (blurb heading now "The Blueprint.", demo teaser), How It Works, and Pricing (both lists and the first FAQ); the export's product-names note updated.
+- About now opens "Hi, I'm Nick Murto, founder of Hacksathon.com, and that's been my whole life, honestly." per Nick's note that cold visitors need to know whose story it is. Hero unchanged.
+- RESOURCES RESTRUCTURED (resources.md v1.1.0): the Four Doors removed from the public page, replaced by The Library, a simple newest-first article list ("Start anywhere. Every piece stands on its own."). Nick's reasoning, seconded by Claude: eight launch articles don't need four doors; blog-like at launch is a feature. The doors are preserved verbatim in resources.md as the Growth Plan and remain the internal grouping for the content roadmap.
+- Ruled no-change: "Shark Tank style" reverted to the original "Shark Tank pitch" (the tiered naming system stands); the How It Works hero keeps "Here's how it works." as the handoff line.
+- Versions after the review pass: the-program 1.0.2, how-it-works 1.0.2, pricing-page 1.1.2, about 1.0.2, resources 1.1.0, export updated same day. Homepage, Built For, and Case Study untouched by this pass. The review copy (nick-review-copy-2026-07-07.md) is now fully triaged and archivable.
+
+Cohesion pass (earlier the same day):
+
+- Claude read all four recovery docs, all eight locked page docs, and the export as one continuous site, checked against the dashboard checklist and audit watch-items, and fetched the live homepage for comparison.
+- Findings were delivered in one severity-grouped list; Nick returned batched rulings on all fifteen items in a single message; Claude then made surgical edits across seven page docs and regenerated the export. Resources needed no changes (stays v1.0.0).
+- Punchline duplication resolved. The Case Study now exclusively owns: the aftermath project list (workflow boards, storyboarding tools, resourcing fixes), the "nobody asked for" phrase (Nick's rule: once site-wide, max), and the quoted "what can AI do?" conversation-shift line. Built For generalized its aftermath sentence and dropped the "tool of the trade" clause; How It Works got a varied conversation-shift line ("People stop asking whether AI matters and start comparing what they're building") and "New tools appear, unprompted."
+- Facts: Built For's "three weeks" corrected to "a couple of weeks" (Nick delegated couple-vs-few; couple matches the two existing uses and the ~2.5-week fact). How It Works' "twenty people demo twenty things" generalized to "the whole team demos what they made" (numbers live only on the Case Study).
+- Pricing cleaned: naming drift fixed (the Hacks-a-Thon platform, Admin Dashboard, Shark Tank Minus the Sharks pitch sessions, Public Showcase page, The IdeaLab), spaced hyphens replaced with colons/periods/parentheses, DIY FAQ retitled "Couldn't we just do this ourselves?", live-corrections list extended to nine items.
+- NEW STANDING RULES from Nick: never the generic word "hackathon" anywhere in public copy (always Hacks-a-Thon; generic references reworded: "one-day sprint," "start an event," "No weekend required," About's origin sentence restructured to "an event: structured, multi-week, low-pressure"); Hacks-a-Thon always hyphenated, one-word form only in Hacksathon.com; block count as the numeral 10 in prose (spell out only at sentence start; Pricing FAQ keeps sentence-initial "Ten"); the outcome phrase is always "the confidence to create with AI" and cross-page repetition of it is welcome.
+- Costumes ruling: they live on About ("people wore costumes" stays); The Program's costume line replaced with "Expect a little showmanship." Front desk/founders riff kept only on Pricing; Built For now reads "top to bottom." "Blank prompt" reworded on both pages per Nick's direction (HIW: "an empty prompt box and wish them luck"; About: "unsure what their first prompt should be").
+- Homepage: hero product clarifier added per Nick's explicit call, refined from his own line: "A structured Hacks-a-Thon program you can easily run for your own team." (small subline under the H1). Closing extended to "Give them the confidence to create with AI." Proof strip stays after The Problem (Nick accepted the recommendation). Homepage now v1.4.
+- Seven2 links standardized to sentence-case "Read the Seven2 story" ("the full" on Program and About where a partial telling precedes). Nick floated "case study" instead of "story"; logged as a small open question, reversible in one pass.
+- Live homepage verified: it is still the pre-lock version entirely (old hero, five-tools grid including the nonexistent Proven Playbook tile, Get Started CTAs, Nick's own quote run as a testimonial, a Lovable slot). Nick confirmed he is replacing all live homepage copy with the locked copy and that Lovable needs no homepage mention. All noted in the dashboard's implementation list.
+- Versions after the pass: homepage-copy v1.4, the-program 1.0.1, how-it-works 1.0.1, solutions-overview 1.0.1, pricing-page 1.1.1, about 1.0.1, case-study 1.1.1, resources 1.0.0 (untouched), full-site-copy-export v1.2.0 regenerated 2026-07-07.
+
+## Important Decisions (2026-07-07)
+
+- The copy mission is complete. All eight pages locked and cohesion-passed. The sequence discipline now unlocks: implementation, Arcade demos, then marketing content seeding.
+- "Hackathon" (generic, unbranded) is banned from public copy forever. Always Hacks-a-Thon.
+- Duplication ownership model: the Case Study owns the Seven2 aftermath specifics; other pages generalize. Recorded in each doc's Notes To Protect.
+- GitHub sync still pending for all post-Resources work, now including the cohesion pass.
+
+## Current Priority (2026-07-07)
+
+Nick's Cursor implementation pass (full list in the dashboard), then Arcade demos, then marketing OS content seeding.
+
+---
+
+## Previous Session Summary (2026-07-06)
 
 Program page drafting session that became the whole-site session. Seven full pages were completed and locked in one day: The Program, How It Works, Built For, Pricing, Resources, About, and the Seven2 Case Study (all v1.0.0). With the homepage, ALL EIGHT PAGES of the site are now locked pending the final cohesion pass. The session also recovered the locked homepage copy, mapped the whole workspace, captured Nick's founder origin story, established the verified pilot numbers, and completed the first full GitHub backup.
 
@@ -124,6 +165,12 @@ Read these first:
 - `06-research/participant-reflections.md`
 
 ## Change History
+
+### v1.13.0
+- Recorded Nick's review pass: .docx markup diffed, six edits and three note rulings applied, the Blueprint naming rule and the Resources Library restructure captured.
+
+### v1.12.0
+- Recorded the cohesion pass session: findings, Nick's batched rulings, the new standing copy rules, all edits applied, export regenerated, copy mission complete.
 
 ### v1.11.0
 - Recorded the external audit triage and the five applied revisions.

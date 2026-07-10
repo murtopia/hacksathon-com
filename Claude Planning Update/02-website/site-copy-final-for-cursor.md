@@ -1,36 +1,33 @@
-# Hacksathon.com - Full Site Copy (Master Export)
+# Hacksathon.com — Final Site Copy for Implementation
 
-Generated: 2026-07-07 (regenerated after the site-wide cohesion pass; updated same day with Nick's review-pass edits)
-Status: All eight pages locked. Cohesion pass complete 2026-07-07 (Nick's batched rulings applied), followed by Nick's personal review pass (edits applied same day). Includes the five audit-accepted additions (2026-07-06) and all cohesion-pass and review-pass fixes (2026-07-07).
-Note: This is a compiled export for review. The source of truth remains the individual page documents in Claude Planning Update/02-website/. Any accepted revisions should be carried back into those documents.
-
----
-
-## Notes for Reviewers
-
-Voice: plain, confident, conversational. No em dashes anywhere, and no spaced hyphens standing in for them (use colons, periods, or parentheses). No corporate speak. Nothing condescending or overly polished. Treats organizers and buyers as capable adults. A little playful is welcome. The generic word "hackathon" never appears; it is always Hacks-a-Thon. The outcome phrase is always "the confidence to create with AI."
-
-Facts that must not change: 19 participants, 19 projects, 100% completion, about 2.5 weeks, spring 2026 (no specific dates), $995 for up to 25 people, $30 per additional participant up to 50, no subscription. Participants bring their own AI build tool (Lovable, Cursor, v0, Replit, etc.); it is not included.
-
-Product names that must not change: Hacks-a-Thon (the event/program), Hacksathon.com (the platform/brand), the IdeaLab, the Blueprint, Hacky Helper, Shark Tank Minus the Sharks, Showcase Showdown, Hacky Awards, Reflections, Public Showcase, Admin Dashboard. The IdeaLab and the Blueprint take "the" in prose. Hacks-a-Thon is always hyphenated, including "the Hacks-a-Thon platform"; the one-word form appears only in Hacksathon.com. The program is 10 guided blocks (numeral preferred; spell out only at the start of a sentence). The Seven2 link label is "Read the Seven2 story" ("Read the full Seven2 story" where a partial telling precedes it).
-
-Positioning rules: never imply Hacks-a-Thon makes people AI masters. Never imply build tools are included. "AI-first culture" is the primary outcome framing; "team building" framing is rejected. Personal passion projects are encouraged, not mandated.
+Date: 2026-07-07
+Source of truth: this file (compiled from the locked page docs in Claude Planning Update/02-website/ after the cohesion pass and Nick's review pass, both 2026-07-07).
+Audience: the Cursor agent implementing this copy, and Nick reviewing.
 
 ---
 
-## Site Structure
+## IMPLEMENTATION RULES (read before touching any code)
 
-Primary navigation:
-1. Home
-2. The Program
-3. How It Works
-4. Built For
-5. Pricing
-6. Resources
+1. **This copy is locked and final. Implement it verbatim.** No rewording, no "improvements," no added sentences, no placeholder copy. If something seems missing or wrong, stop and ask Nick. Never invent.
+2. **Do not add features, sections, pages, or components that are not in this document.** No extra CTAs, no newsletter popups, no chat widgets, no testimonial carousels beyond what's specified.
+3. **No em dashes anywhere, ever.** Also no spaced hyphens standing in for them. If generating any supporting text (alt text, meta descriptions, aria labels), use periods, colons, commas, or parentheses instead.
+4. **The generic word "hackathon" never appears anywhere on the site.** It is always Hacks-a-Thon (hyphenated). The one-word form appears only in Hacksathon.com (the platform/brand name) and in URLs.
+5. **Product names, exact:** Hacks-a-Thon (the event/program), Hacksathon.com (the platform/brand), the IdeaLab, the Blueprint, Hacky Helper, Shark Tank, Minus the Sharks, Showcase Showdown, Hacky Awards, Reflections, Public Showcase, Admin Dashboard. The IdeaLab and the Blueprint take "the" in prose.
+6. **Facts that must not change:** 19 participants, 19 projects, 100% completion, about 2.5 weeks, spring 2026 (no specific dates), $995 for up to 25 people, $30 per additional participant up to 50, no subscription. Build tools (Lovable, Cursor, v0, Replit, etc.) are separate and not included.
+7. **Block count is the numeral 10** in prose ("10 guided blocks"), spelled out only when it starts a sentence ("Ten short blocks...").
+8. **Design system:** match the existing site. Garamond-style serif as the primary brand typeface; the rotated-caret brand mark (serif variant in the header, heavier sans variant in the footer); current palette. New pages must feel like siblings of the existing pages.
+9. **Navigation (6 items):** Home, The Program, How It Works, Built For, Pricing, Resources. **Footer (5 items):** About, Seven2 Case Study, Contact, Privacy, Terms (footer label for /seven2 is "Seven2 Case Study"). The Case Study is NOT in the top nav; the live site currently has it there, and it moves to the footer. Confirm final slugs with Nick; suggested: /the-program, /how-it-works, /built-for, /pricing, /resources, /about.
+10. **CTA link targets:** See How It Works → How It Works page. See What's Included → The Program page. Explore What's Included → in-page anchor to The Program's What You Get section. See Pricing → Pricing page. Buy Your Hacks-a-Thon → /checkout. Read the Seven2 story / Read the full Seven2 story / See the full story → /seven2.
+11. **(Visual: ...) and (Displays ...) lines are production notes, not copy.** Do not render them as text.
+12. **Meta titles and descriptions are not written yet.** Propose them per page for Nick's approval; follow all rules above when drafting.
 
-Footer: About, Seven2 Case Study (lives at /seven2; /case-study, /showcase, and /seven2/final redirect there).
+### What happens to the current live site
 
-CTA chain by funnel stage: Homepage sells the belief (See How It Works) → How It Works proves the method (See What's Included) → The Program details the goods (Buy Your Hacks-a-Thon / See Pricing) → Pricing closes (Buy Your Hacks-a-Thon). Built For and Resources feed into the chain. The Case Study is the proof node linked from everywhere.
+- **Homepage: full copy replacement.** Everything currently live goes away, including the old hero, the five-tools grid (and its "Proven Playbook" tile — the Playbook does not exist as a deliverable), the Nick Murto quote presented as a testimonial, the Lovable recommendation slot, and the Get Started CTAs. Replace with the homepage copy below.
+- **Pricing: replace the live copy with the Pricing section below, verbatim.** All accumulated corrections are already reflected in it.
+- **Seven2 Case Study (/seven2): keep the existing live Public Showcase content** (project gallery, awards, quotes, run-of-show, AI recap) **and wrap the narrative layer below around it.** Also restore the Hacky Awards and Reflections blocks that were previously removed from the page.
+- **New pages to build:** The Program, How It Works, Built For, Resources, About.
+- The /seven2/final and /case-study redirects to /seven2 are deliberate and can stay; pointing links directly at /seven2 is optional tidy-up.
 
 ---
 
@@ -38,11 +35,11 @@ CTA chain by funnel stage: Homepage sells the belief (See How It Works) → How 
 
 ## Hero
 
-### Helping every employee adopt AI. Proven with real non-technical teams.
+Eyebrow: Helping every employee adopt AI. Proven with real non-technical teams.
 
 # Accelerate AI Adoption by Empowering Every Employee to Create Solutions
 
-**Hero subline (added 2026-07-07):** A structured Hacks-a-Thon program you can easily run for your own team.
+Subline (small, under the H1): A structured Hacks-a-Thon program you can easily run for your own team.
 
 Hacks-a-Thon gives every employee a clear, guided path to creating practical solutions with AI, building confidence that lasts long after the event ends.
 
@@ -60,7 +57,7 @@ Most companies already have access to AI. Many have invested in AI tools and tra
 
 They're unsure which tools to trust or how AI fits into the work they do every day. Without confidence, adoption slows.
 
-**Proof strip:** Proven at Seven2: 19 participants. 19 projects. 100% shipped. About two and a half weeks, between client work.
+**Proof strip (banner, directly after The Problem section):** Proven at Seven2: 19 participants. 19 projects. 100% shipped. About two and a half weeks, between client work.
 
 ## A Different Way to Adopt AI
 
@@ -142,13 +139,13 @@ Give your team more than AI training.
 
 Give them the confidence to create with AI.
 
-**See How It Works**
+**CTA:** See How It Works
 
 ---
 
 # PAGE 2: THE PROGRAM
 
-## 1. Hero / Program Overview
+## 1. Hero
 
 ### Give your team the confidence to create with AI.
 
@@ -158,7 +155,7 @@ Built around a proven framework, structured guidance, and a thoughtfully designe
 
 Whether someone is opening ChatGPT for the first time or already building with AI every day, the shared experience creates new ideas, stronger collaboration, and lasting momentum across your team.
 
-**CTA:** Explore What's Included
+**CTA:** Explore What's Included (in-page anchor to What You Get)
 
 ## 2. What You Get
 
@@ -196,7 +193,7 @@ Bigger team? Shark Tank pitches and the Showcase Showdown can easily run as mult
 
 Hacks-a-Thon wasn't invented on a whiteboard. It was built and run inside Seven2, a creative agency, with a team of producers, designers, and strategists, almost none of whom had ever written code. They pitched, they built, they demoed, and they shipped real, working projects. Then something better happened: after the event ended, they kept creating.
 
-Read the full Seven2 story →
+**Link:** Read the full Seven2 story →
 
 ## 5. See It For Yourself
 
@@ -205,6 +202,8 @@ The fastest way to understand Hacks-a-Thon is to see it in action.
 **The Admin Experience.** Walk through setting up an event, scheduling the blocks, and running the show.
 
 **The Participant Journey.** See what your team sees, from posting an idea to the Blueprint to demo day.
+
+(Production note: demos to be built in Arcade, interactive click-through walkthroughs embedded here. Not yet created. Build the section so it works with embedded click-throughs or videos; use tasteful placeholders until the Arcade demos exist.)
 
 ## 6. Final CTA
 
@@ -308,7 +307,7 @@ And the shift outlasts the event. At the agency where this started, the tools ke
 
 For a small shop, this is a whole-agency moment. Everyone in one event, top to bottom, building side by side. Agencies run on culture, and nothing builds it like watching your coworkers surprise themselves.
 
-**CTA:** Read the Seven2 story →
+**Link:** Read the Seven2 story →
 
 ## CTA
 
@@ -331,12 +330,12 @@ Just one price for your entire team and no recurring or subscription fees to wor
 
 $30 per additional participant, up to 50.
 
-**Buy Your Hacks-a-Thon**
+**Buy Your Hacks-a-Thon** (→ /checkout)
 Purchase now, then set everything up with the Hacky Helper.
 
-**After purchase:** Buy your event → Meet the Hacky Helper → Invite your team → Schedule the blocks → Run it and showcase.
+After purchase (mini-flow under the price card): Buy your event → Meet the Hacky Helper → Invite your team → Schedule the blocks → Run it and showcase.
 
-Running this for more than 50 people? **Let's talk.** Larger events and multi-team rollouts welcome.
+Running this for more than 50 people? **Let's talk.** (mailto: support@hacksathon.com) Larger events and multi-team rollouts welcome.
 
 ## 2. Team Size Breakpoints
 
@@ -357,9 +356,27 @@ For up to 25 people, that works out to about $40 a person for the full multi-wee
 
 No feature gates between sizes. A team of 10 gets the exact same platform as a team of 50.
 
-**For your team:** Full 10-block event format · The IdeaLab: idea submission and shared gallery · The Blueprint: guided AI planning conversation that produces a build-ready plan · Auto-generated Starter Prompt tuned to your build tool · Bring your own AI build tool: Lovable, Cursor, v0, Replit, and more · Shark Tank, Minus the Sharks pitch sessions · Time-blocked build sessions with the Blueprint + Starter Prompt handoff · Hacky Awards voting and ceremony · Reflections survey with guided prompts
+**For your team:**
+- Full 10-block event format
+- The IdeaLab: idea submission and shared gallery
+- The Blueprint: guided AI planning conversation that produces a build-ready plan
+- Auto-generated Starter Prompt tuned to your build tool
+- Bring your own AI build tool: Lovable, Cursor, v0, Replit, and more
+- Shark Tank, Minus the Sharks pitch sessions
+- Time-blocked build sessions with the Blueprint + Starter Prompt handoff
+- Hacky Awards voting and ceremony
+- Reflections survey with guided prompts
 
-**For the admin:** Hacky Helper: guided, step-by-step event setup · Admin Dashboard with block controls and participant management · Team chat link: one place for your Slack, Discord, or Teams URL · Branded email invites and notifications · Auto-generated awards ceremony slideshow · AI-generated reflection recap · Your own vanity URL (hacksathon.com/yourteam) · Public Showcase page: recap, projects, winners, and reflections · Custom branding with your company logo
+**For the admin:**
+- Hacky Helper: guided, step-by-step event setup
+- Admin Dashboard with block controls and participant management
+- Team chat link: one place for your Slack, Discord, or Teams URL
+- Branded email invites and notifications
+- Auto-generated awards ceremony slideshow
+- AI-generated reflection recap
+- Your own vanity URL (hacksathon.com/yourteam)
+- Public Showcase page: recap, projects, winners, and reflections
+- Custom branding with your company logo
 
 ## 5. Common Questions
 
@@ -367,7 +384,7 @@ No feature gates between sizes. A team of 10 gets the exact same platform as a t
 Everything. Every Hacks-a-Thon gets the complete platform: all 10 blocks, the Hacky Helper setup guide, the Blueprint and Starter Prompt, Hacky Awards, reflections with an AI recap, and your branding. The only variable is how many people you invite.
 
 **How much time does this take?**
-Ten short blocks, 15 to 60 minutes each. Most teams spread them across a couple of weeks; some compress into one. You set the schedule, and the program fits around real work. [See the full program →]
+Ten short blocks, 15 to 60 minutes each. Most teams spread them across a couple of weeks; some compress into one. You set the schedule, and the program fits around real work. [See the full program →] (→ The Program page)
 
 **How does buying work?**
 You purchase your event up front, then set everything up. The Hacky Helper walks you through identity, schedule, your team, awards, and reflections step by step. Have a promo code? Enter it at checkout.
@@ -387,12 +404,12 @@ No. Your price covers the Hacks-a-Thon platform. The AI build tools your team us
 
 Buy your event, then set it up in minutes with the Hacky Helper.
 
-**Primary:** Buy Your Hacks-a-Thon
-**Secondary:** Read the Seven2 story
+**Primary:** Buy Your Hacks-a-Thon (→ /checkout)
+**Secondary:** Read the Seven2 story (→ /seven2)
 
 ---
 
-# PAGE 6: RESOURCES (Resource Library)
+# PAGE 6: RESOURCES (public name: The Resource Library)
 
 ## Hero
 
@@ -404,7 +421,7 @@ Everything we're learning about organizational AI adoption, in one place. No gat
 
 Start anywhere. Every piece stands on its own: pick whatever matches where you are today.
 
-(Displays all articles as a simple list, newest first: title and a one-line description. No categories at launch; the four problem-based doors are preserved in resources.md as the growth plan for when the library needs wayfinding.)
+(Displays all articles as a simple list, newest first: title and a one-line description. No categories at launch. Build the list so items can be added easily; a categorized restructure comes later when the library grows.)
 
 ## Field Notes
 
@@ -416,7 +433,7 @@ Short, honest observations from building with AI every day. What surprised us, w
 
 New here? Hacks-a-Thon is a guided program that helps teams build AI confidence by creating something real.
 
-**See How the Hacks-a-Thon Works**
+**CTA:** See How the Hacks-a-Thon Works (→ How It Works page)
 
 ---
 
@@ -460,13 +477,13 @@ I believe creative people are secretly the best builders in this new era. Ideas,
 
 Hacksathon.com is that event, rebuilt as a platform any organization can run on its own. We help people realize they can create solutions they never thought possible. I know it works, because I was the first person it worked on.
 
-**Read the full Seven2 story →**
+**Link:** Read the full Seven2 story →
 
 ---
 
 # PAGE 8: SEVEN2 CASE STUDY (at /seven2)
 
-Note for reviewers: this page is the live Public Showcase from the actual Seven2 event (project gallery, awards, quotes, run-of-show, AI recap). That existing content is adopted as-is and is not included here. The copy below is the locked narrative layer wrapped around it.
+Implementation: this page is the live Public Showcase from the actual Seven2 event (project gallery, awards, quotes, run-of-show, AI recap). KEEP all of that existing content, restore the Hacky Awards and Reflections blocks that were previously removed, and wrap the narrative layer below around it at the positions noted.
 
 ## Opening (above the existing hero)
 
@@ -504,4 +521,4 @@ That shift is the reason Hacksathon.com exists. The projects on this page are wh
 
 ---
 
-*End of master export. Source of truth: Claude Planning Update/02-website/. Regenerated 2026-07-07 after the cohesion pass and Nick's review pass.*
+*End of implementation copy. Compiled 2026-07-07 from the locked page docs (source of truth: Claude Planning Update/02-website/). Questions or conflicts: ask Nick; never improvise.*

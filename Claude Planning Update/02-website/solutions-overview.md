@@ -1,8 +1,8 @@
 # Built For (Solutions Overview)
 
-Status: Locked (pending final cohesion pass at end of project)
-Version: 1.0.0
-Last Updated: 2026-07-06 CDT
+Status: Locked (cohesion pass complete 2026-07-07)
+Version: 1.0.1
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -37,7 +37,7 @@ Working sections:
 - Future Verticals Roadmap (living list; activates as customer proof accumulates)
 
 Next Review:
-During the site-wide cohesion pass, or when a second vertical earns a page.
+When a second vertical earns a page; the copy mission is complete.
 
 ---
 
@@ -65,7 +65,7 @@ Project managers. Account leads. Analysts. Coordinators. Office managers. Operat
 
 Every organization has the same untapped resource: people who see problems all day and have quietly thought "there should be a tool for that." They don't need to become developers. They need a structured, guided experience that proves they can already build. Hacks-a-Thon works wherever there's a team, a calendar, and a pile of ideas nobody's had permission to act on. Which is to say: it works at your organization.
 
-The format doesn't care what industry you're in. Confidence transfers. A team that ships passion projects in three weeks comes back Monday looking at your workflows, your client requests, your internal bottlenecks, and seeing things they could fix.
+The format doesn't care what industry you're in. Confidence transfers. A team that ships passion projects in a couple of weeks comes back Monday looking at your workflows, your client requests, your internal bottlenecks, and seeing things they could fix.
 
 ### Marketing & Creative Agencies
 
@@ -75,9 +75,9 @@ It's also built for agency skeptics. Plenty of creatives side-eye AI, and honest
 
 Then there's the business case. Your clients are already asking what your agency is doing with AI. "We ran a program where our whole team ships with it" is a very different answer than a slide about your AI philosophy. The same skills show up in the work: faster prototypes in pitches, internal tools that smooth production, a team that reaches for "we could build that" instead of "we'd have to scope that."
 
-And the shift outlasts the event. At the agency where this started, the tools kept coming long after demo day: workflow boards, storyboarding helpers, resourcing fixes nobody asked anyone to build. The team didn't just learn AI. They started thinking AI-first, reaching for it the way they reach for any tool of the trade. That's the real product, and no workshop has ever delivered it.
+And the shift outlasts the event. At the agency where this started, the tools kept coming long after demo day, internal helpers and fixes the team built entirely on their own. The team didn't just learn AI. They started thinking AI-first. That's the real product, and no workshop has ever delivered it.
 
-For a small shop, this is a whole-agency moment. Everyone in one event, from the front desk to the founders, building side by side. Agencies run on culture, and nothing builds it like watching your coworkers surprise themselves.
+For a small shop, this is a whole-agency moment. Everyone in one event, top to bottom, building side by side. Agencies run on culture, and nothing builds it like watching your coworkers surprise themselves.
 
 **CTA:** Read the Seven2 story →
 
@@ -86,7 +86,7 @@ For a small shop, this is a whole-agency moment. Everyone in one event, from the
 #### Sound like your team?
 
 **Primary button:** See How It Works
-**Secondary link:** Read the Seven2 Story
+**Secondary link:** Read the Seven2 story
 
 ## Future Verticals Roadmap
 
@@ -105,13 +105,16 @@ Not on the public page at launch. Each becomes a real page only when a customer 
 ## Notes To Protect
 
 - No empty vertical grid, ever. A vertical earns a page with proof, not before.
-- The Agencies section generalizes Seven2 stories without naming people ("workflow boards, storyboarding helpers, resourcing fixes"); the case study carries named specifics.
+- The Agencies section generalizes Seven2 stories without naming people ("internal helpers and fixes the team built entirely on their own"); the case study carries the specific project list (workflow boards, storyboarding tools, resourcing fixes) so the two pages never duplicate it.
 - "AI-first" appears here deliberately: it is the locked primary outcome framing.
 - Keep the skeptic paragraph. Validating creative skepticism instead of arguing with it is the trust move for this audience (research: don't convert, demonstrate).
 - No pricing on this page; "a whole-agency moment" plants small-team fit and the Pricing page closes the loop.
 - The hero's roles list is deliberately cross-industry; agency-specific roles live in the Agencies section.
 
 ## Change History
+
+### v1.0.1
+- Cohesion pass (2026-07-07, Nick's batched rulings): "three weeks" corrected to "a couple of weeks" (verified fact is ~2.5); the aftermath list and "tool of the trade" line generalized so the Case Study owns both; "nobody asked anyone to build" removed (the riff now appears once site-wide, on the Case Study); "from the front desk to the founders" varied to "top to bottom" (the riff now lives only on Pricing); Seven2 link capitalization standardized to sentence case.
 
 ### v1.0.0
 - Page strategy locked: lean one-pager instead of a vertical menu (Nick approved 2026-07-06).

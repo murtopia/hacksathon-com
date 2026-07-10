@@ -1,8 +1,8 @@
 # Project Dashboard
 
 Status: Living
-Version: 1.13.0
-Last Updated: 2026-07-06 CDT
+Version: 1.15.0
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -37,7 +37,19 @@ When the How It Works page enters active drafting.
 
 ## Current Phase
 
-ALL EIGHT PAGES COMPLETE AND LOCKED, now including five audit-accepted revisions from the external ChatGPT audit (triaged 2026-07-06). The copy mission's final step is the site-wide cohesion pass.
+COPY MISSION COMPLETE. All eight pages locked, external audit folded in, the site-wide cohesion pass applied 2026-07-07 per Nick's batched rulings, and Nick's personal review pass triaged and applied the same day. The work now moves to implementation: Nick's Cursor pass to ship the locked copy to the live site, then the Arcade demos and the marketing operating system.
+
+### Nick's Review Pass Rulings (2026-07-07, after the cohesion pass)
+
+Nick read the full review copy with his own eyes (converted to a Google Doc, returned as a .docx with inline edits and notes; Claude diffed it against the locked copy). Applied: The Program's What You Get intro reworded ("a guided program where every piece exists"); the IdeaLab blurb tightened ("Every Hacks-a-Thon starts with ideas."); Blueprint renamed to "the Blueprint" in prose site-wide (Nick's ruling: matches the IdeaLab pattern; no "AI" modifier); Pricing's first FAQ retitled "What's included in a Hacks-a-Thon?" with "Every Hacks-a-Thon gets"; the DIY FAQ opens "Yep, you could."; the About body now opens "Hi, I'm Nick Murto, founder of Hacksathon.com, and that's been my whole life, honestly." (Nick's note: cold visitors need to know whose story it is); and the Resources Four Doors were removed from the public page in favor of The Library, a simple newest-first article list, with the doors preserved in resources.md as the growth plan for when volume demands wayfinding (blog-like at launch is a feature, not a compromise). Ruled no-change: "Shark Tank style" reverted to "Shark Tank pitch" (the tiered naming system stands: full product name once, casual pitches elsewhere, "Shark Tank style" only in About's memoir); the How It Works hero keeps "Here's how it works." as its handoff line.
+
+### Cohesion Pass Rulings (2026-07-07)
+
+Claude ran the full pass (all eight pages read as one site, checked against the checklist below, live homepage fetched and compared), delivered findings grouped by severity, and Nick ruled on all of them in one batch. Applied: the punchline duplication cluster resolved (the Case Study now owns the aftermath list, the "nobody asked for" phrase, and the quoted conversation-shift line; Built For and How It Works varied); "three weeks" corrected to "a couple of weeks" on Built For; Pricing naming drift fixed (the Hacks-a-Thon platform, Admin Dashboard, Shark Tank Minus the Sharks pitch sessions, Public Showcase page, The IdeaLab) and its spaced hyphens replaced; "twenty people demo twenty things" generalized; "blank prompt" reworded on How It Works and About; the front desk/founders riff kept only on Pricing; costumes confirmed on About with The Program's line replaced by "Expect a little showmanship."; the homepage hero product clarifier added ("A structured Hacks-a-Thon program you can easily run for your own team."); the homepage closing extended to "Give them the confidence to create with AI."; Seven2 link labels standardized to sentence-case "Read the Seven2 story" ("the full" where a partial telling precedes); proof strip stays after The Problem.
+
+New standing rules from Nick's rulings: (1) the generic word "hackathon" never appears in public copy, it is always Hacks-a-Thon (generic references reworded: one-day sprint, start an event, no weekend required, the About origin sentence restructured); (2) Hacks-a-Thon is always hyphenated including "the Hacks-a-Thon platform", the one-word form exists only in Hacksathon.com; (3) block count uses the numeral 10 in prose, spelled out only at a sentence start; (4) "nobody asked" appears at most once site-wide (Case Study); (5) the outcome phrase is always "the confidence to create with AI", and repeating it across pages is fine; (6) homepage/Program thesis echo accepted as intentional; (7) "Most teams" soft claims accepted as-is.
+
+Accepted without change: pricing math verified to the penny; all stat usage correct; CTA chain intact; Resources footer CTA deliberate. Rejected/no change: none of the flagged items were rejected outright; item-by-item detail lives in each page doc's change history.
 
 ### External Audit Rulings (2026-07-06)
 
@@ -107,12 +119,12 @@ Before meaningful work, read:
 
 ## Locked Pages
 
-- Homepage. Considered locked as of 2026-07-05. The locked copy itself was recovered on 2026-07-06 and now lives in 02-website/homepage-copy.md (it was previously only in the Obsidian folder). Verify against the live site during the cohesion pass. Revisit only for the final cohesion pass.
+- Homepage. Locked; cohesion pass applied 2026-07-07 (v1.4: hero product clarifier added, closing CTA extended to "with AI"). Live-site check completed 2026-07-07: the live homepage is still the pre-lock version entirely (old hero, five-tools grid including the nonexistent Proven Playbook tile, Get Started CTAs, Nick's quote run as a testimonial, a Lovable recommendation slot). Nick confirmed he is replacing all live homepage copy with the locked copy; Lovable does not need a homepage mention.
 - The Program. Locked 2026-07-06 (v1.0.0). All six sections locked: Hero, What You Get, How Long Will This Take?, Born Inside a Real Agency, See It For Yourself, Final CTA. Revisit only during the final cohesion pass. The Component Reference inside the-program.md stays living.
 - How It Works. Locked 2026-07-06 (v1.0.0). All six sections locked: Hero, Why Training Isn't Enough, Ownership, Confidence, Culture, CTA. Built on the Awareness / Ownership / Confidence / Culture arc. Revisit only during the final cohesion pass.
 - Built For. Locked 2026-07-06 (solutions-overview.md v1.0.0). Lean one-pager instead of a vertical menu: Hero ("Built for the teams nobody calls technical"), Your Organization, Marketing & Creative Agencies (the launch-market section), and a Sound Like Your Team? CTA. Future verticals are proof-gated on the roadmap. agencies-solution-page.md archived via consolidation.
 - Pricing. Locked 2026-07-06 (pricing-page.md v1.0.0). Live page structure adopted as locked copy, plus a new Why One Flat Price section and a time-commitment FAQ. Comparison framing (consultants, failed training) retired. Two live-site corrections pending Nick's Cursor pass: IdeaLab sparks/comments claim removed, chat integration reworded to chat link.
-- Resources. Locked 2026-07-06 (resources.md v1.0.0). Public name Resource Library; four problem-based doors (getting started / leading a team / want to create / want proof) plus an AI Field Notes feed that doubles as the X/LinkedIn content engine. Eight-article launch roadmap; pillars are internal taxonomy only; ungated at launch; templates are the first post-launch gated addition. Launch-viable with the Seven2 story, a few field notes, and 1-2 anchor articles.
+- Resources. Locked 2026-07-06 (resources.md v1.1.0 after Nick's review pass 2026-07-07). Public name Resource Library. Launch page: hero, The Library (a simple newest-first article list), Field Notes feed that doubles as the X/LinkedIn content engine, contextual footer CTA. The four problem-based doors are deferred to the Growth Plan in resources.md (Nick's ruling: eight articles don't need four doors; restructure when volume demands wayfinding). Eight-article launch roadmap; pillars are internal taxonomy only; ungated at launch; templates are the first post-launch gated addition. Launch-viable with the Seven2 story, a few field notes, and 1-2 anchor articles.
 - About. Locked 2026-07-06 (about.md v1.0.0). First-person founder story: More Ideas Than Time hero, the agency years, Been Watching's five-year limbo, the vibe-coding unlock (Tony Rosland credited, HyperChrono's three deaths before the App Store), the tools-nobody-used insight, and the aha. Resolves the About-vs-Case-Study split: About carries the why with two event paragraphs; the Case Study carries the full Seven2 story. Raw origin story preserved in founder-notes.md.
 - Seven2 Case Study. Locked 2026-07-06 (case-study.md v1.0.0). The live /seven2 Public Showcase adopted as the foundation (the product demonstrating itself), wrapped in a four-section narrative layer: Every Single Person Shipped opener with stat band (19/19, 100%, ~2.5 weeks, 0 facilitators), The Setup, How It Ran ("Steal it"), a one-line recap reframe, and What Happened After. Verified numbers established in proof.md; the synthesis doc's 22/14/64% corrected. Implementation checklist for Nick in case-study.md.
 
@@ -142,33 +154,32 @@ Complete. All six sections locked as of 2026-07-06: Hero, What You Get, How Long
 
 ## Next Task
 
-The site-wide cohesion pass, the final step of the copy mission. Read all eight locked pages together and check:
+The cohesion pass is COMPLETE (2026-07-07). The copy mission is done. Next: Nick's implementation pass in Cursor, then the Arcade demos, then content seeding for the marketing operating system (sequenced after copy lock, which is now satisfied).
 
-- Voice consistency (plain, confident, conversational; no em dashes; no corporate speak).
-- CTA chain integrity (homepage → How It Works → The Program → Pricing/Buy; Built For and Resources feeding in; Case Study links everywhere resolving to /seven2).
-- Product naming consistency (the IdeaLab, Blueprint, Hacky Helper, Shark Tank Minus the Sharks, Showcase Showdown, Hacky Awards, Reflections, Public Showcase; ten blocks everywhere).
-- Verified facts only (19/19, 100%, ~2.5 weeks, spring 2026, $995 model).
-- No cross-page punchline duplication (e.g., costumes live on The Program; the pizza line on Pricing).
-- Homepage verified against the live site.
-- Audit watch-items: confidence/creation repetition across Home and How It Works (vary supporting language where cheap); possible one-line product clarifier near the homepage hero (Nick's explicit call); proof-strip placement check now that it exists.
+Nick's implementation to-dos (Cursor):
 
-Nick's implementation to-dos (Cursor), independent of the cohesion pass:
-
-- Case Study: apply the narrative layer per the checklist in case-study.md (now includes the What Seven2 Proved bullets); restore the Hacky Awards and Reflections blocks on /seven2.
-- Pricing: apply the live-site corrections in pricing-page.md (now eight items, including the DIY FAQ, After Purchase flow, and Let's Talk extension).
-- Homepage: add the Seven2 proof strip after The Problem section.
+- Case Study: apply the narrative layer per the checklist in case-study.md (now includes the What Seven2 Proved bullets); restore the Hacky Awards and Reflections blocks on /seven2. Note the cohesion tweak: "No weekend required."
+- Pricing: apply the live-site corrections in pricing-page.md (now ten items; items 9-10 cover the cohesion-pass and review-pass fixes; apply the locked copy verbatim).
+- Homepage: replace ALL live homepage copy with the locked copy in homepage-copy.md v1.4 (includes the proof strip after The Problem, the new hero clarifier subline, and the "with AI" closing). The live page's Proven Playbook tile, Nick-quote testimonial, and Lovable slot all go away with the replacement (Nick confirmed 2026-07-07: no Lovable mention needed on the homepage).
 - Build the remaining locked pages that don't exist live yet (The Program, How It Works, Built For, Resources, About).
 - Arcade demos (admin + participant) once copy implementation settles.
 - GitHub sync to capture Resources, About, and Case Study docs (post-Resources work is local-only).
 
 ## Open Questions
 
-- Whether the homepage should include a lightweight pricing teaser or keep pricing entirely separate. (Candidate for the cohesion pass.)
+- Whether the homepage should include a lightweight pricing teaser or keep pricing entirely separate. (Not raised in the cohesion rulings; the locked homepage ships without one unless Nick says otherwise. The Program's Final CTA already carries the one-flat-price line downstream.)
+- Whether Seven2 links should say "story" or "case study." Claude applied sentence-case "story" in all link labels (warmer, matches the voice) while the footer nav label stays "Seven2 Case Study" as a functional label. Nick floated "case study" for consistency with the nav; reversible with one find-and-replace if he prefers it.
 - Purpose of the `murtopia/hacks-a-thon` repo (Nick to confirm when relevant).
 
 Resolved 2026-07-06: final Program CTA. Pricing framing. Resources prioritization. About-vs-Case-Study split. Event dates (spring 2026 is the official public phrasing by Nick's choice; no specific days). Verified pilot numbers (19/19, 100%). The /seven2 redirects (deliberate).
 
 ## Change History
+
+### v1.15.0
+- Recorded Nick's review pass (2026-07-07): his .docx markup diffed and triaged, six edits plus three note rulings applied across five page docs and the export; "the Blueprint" naming rule and the Resources Library-list restructure (doors deferred to Growth Plan) captured.
+
+### v1.14.0
+- Cohesion pass complete (2026-07-07). Rulings recorded, seven page docs and the export updated, new standing copy rules captured, live homepage delta documented, Next Task moved to implementation. Copy mission complete.
 
 ### v1.13.0
 - External audit triaged: five accepted items applied across homepage-copy.md (v1.3), pricing-page.md (v1.1.0), case-study.md (v1.1.0), and the regenerated export. Rulings recorded; watch-items added to the cohesion pass checklist.

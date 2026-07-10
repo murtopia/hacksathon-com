@@ -1,8 +1,8 @@
 # Pricing Page
 
-Status: Locked (pending final cohesion pass at end of project)
-Version: 1.1.0
-Last Updated: 2026-07-06 CDT
+Status: Locked (cohesion pass complete 2026-07-07; Nick's review pass applied same day)
+Version: 1.1.2
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -39,7 +39,7 @@ Working sections:
 - Live-Site Corrections Needed (until Nick applies them)
 
 Next Review:
-During the site-wide cohesion pass.
+As needed post-launch; the copy mission is complete.
 
 ---
 
@@ -94,32 +94,32 @@ No feature gates between sizes. A team of 10 gets the exact same platform as a t
 #### For your team
 
 - Full 10-block event format
-- IdeaLab - idea submission and shared gallery
-- Guided Blueprint - AI planning conversation that produces a build-ready plan
+- The IdeaLab: idea submission and shared gallery
+- The Blueprint: guided AI planning conversation that produces a build-ready plan
 - Auto-generated Starter Prompt tuned to your build tool
-- Bring your own AI build tool - Lovable, Cursor, v0, Replit, and more
-- Shark Tank Pitch session structure
-- Time-blocked build sessions with Blueprint + Starter Prompt handoff
+- Bring your own AI build tool: Lovable, Cursor, v0, Replit, and more
+- Shark Tank, Minus the Sharks pitch sessions
+- Time-blocked build sessions with the Blueprint + Starter Prompt handoff
 - Hacky Awards voting and ceremony
 - Reflections survey with guided prompts
 
 #### For the admin
 
-- Hacky Helper - guided, step-by-step event setup
-- Hacksathon admin with block controls and participant management
-- Team chat link - one place for your Slack, Discord, or Teams URL
+- Hacky Helper: guided, step-by-step event setup
+- Admin Dashboard with block controls and participant management
+- Team chat link: one place for your Slack, Discord, or Teams URL
 - Branded email invites and notifications
 - Auto-generated awards ceremony slideshow
 - AI-generated reflection recap
 - Your own vanity URL (hacksathon.com/yourteam)
-- Public showcase page - recap, projects, winners, and reflections
+- Public Showcase page: recap, projects, winners, and reflections
 - Custom branding with your company logo
 
 ### 5. Common Questions
 
-#### What's included in every event?
+#### What's included in a Hacks-a-Thon?
 
-Everything. Every event gets the complete platform - all 10 blocks, the Hacky Helper setup guide, the AI Blueprint and Starter Prompt, Hacky Awards, reflections with an AI recap, and your branding. The only variable is how many people you invite.
+Everything. Every Hacks-a-Thon gets the complete platform: all 10 blocks, the Hacky Helper setup guide, the Blueprint and Starter Prompt, Hacky Awards, reflections with an AI recap, and your branding. The only variable is how many people you invite.
 
 #### How much time does this take?
 
@@ -127,19 +127,19 @@ Ten short blocks, 15 to 60 minutes each. Most teams spread them across a couple 
 
 #### How does buying work?
 
-You purchase your event up front, then set everything up - the Hacky Helper walks you through identity, schedule, your team, awards, and reflections step by step. Have a promo code? Enter it at checkout.
+You purchase your event up front, then set everything up. The Hacky Helper walks you through identity, schedule, your team, awards, and reflections step by step. Have a promo code? Enter it at checkout.
 
 #### Is facilitation included?
 
 The platform is the facilitator. The Hacky Helper walks you through setup step by step, every block carries participant-facing instructions and purpose, and the whole format is structured to run without outside help. You run it. That's the point.
 
-#### Couldn't we just run our own hackathon?
+#### Couldn't we just do this ourselves?
 
-You could. That's how this started, and it took months of design, a pile of custom tools, and a full pilot to get a version where everyone actually finishes. That's what you're buying: the guided blocks that remove every reason to stall, the Blueprint planning that keeps projects from collapsing, the Hacky Helper running the checklist, and the pitches, awards, and showcase that turn "I'll try" into "I shipped." A shared doc and a demo day can start a hackathon. This one finishes.
+Yep, you could. That's how this started, and it took months of design, a pile of custom tools, and a full pilot to get a version where everyone actually finishes. That's what you're buying: the guided blocks that remove every reason to stall, the Blueprint planning that keeps projects from collapsing, the Hacky Helper running the checklist, and the pitches, awards, and showcase that turn "I'll try" into "I shipped." A shared doc and a demo day can start an event. This one finishes.
 
 #### Is the AI build tool included?
 
-No. Your price covers the Hacksathon platform. The AI build tools your team uses to actually build - Lovable, Cursor, v0, Replit, Google AI Studio, and others - are separate products, and many teams already have one through their company plan. You pick a default (or let participants choose their own) during setup.
+No. Your price covers the Hacks-a-Thon platform. The AI build tools your team uses to actually build (Lovable, Cursor, v0, Replit, Google AI Studio, and others) are separate products, and many teams already have one through their company plan. You pick a default (or let participants choose their own) during setup.
 
 ### 6. Final CTA
 
@@ -148,7 +148,7 @@ No. Your price covers the Hacksathon platform. The AI build tools your team uses
 Buy your event, then set it up in minutes with the Hacky Helper.
 
 **Primary:** Buy Your Hacks-a-Thon
-**Secondary:** See the Seven2 Story
+**Secondary:** Read the Seven2 story
 
 ## Live-Site Corrections Needed
 
@@ -162,6 +162,8 @@ For Nick to apply in Cursor (the locked copy above already reflects them):
 6. Add the "Couldn't we just run our own hackathon?" FAQ after the facilitation question (audit-accepted, 2026-07-06).
 7. Add the After Purchase mini-flow under the price card: Buy your event → Meet the Hacky Helper → Invite your team → Schedule the blocks → Run it and showcase.
 8. Extend the Let's Talk line: "Larger events and multi-team rollouts welcome."
+9. Cohesion pass (2026-07-07): the locked copy above now also fixes naming (the Hacks-a-Thon platform, Admin Dashboard, Shark Tank Minus the Sharks pitch sessions, Public Showcase page, The IdeaLab), replaces the spaced hyphens with colons, periods, or parentheses, renames the DIY FAQ to "Couldn't we just do this ourselves?" with "start an event" replacing "start a hackathon" (the generic word is now banned site-wide), and standardizes the final CTA secondary to "Read the Seven2 story." Apply the locked copy above verbatim.
+10. Nick's review pass (2026-07-07): first FAQ retitled "What's included in a Hacks-a-Thon?" with "Every Hacks-a-Thon gets"; DIY FAQ opens "Yep, you could."; "the Blueprint" naming in both included lists and the first FAQ. Apply the locked copy above verbatim.
 
 ## Confirmed Pricing Facts
 
@@ -177,6 +179,12 @@ Confirmed by Nick via product and site screenshots 2026-07-06, and the live page
 - Facilitation is not a human service; the platform is the facilitator (self-serve by design).
 
 ## Change History
+
+### v1.1.2
+- Nick's review pass (2026-07-07): first FAQ retitled "What's included in a Hacks-a-Thon?" ("Every Hacks-a-Thon gets"); DIY FAQ opens "Yep, you could."; "the Blueprint" naming applied. Live-site corrections extended (item 10).
+
+### v1.1.1
+- Cohesion pass (2026-07-07, Nick's batched rulings): naming drift fixed (the Hacks-a-Thon platform, Admin Dashboard, Shark Tank Minus the Sharks pitch sessions, Public Showcase page, The IdeaLab); spaced hyphens replaced with colons, periods, or parentheses; DIY FAQ retitled "Couldn't we just do this ourselves?" per the never-say-generic-hackathon rule; Seven2 link label standardized. Live-site corrections list extended (item 9).
 
 ### v1.1.0
 - Audit-accepted additions (Nick approved 2026-07-06): the "Couldn't we just run our own hackathon?" FAQ, the After Purchase mini-flow, and the extended Let's Talk line. Live-site correction list extended accordingly.

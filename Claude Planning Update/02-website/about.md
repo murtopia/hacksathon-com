@@ -1,8 +1,8 @@
 # About
 
-Status: Locked (pending final cohesion pass at end of project)
-Version: 1.0.0
-Last Updated: 2026-07-06 CDT
+Status: Locked (cohesion pass complete 2026-07-07; Nick's review pass applied same day)
+Version: 1.0.2
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -29,7 +29,7 @@ Working sections:
 - None
 
 Next Review:
-During the site-wide cohesion pass.
+As needed post-launch; the copy mission is complete.
 
 ---
 
@@ -53,7 +53,7 @@ Locked 2026-07-06 (Nick approved).
 
 ## More ideas than time.
 
-That's been my whole life, honestly. I'm a designer and an idea guy. I was never a programmer. Even back when I built web pages, it was copy and paste, never writing code of my own. But ideas come naturally to me. I see a problem and my brain floods with solutions whether I asked it to or not. I get that from my dad, who built his own house with his own hands. The only thing he hired out was the carpet.
+Hi, I'm Nick Murto, founder of Hacksathon.com, and that's been my whole life, honestly. I'm a designer and an idea guy. I was never a programmer. Even back when I built web pages, it was copy and paste, never writing code of my own. But ideas come naturally to me. I see a problem and my brain floods with solutions whether I asked it to or not. I get that from my dad, who built his own house with his own hands. The only thing he hired out was the carpet.
 
 ## Twenty years of ideas, one bottleneck
 
@@ -77,9 +77,9 @@ Meanwhile, back at my own agency, almost nobody was touching AI. My team was ner
 
 So I tried to help. On a four-hour flight to Spokane, I built an idea-sharing tool for my team, about ninety percent of it on airplane wi-fi. I built an AI planning tool. I built a doc editor. Good tools, honestly. And almost nobody used them.
 
-Then, in early 2026, I tried something different. Instead of handing my team tools, I designed an event: a structured, multi-week, low-pressure hackathon where everyone would build something they personally wanted to exist. The tools I'd already built slotted in perfectly, like they'd been waiting for it. We pitched Shark Tank style (people wore costumes). We built in short sessions between client work. We demoed, we voted, we celebrated.
+Then, in early 2026, I tried something different. Instead of handing my team tools, I designed an event: structured, multi-week, low-pressure, where everyone would build something they personally wanted to exist. The tools I'd already built slotted in perfectly, like they'd been waiting for it. We pitched Shark Tank style (people wore costumes). We built in short sessions between client work. We demoed, we voted, we celebrated.
 
-And then the thing happened that changed my plans: after it ended, my team kept building. People who'd been scared of a blank prompt were shipping tools nobody asked for. The conversations changed. That was my aha moment. The tools were never the answer. The experience was.
+And then the thing happened that changed my plans: after it ended, my team kept building. People who'd been unsure what their first prompt should be were shipping tools all on their own. The conversations changed. That was my aha moment. The tools were never the answer. The experience was.
 
 ## Why Hacksathon.com exists
 
@@ -91,13 +91,20 @@ Hacksathon.com is that event, rebuilt as a platform any organization can run on 
 
 ## Notes To Protect
 
-- First person, dinner-party voice. Do not corporatize in the cohesion pass.
+- First person, dinner-party voice. Do not corporatize.
+- Costumes live here (Nick's cohesion ruling, 2026-07-07): "(people wore costumes)" stays on About; The Program's costume line was replaced with "Expect a little showmanship."
 - Never name clients in the banned-AI passage.
 - The developer anecdote stays anonymous and uses "envious."
 - Tony's name and Studio Ledger link stay (Nick's explicit blessing).
 - The mission line ("We help people realize they can create solutions they never thought possible") appears verbatim; it ties the page to the company foundation.
 
 ## Change History
+
+### v1.0.2
+- Nick's review pass (2026-07-07): body now opens "Hi, I'm Nick Murto, founder of Hacksathon.com, and that's been my whole life, honestly." per Nick's note that cold visitors need to know whose story this is. Hero unchanged.
+
+### v1.0.1
+- Cohesion pass (2026-07-07, Nick's batched rulings): "a structured, multi-week, low-pressure hackathon" reworded to drop the generic word per the never-say-generic-hackathon rule; "scared of a blank prompt" reworded per Nick's first-prompt direction; "tools nobody asked for" removed (the phrase now appears once site-wide, on the Case Study). Costume mention confirmed as living here.
 
 ### v1.0.0
 - Full page drafted from Nick's raw origin story (captured in founder-notes.md) plus a five-question interview, locked after one revision (jealous to envious).

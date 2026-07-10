@@ -1,8 +1,8 @@
 # Changelog
 
 Status: Living
-Version: 1.12.0
-Last Updated: 2026-07-06 CDT
+Version: 1.14.0
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -31,6 +31,32 @@ Next Review:
 Every meaningful planning save.
 
 ---
+
+## 2026-07-07
+
+### Updated
+
+- COPY MISSION COMPLETE: the site-wide cohesion pass was run, ruled on by Nick in one batch, and applied. Claude read all eight locked pages as one site against the dashboard checklist and the audit watch-items, fetched the live homepage for comparison, and delivered severity-grouped findings; Nick ruled on all fifteen; surgical edits landed across seven page docs (resources.md needed none).
+- Duplication ownership resolved: the Seven2 Case Study now exclusively owns the aftermath project list (workflow boards, storyboarding tools, resourcing fixes), the "nobody asked for" phrase (max once site-wide, per Nick), and the quoted conversation-shift line. Built For generalized ("internal helpers and fixes the team built entirely on their own"; "They started thinking AI-first."); How It Works varied ("New tools appear, unprompted."; "People stop asking whether AI matters and start comparing what they're building.").
+- Fact and naming fixes: Built For's "three weeks" corrected to "a couple of weeks"; How It Works' "twenty people demo twenty things" generalized to "the whole team"; Pricing naming drift fixed (the Hacks-a-Thon platform, Admin Dashboard, Shark Tank Minus the Sharks pitch sessions, Public Showcase page, The IdeaLab) and spaced hyphens replaced with colons, periods, or parentheses; Seven2 link labels standardized to sentence-case "Read the Seven2 story."
+- New standing copy rules from Nick's rulings: the generic word "hackathon" is banned from public copy forever (always Hacks-a-Thon; reworded to "one-day sprint," "Couldn't we just do this ourselves?" / "start an event," "No weekend required," and About's restructured origin sentence); Hacks-a-Thon is always hyphenated with the one-word form only in Hacksathon.com; block count uses the numeral 10 in prose (spelled out only at sentence start); the outcome phrase is always "the confidence to create with AI" and may repeat across pages.
+- Homepage (v1.4): hero product clarifier added per Nick's explicit call ("A structured Hacks-a-Thon program you can easily run for your own team."); closing extended to "Give them the confidence to create with AI."; proof strip confirmed staying after The Problem. Costumes confirmed living on About; The Program's costume line replaced with "Expect a little showmanship."; front desk/founders riff kept only on Pricing.
+- Live homepage verified during the pass: still the pre-lock version entirely (including the nonexistent Proven Playbook tile, Nick's quote as a testimonial, and a Lovable slot). Nick confirmed he is replacing all live homepage copy with the locked copy; no Lovable mention needed on the homepage. Implementation list updated in the dashboard.
+- Versions: homepage-copy v1.4; the-program, how-it-works, solutions-overview, about 1.0.1; pricing-page 1.1.1; case-study 1.1.1; full-site-copy-export regenerated as 1.2.0. Dashboard v1.14.0, session notes v1.12.0, index v1.0.10. GitHub sync still pending for all post-Resources work.
+
+### Added
+
+- Created 02-website/nick-review-copy-2026-07-07.md: Nick's personal markup copy of the full post-cohesion site copy, organized by page with what-changed-today notes, for his own rewrite pass before implementation. Changes triage back into the page docs; the file is archived or deleted after the pass.
+- NICK'S REVIEW PASS COMPLETE (same day): Nick marked up the review copy in a Google Doc and returned it as a .docx; Claude diffed it against the locked copy and triaged six edits plus three notes, all ruled and applied. Edits: The Program's What You Get intro ("a guided program where every piece exists"); the IdeaLab blurb tightened ("Every Hacks-a-Thon starts with ideas."); NEW RULE: "the Blueprint" in prose site-wide (matches the IdeaLab pattern; applied across The Program, How It Works, Pricing, and the export's product-names note); Pricing's first FAQ retitled "What's included in a Hacks-a-Thon?" ("Every Hacks-a-Thon gets"); the DIY FAQ opens "Yep, you could."; About opens "Hi, I'm Nick Murto, founder of Hacksathon.com, and that's been my whole life, honestly." Notes ruled: the Four Doors removed from the Resources public page in favor of The Library (a simple newest-first article list; doors preserved in resources.md as the Growth Plan; blog-like at launch is a feature); "Shark Tank style" reverted to "Shark Tank pitch"; the How It Works hero keeps "Here's how it works." Versions: the-program 1.0.2, how-it-works 1.0.2, pricing-page 1.1.2 (live corrections now ten items), about 1.0.2, resources 1.1.0, export updated. The review copy is fully triaged and archivable.
+- Created 02-website/site-copy-final-for-cursor.md: the implementation-ready compilation for Nick's Cursor pass (implementation rules and AI-agent guardrails, live-site replacement instructions, CTA link targets, all eight pages verbatim). Regenerate if any page doc changes before implementation.
+
+### Updated (consistency refresh, later same day)
+
+- website-structure.md to 1.2.0: page-level details refreshed to match the locked page docs. The Program section list corrected (Playbook removed with a do-not-reintroduce note), Pricing comparison framing replaced with the locked flat-rate approach, Resources updated to The Library list with the doors deferred, Built For verticals marked proof-gated, About opening noted, CTA Direction updated to the locked CTAs. Nav and footer confirmed unchanged: top nav is Home / The Program / How It Works / Built For / Pricing / Resources; the Seven2 Case Study lives in the footer (a change from the current live site, which has it in the top nav).
+- core-messaging-principles.md to v1.1: principle 1 hardened with the never-say-generic-hackathon rule; "View the Playbook" removed from principle 9.
+- messaging-guide.md to v1.4: Website Copy links updated to the full locked eight-page set plus the export; archived Agencies Solution Page link removed.
+- company-foundation.md read and verified clean; no changes needed.
+- site-copy-final-for-cursor.md rule 9 completed with the full five-item footer (About, Seven2 Case Study, Contact, Privacy, Terms) and an explicit note that the Case Study moves out of the live top nav.
 
 ## 2026-07-06
 
@@ -117,6 +143,12 @@ Every meaningful planning save.
 - Replaced `planning/02-website/platform-page.md` with `planning/02-website/the-program.md`.
 
 ## Change History
+
+### v1.14.0
+- Added Nick's review-pass entry: markup triaged, six edits and three note rulings applied, the Blueprint naming rule and the Resources Library restructure recorded.
+
+### v1.13.0
+- Added the 2026-07-07 cohesion pass entry: rulings applied, new standing copy rules, copy mission complete.
 
 ### v1.12.0
 - Added the external-audit triage entry: five accepted items applied, rulings recorded.

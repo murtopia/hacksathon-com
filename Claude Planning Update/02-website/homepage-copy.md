@@ -1,8 +1,8 @@
 # Homepage Copy
 
-**Status:** Locked (pending final cohesion pass at end of project)
-**Version:** v1.3
-**Last Updated:** 2026-07-06 CDT by Nick + Claude
+**Status:** Locked (cohesion pass complete 2026-07-07)
+**Version:** v1.4
+**Last Updated:** 2026-07-07 CDT by Nick + Claude
 **Purpose:** Capture the locked homepage copy and the positioning direction behind it.
 
 ## Locked Homepage Copy (v1)
@@ -14,6 +14,10 @@ Provenance: written during the ChatGPT copywriting sessions and saved 2026-06-29
 **Helping every employee adopt AI. Proven with real non-technical teams.**
 
 # Accelerate AI Adoption by Empowering Every Employee to Create Solutions
+
+**Product clarifier (added 2026-07-07 per Nick's cohesion ruling):** A structured Hacks-a-Thon program you can easily run for your own team.
+
+(Placement: a small subline between the H1 and the opening paragraph; visual treatment at Nick's discretion.)
 
 Hacks-a-Thon gives every employee a clear, guided path to creating practical solutions with AI, building confidence that lasts long after the event ends.
 
@@ -111,7 +115,7 @@ They build a culture where creating with AI becomes part of how people solve pro
 
 Give your team more than AI training.
 
-Give them the confidence to create.
+Give them the confidence to create with AI.
 
 **See How It Works**
 
@@ -199,6 +203,9 @@ Secondary CTA may point to interactive demos:
 - Keep the Seven2 origin story as credibility and proof, then move the full story to the About / Case Study page.
 
 ## Change History
+
+### v1.4
+- Cohesion pass (2026-07-07, Nick's batched rulings): added the one-line product clarifier under the hero H1 (Nick's explicit call, refined from his direction); final CTA line extended to "Give them the confidence to create with AI." per Nick's always-say-with-AI ruling. Proof strip stays after The Problem section (Nick accepted the recommendation). Both changes need implementing on the live homepage along with the full locked copy.
 
 ### v1.3
 - Added the Seven2 proof strip after The Problem section, per the accepted external-audit recommendation (Nick approved 2026-07-06). Needs implementing on the live homepage.

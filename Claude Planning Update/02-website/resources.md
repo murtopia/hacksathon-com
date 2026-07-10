@@ -1,8 +1,8 @@
 # Resources (Resource Library)
 
-Status: Locked structure and page copy (pending final cohesion pass); content roadmap living
-Version: 1.0.0
-Last Updated: 2026-07-06 CDT
+Status: Locked structure and page copy (Nick's review pass applied 2026-07-07); content roadmap living
+Version: 1.1.0
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -26,7 +26,7 @@ Used By:
 Lock Status:
 Locked sections:
 - Page Strategy
-- Page Copy (hero, four doors, Field Notes, footer CTA)
+- Page Copy (hero, the Library list, Field Notes, footer CTA)
 
 Working sections:
 - Launch Content Roadmap (living)
@@ -34,7 +34,7 @@ Working sections:
 - Post-Launch Roadmap (living)
 
 Next Review:
-When the first launch articles are drafted, and during the site-wide cohesion pass.
+When the first launch articles are drafted, or when library volume justifies restoring structured navigation (see Growth Plan).
 
 ---
 
@@ -46,7 +46,7 @@ The job of Resources is trust and authority, not selling. The homepage sells, Th
 
 Structural decisions:
 
-1. **Organized by the problem the visitor is solving, not by media type.** Four doors: I'm just getting started / I'm leading a team / I want to create / I want proof. People don't browse by "Articles vs Videos vs Downloads."
+1. **Launch as a simple list; structure comes with volume (Nick's ruling, 2026-07-07).** The original concept was four problem-based doors (I'm just getting started / I'm leading a team / I want to create / I want proof). With roughly eight articles at launch, that's more navigation than the content needs, so the public page is a straightforward list, closer to a blog, and that's fine: Field Notes gives it a pulse, and every piece is purpose-built for the funnel. The problem-based idea is preserved in the Growth Plan below; when structure returns, it organizes by the problem the visitor is solving, never by media type.
 2. **Public name: Resource Library.** Nav label stays Resources (nav is locked). A library is searched and browsed, not read chronologically.
 3. **The nine content pillars are internal taxonomy only** (planning and tagging), never public navigation. Nobody browses to a category called Psychology.
 4. **AI Field Notes lives on Hacksathon.com, not Murtopolis.** Nick's call, and the reasoning is distribution: short notes published here feed X and LinkedIn with links back, building backlinks, SEO, and a visible pulse for the domain that actually sells something. Field Notes is content-engine infrastructure, not just voice.
@@ -64,19 +64,11 @@ Approved by Nick 2026-07-06.
 
 Everything we're learning about organizational AI adoption, in one place. No gates, no jargon, no newsletter popup guarding the good stuff. Find what you need and go build something.
 
-### The Four Doors
+### The Library
 
-**I'm just getting started**
-New to all of this? Start with what organizational AI adoption actually means, and why confidence matters more than expertise.
+Start anywhere. Every piece stands on its own: pick whatever matches where you are today.
 
-**I'm leading a team**
-For the person responsible for making AI happen: why most adoption efforts stall, how momentum actually builds, and how to run an event that changes things.
-
-**I want to create**
-For the builders: how to pick your first project, how to give design direction to AI, and how to plan before you prompt.
-
-**I want proof**
-What happened when a real team of non-technical people tried this. The Seven2 story, participant stories, and the projects nobody expected.
+(Displays all articles as a simple list, newest first: title and a one-line description. No categories at launch; restructure per the Growth Plan when the library is big enough to need wayfinding.)
 
 ### Field Notes
 
@@ -92,9 +84,25 @@ New here? Hacks-a-Thon is a guided program that helps teams build AI confidence 
 
 (CTA deliberately names the product: many Library visitors arrive from outside links with zero context.)
 
+## Growth Plan: The Four Doors (deferred 2026-07-07)
+
+Not public at launch. When the library has enough content that visitors need wayfinding, restructure around these four problem-based doors. The door copy below was locked 2026-07-06 and is preserved for that moment; the door groupings also remain the internal organizing scheme for the content roadmap.
+
+**I'm just getting started**
+New to all of this? Start with what organizational AI adoption actually means, and why confidence matters more than expertise.
+
+**I'm leading a team**
+For the person responsible for making AI happen: why most adoption efforts stall, how momentum actually builds, and how to run an event that changes things.
+
+**I want to create**
+For the builders: how to pick your first project, how to give design direction to AI, and how to plan before you prompt.
+
+**I want proof**
+What happened when a real team of non-technical people tried this. The Seven2 story, participant stories, and the projects nobody expected.
+
 ## Launch Content Roadmap
 
-Eight articles, two per door, chosen for maximum value per hour of Nick's effort, plus the Field Notes cadence. Launch-viable state: Seven2 story + 2-3 field notes + 1-2 anchors; the rest fills in over time.
+Eight articles, two per door grouping (internal taxonomy now, like the pillars), chosen for maximum value per hour of Nick's effort, plus the Field Notes cadence. Launch-viable state: Seven2 story + 2-3 field notes + 1-2 anchors; the rest fills in over time.
 
 **I'm just getting started**
 1. What Is Organizational AI Adoption? (the category-defining piece; own the category by writing its definition)
@@ -144,10 +152,14 @@ In priority order after launch:
 - Resources builds trust; it never hard-sells. The only CTA is the contextual footer.
 - No empty public categories, ever. Same rule as Built For verticals.
 - Field Notes stays low-bar by design ("no polish, no thesis"); the format only works if publishing is nearly frictionless.
+- The public page stays a simple list until content volume justifies the Growth Plan doors; blog-like at launch is a feature, not a compromise (Nick, 2026-07-07).
 - Nothing from the original idea lists is lost: project-memory.md's resource ideas and the ChatGPT brain dump are absorbed into the taxonomy and roadmaps above.
 - Murtopolis relationship: founder-journey content (HyperChrono, App Store struggles) lives on Murtopolis; when a piece teaches what the Hacksathon audience wants to learn, polish it into the Library. The brands reinforce, not compete.
 
 ## Change History
+
+### v1.1.0
+- Nick's review pass (2026-07-07): the Four Doors removed from the public page copy and replaced with The Library, a simple newest-first article list ("Start anywhere. Every piece stands on its own."). Doors preserved verbatim as the Growth Plan for when volume demands wayfinding; door groupings remain internal taxonomy for the roadmap. Strategy item 1 updated accordingly.
 
 ### v1.0.0
 - Locked the page strategy (problem-based doors, Resource Library name, pillars as internal taxonomy, Field Notes on Hacksathon.com as distribution engine, ungated at launch, launch-safe scope).

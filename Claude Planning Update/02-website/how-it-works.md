@@ -1,8 +1,8 @@
 # How It Works
 
-Status: Locked (pending final cohesion pass at end of project)
-Version: 1.0.0
-Last Updated: 2026-07-06 CDT
+Status: Locked (cohesion pass complete 2026-07-07; Nick's review pass applied same day)
+Version: 1.0.2
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -44,7 +44,7 @@ Working sections:
 - None
 
 Next Review:
-During the site-wide cohesion pass after all remaining pages are written.
+As needed post-launch; the copy mission is complete.
 
 ---
 
@@ -113,13 +113,13 @@ Then Monday comes, and the person who shipped a bedtime-story app looks at a clu
 
 ### 4. Confidence
 
-Confidence isn't something you can talk a team into. It's the residue of doing a thing you didn't think you could do. So Hacks-a-Thon is engineered to make that happen on purpose, for every participant, through ten guided blocks.
+Confidence isn't something you can talk a team into. It's the residue of doing a thing you didn't think you could do. So Hacks-a-Thon is engineered to make that happen on purpose, for every participant, through 10 guided blocks.
 
 (Visual: the block timeline, full treatment with names and durations.)
 
-Each block exists to remove a reason to stall. Kickoff takes the intimidation out of the room. The IdeaLab gets ideas out of heads and into the open, where they start becoming real. The one-minute Shark Tank pitch does something quiet but powerful: once your team has heard your plan, you want to finish it. And before anyone touches a build tool, Blueprint turns the idea into real documentation and a starter prompt, because the fastest way to lose a beginner is to hand them a blank prompt.
+Each block exists to remove a reason to stall. Kickoff takes the intimidation out of the room. The IdeaLab gets ideas out of heads and into the open, where they start becoming real. The one-minute Shark Tank pitch does something quiet but powerful: once your team has heard your plan, you want to finish it. And before anyone touches a build tool, the Blueprint turns the idea into real documentation and a starter prompt, because the fastest way to lose a beginner is to hand them an empty prompt box and wish them luck.
 
-Then come the build sessions: short, time-blocked, protected on the calendar. Not marathon weekends. Real progress in the margins of real work. The multi-week rhythm is deliberate, too. A one-day hackathon produces adrenaline. A few weeks of short sessions produce skill. Between sessions, ideas simmer, problems solve themselves in the shower, and people come back knowing exactly what they want to try next.
+Then come the build sessions: short, time-blocked, protected on the calendar. Not marathon weekends. Real progress in the margins of real work. The multi-week rhythm is deliberate, too. A one-day sprint produces adrenaline. A few weeks of short sessions produce skill. Between sessions, ideas simmer, problems solve themselves in the shower, and people come back knowing exactly what they want to try next.
 
 The Showcase Showdown is the finish line that makes it all count: a three-minute demo in front of the whole team. Deadlines finish projects, and there's no deadline like your coworkers waiting to see what you made.
 
@@ -131,9 +131,9 @@ That confidence isn't a promise from a brochure. It's earned, and everyone in th
 
 The culture shift doesn't wait for demo day. It starts at the Shark Tank pitches, which might be the most fun meeting your team has ever attended. People get into it: honing their one-minute pitch, playing to the room, selling an idea they invented a week ago. And once every idea is out in the open, something else kicks in. Teammates start trading feedback, unsticking each other's builds, cheering on projects that aren't theirs. The whole event runs on a we've-got-your-back current, because everyone in it is a beginner at something.
 
-Then comes the room where twenty people demo twenty things they made. Everyone watched everyone else start from nothing, so every demo lands as proof of what's suddenly possible for anyone in the company. The Hacky Awards turn that proof into shared memory: votes, categories, a ceremony, winners nobody saw coming. Traditional team building creates shared activity. This creates shared accomplishment, and people bond differently over something they struggled through and finished together.
+Then comes the room where the whole team demos what they made. Everyone watched everyone else start from nothing, so every demo lands as proof of what's suddenly possible for anyone in the company. The Hacky Awards turn that proof into shared memory: votes, categories, a ceremony, winners nobody saw coming. Traditional team building creates shared activity. This creates shared accomplishment, and people bond differently over something they struggled through and finished together.
 
-Then the event ends, and the real outcome shows up. People keep building. New tools appear that nobody asked for. Hallway conversations shift from "what can AI do?" to "what could we create?" That's the flywheel: one person creates, someone else thinks "I could do that," and before long, creating is just how your team solves problems.
+Then the event ends, and the real outcome shows up. People keep building. New tools appear, unprompted. Hallway conversations change. People stop asking whether AI matters and start comparing what they're building. That's the flywheel: one person creates, someone else thinks "I could do that," and before long, creating is just how your team solves problems.
 
 Culture isn't a poster on the wall. It's what people do when nobody schedules it. That's the version of AI adoption that lasts.
 
@@ -156,6 +156,12 @@ You've seen why it works. The Program page shows what you get: every piece, in t
 - CTA hands the visitor forward to The Program, completing the funnel: homepage sells the belief, How It Works proves the method, The Program details the goods.
 
 ## Change History
+
+### v1.0.2
+- Nick's review pass (2026-07-07): "the Blueprint" naming applied (site-wide ruling). Nick also confirmed the hero's "Here's how it works." stays as the handoff line, and reverted his own "Shark Tank style" trial back to "Shark Tank pitch" (the tiered naming system stands).
+
+### v1.0.1
+- Cohesion pass (2026-07-07, Nick's batched rulings): conversation-shift line varied (the quote form now lives only on the Case Study); "nobody asked for" replaced with "unprompted" (the phrase now appears once site-wide, on the Case Study); "twenty people demo twenty things" generalized to "the whole team demos what they made" (numbers stay on the Case Study); "blank prompt" reworded to "an empty prompt box and wish them luck"; "one-day hackathon" changed to "one-day sprint" per the new never-say-generic-hackathon rule; "ten guided blocks" switched to "10 guided blocks" per the new numeral rule.
 
 ### v1.0.0
 - Locked all six sections: Hero, Why Training Isn't Enough, Ownership, Confidence, Culture, CTA. Page complete pending the site-wide cohesion pass.

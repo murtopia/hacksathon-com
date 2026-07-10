@@ -1,8 +1,8 @@
 # The Program
 
-Status: Locked (pending final cohesion pass at end of project)
-Version: 1.0.0
-Last Updated: 2026-07-06 CDT
+Status: Locked (cohesion pass complete 2026-07-07; Nick's review pass applied same day)
+Version: 1.0.2
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -40,7 +40,7 @@ Working sections:
 - Component Reference (living factual reference, updated as product facts are confirmed)
 
 Next Review:
-During the site-wide cohesion pass after all remaining pages are written.
+As needed post-launch; the copy mission is complete.
 
 ---
 
@@ -178,15 +178,15 @@ Create a clear overview of what the customer receives, tying every component bac
 
 ---
 
-Hacks-a-Thon is one guided program, and every piece exists to do one thing: help your team build AI confidence by creating something real. Whether someone's writing their first prompt ever or already building with AI every day, the program meets them where they are and walks everyone through it, step by step. Here's what's inside, in the order your team will experience it.
+Hacks-a-Thon is a guided program where every piece exists to do one thing: help your team build AI confidence by creating something real. Whether someone's writing their first prompt ever or already building with AI every day, the program meets them where they are and walks everyone through it, step by step. Here's what's inside, in the order your team will experience it.
 
 **Admin Dashboard.** Mission control for your Hacks-a-Thon. Set up your event, invite your team, schedule the blocks, and watch progress roll in. The built-in Hacky Helper keeps a running checklist of every step from setup through event day, always pointing at what to do next. You don't have to be the expert in the room. The program already is.
 
-**The IdeaLab.** Every Hacks-a-Thon starts with ideas coming out of hiding. The IdeaLab is where your team posts theirs: a shared gallery where everyone can see what everyone else is dreaming up. It's the first step from "I have an idea" to "I'm building it," and watching the gallery fill up is when your team starts to believe this is really happening.
+**The IdeaLab.** Every Hacks-a-Thon starts with ideas. The IdeaLab is where your team posts theirs: a shared gallery where everyone can see what everyone else is dreaming up. It's the first step from "I have an idea" to "I'm building it," and watching the gallery fill up is when your team starts to believe this is really happening.
 
-**Blueprint.** The bridge between a rough idea and a strong first prompt. Blueprint is an AI-guided conversation that asks the right questions, helps each participant think through the details, and hands them complete project documentation plus a ready-to-paste starter prompt for their build tool. It surfaces the questions they hadn't thought to ask yet, so projects start strong instead of starting over.
+**The Blueprint.** The bridge between a rough idea and a strong first prompt. The Blueprint is an AI-guided conversation that asks the right questions, helps each participant think through the details, and hands them complete project documentation plus a ready-to-paste starter prompt for their build tool. It surfaces the questions they hadn't thought to ask yet, so projects start strong instead of starting over.
 
-**Shark Tank, Minus the Sharks.** Before the building begins, everyone gets one minute to pitch their idea to the team, followed by light, constructive feedback. No big bites. It sharpens each idea, sparks collective energy, and does something quieter but more powerful: once your team has heard your pitch, you want to finish what you started. Don't be surprised if someone shows up in costume.
+**Shark Tank, Minus the Sharks.** Before the building begins, everyone gets one minute to pitch their idea to the team, followed by light, constructive feedback. No big bites. It sharpens each idea, sparks collective energy, and does something quieter but more powerful: once your team has heard your pitch, you want to finish what you started. Expect a little showmanship.
 
 **Protected build sessions.** Short, time-blocked sessions that fit around real work. No marathon weekends, no all-nighters. Protected time on the calendar is what turns "I'll get to it someday" into steady, visible progress.
 
@@ -206,7 +206,7 @@ Status: Locked 2026-07-06. Approved by Nick.
 
 ---
 
-Less than you'd think. Hacks-a-Thon runs as ten guided blocks, from Kickoff to Reflections, each one a short time-blocked session between 15 and 60 minutes. You set the dates, and the program fits around your team's real workload instead of competing with it. Most teams spread the blocks across a couple of weeks. Compress it into a single week, or leave breathing room between sessions so client work never skips a beat. That time in between isn't dead air. It's where ideas simmer and confidence builds.
+Less than you'd think. Hacks-a-Thon runs as 10 guided blocks, from Kickoff to Reflections, each one a short time-blocked session between 15 and 60 minutes. You set the dates, and the program fits around your team's real workload instead of competing with it. Most teams spread the blocks across a couple of weeks. Compress it into a single week, or leave breathing room between sessions so client work never skips a beat. That time in between isn't dead air. It's where ideas simmer and confidence builds.
 
 Bigger team? Shark Tank pitches and the Showcase Showdown can easily run as multiple sessions, so everyone gets their minute to pitch and their moment to demo.
 
@@ -234,7 +234,7 @@ The fastest way to understand Hacks-a-Thon is to see it in action.
 
 **The Admin Experience.** Walk through setting up an event, scheduling the blocks, and running the show.
 
-**The Participant Journey.** See what your team sees, from posting an idea to Blueprint to demo day.
+**The Participant Journey.** See what your team sees, from posting an idea to the Blueprint to demo day.
 
 Production note: demos to be built in Arcade (arcade.software), interactive click-through walkthroughs embedded on the page. Not yet created. The copy works whether they ship as click-throughs or videos. Demo links can also be embedded elsewhere on the site as conversion doorways.
 
@@ -271,6 +271,12 @@ Notes:
 - Use AI confidence for buyer-facing language. Keep creator confidence as an internal idea to watch.
 
 ## Change History
+
+### v1.0.2
+- Nick's review pass (2026-07-07): What You Get intro reworded ("a guided program where every piece exists"); the IdeaLab blurb tightened ("starts with ideas."); Blueprint renamed to "the Blueprint" in prose site-wide (Nick's ruling: matches the IdeaLab pattern).
+
+### v1.0.1
+- Cohesion pass (2026-07-07, Nick's batched rulings): costume line replaced with "Expect a little showmanship." (costumes now live on the About page only); "ten guided blocks" switched to "10 guided blocks" per the new numeral rule.
 
 ### v1.0.0
 - Locked the Final CTA ("Your team already has the ideas." with Buy Your Hacks-a-Thon primary and See Pricing secondary).

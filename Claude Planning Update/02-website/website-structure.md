@@ -1,15 +1,15 @@
 # Website Structure
 
 Status: Working
-Version: 1.1.0
-Last Updated: 2026-06-30 CDT
-Last Updated By: Nick + ChatGPT
+Version: 1.2.0
+Last Updated: 2026-07-07 CDT
+Last Updated By: Nick + Claude
 
 Purpose:
 Protects the agreed public website architecture and prevents unnecessary restructuring between conversations.
 
 Source of Truth:
-GitHub
+Claude Planning Update (local)
 
 Depends On:
 - planning/company-foundation.md
@@ -32,7 +32,7 @@ Working sections:
 - Page-level section details
 
 Next Review:
-After The Program page is locked.
+If the architecture changes during implementation, or when a new vertical or page is proposed.
 
 ---
 
@@ -74,21 +74,18 @@ The homepage should not carry every product detail.
 
 ## The Program
 
-Primary job: answer, “What exactly am I buying?”
+Primary job: answer, "What exactly am I buying?"
 
-This page should explain the complete program package in a concrete, buyer-friendly way.
+This page should explain the complete program package in a concrete, buyer-friendly way. Locked structure (the-program.md is the source of truth):
 
-Key sections:
+- Hero
+- What You Get, in event order: Admin Dashboard (with the built-in Hacky Helper), the IdeaLab, the Blueprint, Shark Tank Minus the Sharks, Protected build sessions, Showcase Showdown, Hacky Awards, Reflections, Public Showcase, plus the build-tools-not-included note
+- How Long Will This Take? (10 guided blocks, 15 to 60 minutes each)
+- Born Inside a Real Agency (Seven2 link)
+- See It For Yourself (Arcade interactive demos: Admin Experience + Participant Journey; demos not yet built)
+- Final CTA (Buy Your Hacks-a-Thon / See Pricing)
 
-- IdeaLab
-- Blueprint
-- Playbook
-- Admin Dashboard
-- Participant Experience
-- Hacky Awards
-- Recap
-- Interactive demos
-- Everything included
+Note: earlier versions of this doc listed a "Playbook" section. The Playbook does not exist as a deliverable and was removed from all copy 2026-07-06. Do not reintroduce it.
 
 ## How It Works
 
@@ -115,7 +112,7 @@ Start with:
 - Your Organization
 - Marketing & Creative Agencies
 
-Later verticals may include:
+Later verticals are proof-gated: a vertical earns a public section only when real customer proof exists. Candidates:
 
 - Healthcare
 - Manufacturing
@@ -131,36 +128,25 @@ Later verticals may include:
 
 Primary job: make the purchase decision feel simple, transparent, and easy to justify.
 
-Pricing should be framed against:
+Locked approach (pricing-page.md is the source of truth): simple flat-rate pricing ($995 up to 25, $30 per additional up to 50, no subscription), Why One Flat Price, Everything Included in every event, the FAQs, and the buy-first-then-set-up flow via the Hacky Helper.
 
-- Failed AI adoption
-- Low-value training
-- Consultants
-- Traditional team-building events
-- The cost of employees not knowing where to begin
+Note: the original direction framed pricing against failed adoption, low-value training, consultants, and team-building events. That comparison framing was deliberately retired 2026-07-06. Do not reintroduce it.
 
 ## Resources
 
-Primary job: long-term education, SEO, and thought leadership.
+Primary job: long-term education, SEO, and thought leadership. Public name: The Resource Library.
 
-Resources should build authority around Organizational AI Adoption, AI confidence, culture through creation, and the human side of AI transformation.
+Resources builds authority around Organizational AI Adoption, AI confidence, culture through creation, and the human side of AI transformation. It builds trust; it never hard-sells.
 
-Potential formats:
-
-- Articles
-- Templates
-- Downloads
-- Videos
-- Case studies
-- Thought leadership
+Launch structure (resources.md is the source of truth): hero, The Library (a simple newest-first article list), AI Field Notes (the X/LinkedIn content engine), and a contextual footer CTA. Ungated at launch. The four problem-based doors are deferred to the Growth Plan in resources.md until content volume demands wayfinding. Templates and downloads arrive post-launch as the first gated addition.
 
 ## About
 
 Primary job: tell the founder story and origin of Hacks-a-Thon.
 
-This page should include:
+The page opens with Nick's introduction ("Hi, I'm Nick Murto, founder of Hacksathon.com") and should include:
 
-- Nick’s journey into AI.
+- Nick's journey into AI.
 - The tools he built before Hacks-a-Thon.
 - Why he believes every employee should feel empowered to create with AI.
 - The origin of Hacks-a-Thon.
@@ -179,19 +165,19 @@ This page should explain:
 
 ## CTA Direction
 
-Primary CTA language to test:
+Locked in the page copy (2026-07-06/07):
 
-- See How It Works
-- Explore The Program
-- Start Your Hacks-a-Thon
+- **See How It Works** is the standing primary CTA across the funnel (homepage and Built For).
+- **Buy Your Hacks-a-Thon** is the purchase CTA (The Program Final CTA and Pricing), always paired with a softer secondary (See Pricing / Read the Seven2 story).
+- How It Works hands forward with **See What's Included** (to The Program).
+- Resources closes with **See How the Hacks-a-Thon Works** (deliberately names the product for cold visitors).
 
-Current preferred CTA:
-
-**See How It Works**
-
-Interactive demos are the preferred self-service conversion path.
+Interactive demos (Arcade; not yet built) are the preferred self-service conversion path.
 
 ## Change History
+
+### v1.2.0
+- Refreshed page-level details to match the locked page docs (2026-07-07): The Program section list corrected (Playbook removed with a do-not-reintroduce note; What You Get components in event order), Pricing comparison framing replaced with the locked flat-rate approach, Resources updated to The Library list with doors deferred, Built For verticals marked proof-gated, About opening noted, CTA Direction updated to the locked CTAs. Nav and footer unchanged (locked). Source of truth corrected to the local Claude Planning Update folder.
 
 ### v1.1.0
 - Replaced Platform with The Program as the canonical page direction.

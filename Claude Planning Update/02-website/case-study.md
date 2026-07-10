@@ -1,8 +1,8 @@
 # Seven2 Case Study
 
-Status: Locked (pending final cohesion pass at end of project)
-Version: 1.1.0
-Last Updated: 2026-07-06 CDT
+Status: Locked (cohesion pass complete 2026-07-07)
+Version: 1.1.1
+Last Updated: 2026-07-07 CDT
 Last Updated By: Nick + Claude
 
 Purpose:
@@ -30,7 +30,7 @@ Working sections:
 - Implementation checklist (until Nick applies it in Cursor)
 
 Next Review:
-During the site-wide cohesion pass.
+As needed post-launch; the copy mission is complete.
 
 ---
 
@@ -65,7 +65,7 @@ In spring 2026, Seven2, a 19-person creative agency, ran the first Hacks-a-Thon.
 **What Seven2 proved:**
 
 - Non-technical people ship real projects when the structure carries them.
-- Short sessions between client work are enough. No hackathon weekend required.
+- Short sessions between client work are enough. No weekend required.
 - The confidence outlasts the event. The team kept building after it ended.
 
 ### 2. The Setup (new, before the projects)
@@ -111,8 +111,12 @@ That shift is the reason Hacksathon.com exists. The projects on this page are wh
 - "Steal it" stays; generous confidence is the page's voice.
 - The page ends on aftermath, not event; the aftermath is what a buyer is purchasing.
 - Spring 2026, no specific dates, per Nick.
+- This page owns the site's only uses of the aftermath project list (workflow boards, storyboarding tools, resourcing fixes), the "nobody asked for" phrase, and the quoted conversation-shift line. Do not reintroduce them elsewhere (Nick's cohesion rulings, 2026-07-07).
 
 ## Change History
+
+### v1.1.1
+- Cohesion pass (2026-07-07, Nick's batched rulings): "No hackathon weekend required" trimmed to "No weekend required" per the never-say-generic-hackathon rule. This page confirmed as the sole owner of the aftermath list, "nobody asked for," and the quoted conversation-shift line.
 
 ### v1.1.0
 - Audit-accepted addition (Nick approved 2026-07-06): the What Seven2 Proved bullets under the stat band. Implementation checklist renumbered and extended with optional gallery design ideas.

@@ -1,7 +1,7 @@
 # Hacks-a-Thon Messaging Guide
 
 **Status:** Working  
-**Version:** v1.3  
+**Version:** v1.4  
 **Purpose:** Source of truth for Hacks-a-Thon positioning, messaging, website copy, sales language, and content strategy.
 
 ## Foundation
@@ -37,10 +37,14 @@ The product should not be framed as “a hackathon.” The hackathon-style event
 
 - [[../02-website/homepage-copy|Homepage Copy]]
 - [[../02-website/the-program|The Program]]
-- [[../02-website/website-structure|Website Structure]]
+- [[../02-website/how-it-works|How It Works]]
+- [[../02-website/solutions-overview|Built For (Solutions Overview)]]
 - [[../02-website/pricing-page|Pricing Page]]
-- [[../02-website/solutions-overview|Solutions Overview]]
-- [[../02-website/agencies-solution-page|Agencies Solution Page]]
+- [[../02-website/resources|Resources (Resource Library)]]
+- [[../02-website/about|About]]
+- [[../02-website/case-study|Seven2 Case Study]]
+- [[../02-website/website-structure|Website Structure]]
+- [[../02-website/full-site-copy-export|Full-Site Copy Export]]
 
 ## Research
 
@@ -64,6 +68,9 @@ The product should not be framed as “a hackathon.” The hackathon-style event
 - [[../08-planning/parking-lot|Parking Lot]]
 
 ## Change History
+
+### v1.4
+- Updated Website Copy links to the full locked eight-page set plus the export (2026-07-07). Removed the archived Agencies Solution Page (consolidated into solutions-overview.md).
 
 ### v1.3
 - Updated Website Copy links to use The Program instead of Platform.

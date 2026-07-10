@@ -1,6 +1,6 @@
 # Core Messaging Principles
 
-**Status:** Approved v1.0  
+**Status:** Approved v1.1  
 **Purpose:** Practical copywriting rules for Hacks-a-Thon messaging, homepage copy, sales pages, content, and demos.
 
 ## 1. Lead with adoption, not the event format
@@ -17,7 +17,7 @@ Use language like:
 - culture change
 - organizational momentum
 
-Use “hackathon” language sparingly, especially in hero copy.
+Use "hackathon" language sparingly, especially in hero copy. Stronger rule as of 2026-07-07: the generic word "hackathon" never appears in public copy. It is always Hacks-a-Thon (hyphenated); the one-word form appears only in Hacksathon.com.
 
 ## 2. Treat AI adoption as a people problem
 
@@ -109,7 +109,8 @@ Secondary CTA direction:
 
 - Explore the Admin Experience
 - Experience the Participant Journey
-- View the Playbook
+
+(Both are the Arcade interactive demos on The Program page. An earlier version listed "View the Playbook"; the Playbook does not exist as a deliverable and was removed from all copy 2026-07-06.)
 
 ## 10. Protect the Seven2 origin story
 
@@ -120,3 +121,11 @@ The homepage should reference it enough to establish credibility, but the full s
 Homepage role: show that this came from a real team doing the work.
 
 Case study role: tell the full origin story, participant transformation, and why it became a product.
+
+## Change History
+
+### v1.1 (2026-07-07)
+- Hardened principle 1 with the never-say-generic-hackathon rule (Nick's cohesion ruling). Removed "View the Playbook" from principle 9 (the Playbook does not exist; removed from all copy 2026-07-06).
+
+### v1.0
+- Initial approved principles.

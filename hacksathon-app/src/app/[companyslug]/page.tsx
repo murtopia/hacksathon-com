@@ -358,7 +358,6 @@ async function ParticipantDashboard({
       : `Next: ${upcomingBlock.blockKey} ${upcomingBlock.title}`;
   }
 
-  const logoUrl = event.logo_url ?? org?.logo_url ?? null;
   const orgName = org?.name ?? "";
   const welcomeMessage =
     event.welcome_message?.trim() ||
@@ -422,28 +421,12 @@ async function ParticipantDashboard({
 
       {/* Event hero */}
       <header className="space-y-4">
-        <div className="flex items-center gap-4">
-          {logoUrl ? (
-            <div className="relative h-12 w-auto min-w-[48px] max-w-[192px] overflow-hidden rounded-md border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={logoUrl}
-                alt={`${orgName || event.title} logo`}
-                className="h-full w-auto object-contain"
-              />
-            </div>
-          ) : (
-            <div
-              aria-hidden
-              className="flex h-12 w-12 items-center justify-center rounded-md border bg-muted text-base font-semibold text-muted-foreground"
-            >
-              {(orgName || event.title).slice(0, 1).toUpperCase()}
-            </div>
-          )}
-          <div className="min-w-0">
-            {orgName && <p className="mono-label">{orgName}</p>}
-            <h2 className="truncate">{event.title}</h2>
-          </div>
+        {/* No logo here on purpose: the top bar directly above already
+            carries it, and repeating it made the org name show three
+            times in one viewport. */}
+        <div className="min-w-0">
+          {orgName && <p className="mono-label">{orgName}</p>}
+          <h2 className="truncate">{event.title}</h2>
         </div>
 
         {(dateWindow || buildToolDisplay) && (
@@ -645,14 +628,12 @@ function SoftEntryShell({
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex justify-center">
           {logoUrl ? (
-            <div className="h-16 w-auto min-w-[64px] max-w-[256px] overflow-hidden rounded-md border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={logoUrl}
-                alt={`${orgName ?? title} logo`}
-                className="h-full w-auto object-contain"
-              />
-            </div>
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt={`${orgName ?? title} logo`}
+              className="h-16 w-auto max-w-[256px] object-contain"
+            />
           ) : (
             <div
               aria-hidden

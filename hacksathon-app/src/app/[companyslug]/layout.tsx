@@ -58,30 +58,32 @@ export default async function SlugLayout({ children, params }: LayoutProps) {
       ) : null}
       <div className="sticky top-0 z-50">
       <header className="w-full border-b bg-background">
-        <div className="mx-auto flex w-full max-w-[var(--container-default)] items-baseline justify-between px-4 py-[18px]">
-          <div className="flex items-baseline gap-6">
+        <div className="mx-auto flex w-full max-w-[var(--container-default)] items-center justify-between px-4 py-[18px]">
+          <div className="flex items-center gap-6">
             <Link href={`/${ctx.slug}`} className="inline-flex items-center gap-1">
               <PromptCaret className="h-3.5 w-auto text-foreground" />
               <span className="font-serif text-xl leading-none text-foreground">
                 Hacksathon.com
               </span>
             </Link>
-            <div className="hidden items-baseline gap-6 md:flex">
-              <Separator orientation="vertical" className="h-6 self-center" />
+            <div className="hidden items-center gap-6 md:flex">
+              <Separator orientation="vertical" className="h-6" />
               <Link
                 href={`/${ctx.slug}`}
-                className="inline-flex items-center gap-2 self-center font-serif text-base leading-none text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex items-center font-serif text-base leading-none text-muted-foreground transition-colors hover:text-foreground"
               >
-                {contextLogoUrl && (
+                {contextLogoUrl ? (
+                  // The logo stands in for the org name; alt carries it
+                  // so screen readers still announce the destination.
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={contextLogoUrl}
-                    alt=""
-                    aria-hidden
-                    className="h-6 w-auto max-w-[120px] object-contain"
+                    alt={ctx.org?.name ?? ctx.event.title}
+                    className="h-8 w-auto max-w-[160px] object-contain"
                   />
+                ) : (
+                  ctx.org?.name ?? ctx.event.title
                 )}
-                {ctx.org?.name ?? ctx.event.title}
               </Link>
             </div>
           </div>

@@ -141,19 +141,12 @@ export default async function AcceptInvitePage({ params }: PageProps) {
           <img
             src={logoUrl}
             alt={`${orgName || eventRow.title} logo`}
-            className="h-10 w-auto max-w-[160px] rounded-md border bg-muted object-contain"
+            className="h-10 w-auto max-w-[160px] object-contain"
           />
         ) : null}
-        <div className="min-w-0">
-          {orgName && (
-            <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              {orgName}
-            </p>
-          )}
-          <h1 className="truncate text-lg tracking-tight">
-            {eventRow.title}
-          </h1>
-        </div>
+        <h1 className="min-w-0 truncate text-lg tracking-tight">
+          {eventRow.title}
+        </h1>
       </div>
 
       <Card>
@@ -242,19 +235,12 @@ function SignedInJoin({
           <img
             src={logoUrl}
             alt={`${orgName || eventTitle} logo`}
-            className="h-10 w-auto max-w-[160px] rounded-md border bg-muted object-contain"
+            className="h-10 w-auto max-w-[160px] object-contain"
           />
         ) : null}
-        <div className="min-w-0">
-          {orgName && (
-            <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              {orgName}
-            </p>
-          )}
-          <h1 className="truncate text-lg tracking-tight">
-            {eventTitle}
-          </h1>
-        </div>
+        <h1 className="min-w-0 truncate text-lg tracking-tight">
+          {eventTitle}
+        </h1>
       </div>
 
       <Card>

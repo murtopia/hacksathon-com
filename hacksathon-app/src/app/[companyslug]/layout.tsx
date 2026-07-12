@@ -49,6 +49,7 @@ export default async function SlugLayout({ children, params }: LayoutProps) {
   }
 
   const platformAdmin = await isPlatformAdmin();
+  const contextLogoUrl = ctx.event.logo_url ?? ctx.org?.logo_url ?? null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -69,8 +70,17 @@ export default async function SlugLayout({ children, params }: LayoutProps) {
               <Separator orientation="vertical" className="h-6 self-center" />
               <Link
                 href={`/${ctx.slug}`}
-                className="font-serif text-base leading-none text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex items-center gap-2 self-center font-serif text-base leading-none text-muted-foreground transition-colors hover:text-foreground"
               >
+                {contextLogoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={contextLogoUrl}
+                    alt=""
+                    aria-hidden
+                    className="h-6 w-auto max-w-[120px] object-contain"
+                  />
+                )}
                 {ctx.org?.name ?? ctx.event.title}
               </Link>
             </div>

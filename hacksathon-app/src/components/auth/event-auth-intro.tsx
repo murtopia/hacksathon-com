@@ -31,7 +31,7 @@ export function EventAuthIntro({
           <img
             src={logoUrl}
             alt={`${name} logo`}
-            className="h-12 w-auto min-w-[48px] max-w-[192px] rounded-md border bg-muted object-contain"
+            className="h-12 w-auto min-w-[48px] max-w-[192px] object-contain"
           />
         ) : (
           <div
@@ -42,7 +42,6 @@ export function EventAuthIntro({
           </div>
         )}
       </div>
-      {orgName?.trim() && <p className="mono-label mb-3">{orgName}</p>}
       <h1 className="font-serif text-2xl font-normal leading-tight tracking-tight text-foreground sm:text-3xl">
         {eventTitle}
       </h1>

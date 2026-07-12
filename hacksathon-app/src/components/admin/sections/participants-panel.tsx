@@ -593,12 +593,12 @@ function AddParticipantsDialog({
       <DialogTrigger asChild>
         <Button type="button" variant="pill" size="pill">
           <Plus className="size-3.5" />
-          Add participants
+          Add seats
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add participants</DialogTitle>
+          <DialogTitle>Add seats</DialogTitle>
           <DialogDescription>
             You&apos;re set up for {currentLimit}{" "}
             {currentLimit === 1 ? "seat" : "seats"}. Add more and you&apos;ll

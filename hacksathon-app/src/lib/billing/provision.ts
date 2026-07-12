@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { seedAwardCategories } from "@/lib/awards/categories";
 import { seedReflectionQuestions } from "@/lib/reflections/questions";
 import { priceForSeats } from "@/lib/billing/pricing";
+import { isReservedSlug } from "@/lib/routing/reserved-slugs";
 
 /**
  * Slug helper - lowercase, ASCII, hyphenated. Collision handling happens
@@ -104,13 +105,17 @@ export async function provisionPaidEvent(
   }
 
   // 1. Organization - retry on slug collision with a short random suffix.
+  // A reserved slug (e.g. a top-level app route like /murtopolis) counts
+  // as an immediate collision: skip the bare attempt and go straight to
+  // suffixed variants so the org can never shadow a platform URL.
   const baseSlug = slugify(orgName) || "team";
+  const baseIsReserved = isReservedSlug(baseSlug);
   let orgId: string | null = null;
   let lastOrgError: string | null = null;
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const slug =
-      attempt === 0
+      attempt === 0 && !baseIsReserved
         ? baseSlug
         : `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
 
@@ -159,7 +164,7 @@ export async function provisionPaidEvent(
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const vanitySlug =
-      attempt === 0
+      attempt === 0 && !baseIsReserved
         ? baseSlug
         : `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
 

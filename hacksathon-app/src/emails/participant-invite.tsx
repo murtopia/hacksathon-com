@@ -15,6 +15,10 @@ import * as s from "@/lib/email/email-styles";
 export interface ParticipantInviteEmailProps {
   acceptUrl: string;
   eventTitle: string;
+  /**
+   * Accepted but no longer rendered: most event titles already carry the
+   * company name, so "Murtopolis Hacks-a-Thon at Murtopolis" read doubled.
+   */
   orgName: string;
   inviterName: string | null;
   recipientEmail: string;
@@ -32,7 +36,6 @@ export interface ParticipantInviteEmailProps {
 export function ParticipantInviteEmail({
   acceptUrl,
   eventTitle,
-  orgName,
   inviterName,
   recipientEmail,
 }: ParticipantInviteEmailProps) {
@@ -51,8 +54,7 @@ export function ParticipantInviteEmail({
             <Text style={s.heading}>You&apos;re in.</Text>
             <Text style={s.paragraph}>
               {inviter} invited you to take part in{" "}
-              <strong>{eventTitle}</strong>
-              {orgName ? <> at {orgName}</> : null}.
+              <strong>{eventTitle}</strong>.
             </Text>
             <Text style={s.paragraph}>
               Click the button below to set your password and get started.

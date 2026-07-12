@@ -1,5 +1,7 @@
 /**
- * Compact event identity header - org logo + name + event title.
+ * Compact event identity header - org logo + event title. The org name
+ * is deliberately not repeated as text: most logos and event titles
+ * already carry it, so a third mention read as clutter.
  *
  * Used wherever a participant lands "in the context of joining a
  * specific event": the /join/[token] page itself plus the /login and
@@ -21,19 +23,12 @@ export function EventIdentity({
         <img
           src={logoUrl}
           alt={`${orgName || eventTitle} logo`}
-          className="h-10 w-auto max-w-[160px] rounded-md border bg-muted object-contain"
+          className="h-10 w-auto max-w-[160px] object-contain"
         />
       ) : null}
-      <div className="min-w-0">
-        {orgName && (
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            {orgName}
-          </p>
-        )}
-        <h1 className="truncate text-lg tracking-tight">
-          {eventTitle}
-        </h1>
-      </div>
+      <h1 className="min-w-0 truncate text-lg tracking-tight">
+        {eventTitle}
+      </h1>
     </div>
   );
 }

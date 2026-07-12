@@ -107,30 +107,34 @@ export function EventLogoSection({
         onChange={handleChange}
       />
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-auto min-w-[64px] max-w-[256px] items-center justify-center overflow-hidden rounded-md border bg-muted">
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoUrl}
-              alt="Event logo"
-              className="h-full w-auto object-contain"
-            />
-          ) : fallbackInitial ? (
-            <span
-              aria-hidden
-              className="text-2xl font-semibold text-muted-foreground"
-            >
-              {fallbackInitial}
-            </span>
-          ) : (
-            <span
-              aria-hidden
-              className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground"
-            >
-              No logo
-            </span>
-          )}
-        </div>
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt="Event logo"
+            className="h-16 w-auto max-w-[256px] object-contain"
+          />
+        ) : (
+          // Empty state keeps the frame: a floating letter or "No logo"
+          // label with nothing around it reads broken.
+          <div className="flex h-16 w-auto min-w-[64px] items-center justify-center rounded-md border bg-muted px-4">
+            {fallbackInitial ? (
+              <span
+                aria-hidden
+                className="text-2xl font-semibold text-muted-foreground"
+              >
+                {fallbackInitial}
+              </span>
+            ) : (
+              <span
+                aria-hidden
+                className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground"
+              >
+                No logo
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"

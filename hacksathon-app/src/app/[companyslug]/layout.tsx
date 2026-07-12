@@ -79,7 +79,9 @@ export default async function SlugLayout({ children, params }: LayoutProps) {
                   <img
                     src={contextLogoUrl}
                     alt={ctx.org?.name ?? ctx.event.title}
-                    className="h-8 w-auto max-w-[160px] object-contain"
+                    // -my-2 lets the 40px logo overhang into the bar's
+                    // padding so the header height doesn't grow.
+                    className="-my-2 h-10 w-auto max-w-[200px] object-contain"
                   />
                 ) : (
                   ctx.org?.name ?? ctx.event.title

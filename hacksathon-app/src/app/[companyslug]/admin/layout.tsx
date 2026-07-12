@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Lock } from "lucide-react";
-import { loadHelperContext } from "@/lib/helper/loader";
-import { pendingStepCount } from "@/lib/helper/phase";
+import { AdminPageHeading } from "@/components/event-nav/admin-page-heading";
 import {
   resolveSlugContext,
   resolveSlugViewer,
@@ -21,8 +20,7 @@ interface LayoutProps {
  * RPC (the same SECURITY DEFINER helper every admin RLS policy uses).
  * Non-admins 404 so the URL doesn't leak the existence of an admin
  * route. Renders a header, lock badge, and sub-nav shared across every
- * admin page. The sub-nav also surfaces a "N steps left" pill driven
- * by the Hacky Helper phase machinery.
+ * admin page.
  */
 export default async function SlugAdminLayout({
   children,
@@ -37,9 +35,6 @@ export default async function SlugAdminLayout({
     redirect(`/login?next=${encodeURIComponent(slugPath(ctx.slug, "admin"))}`);
   if (!viewer.isAdmin) notFound();
 
-  const helperCtx = await loadHelperContext(ctx);
-  const pendingSteps = pendingStepCount(helperCtx);
-
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -51,20 +46,7 @@ export default async function SlugAdminLayout({
           Back to {ctx.event.title}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h2>Event admin</h2>
-          {pendingSteps > 0 && (
-            <span
-              className="inline-flex items-center gap-1 rounded-[4px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
-              style={{
-                backgroundColor: "var(--bg-tertiary)",
-                color: "var(--text-secondary)",
-                borderColor: "var(--border-color)",
-              }}
-              aria-label={`${pendingSteps} setup ${pendingSteps === 1 ? "step" : "steps"} left`}
-            >
-              {pendingSteps} {pendingSteps === 1 ? "step" : "steps"} left
-            </span>
-          )}
+          <AdminPageHeading slug={ctx.slug} />
           {ctx.event.is_locked && (
             <span
               className="inline-flex items-center gap-1 rounded-[4px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"

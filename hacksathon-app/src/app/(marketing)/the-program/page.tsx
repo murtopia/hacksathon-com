@@ -8,9 +8,10 @@ import { ProgramBlocksTimeline } from "@/components/site/program-blocks-timeline
  * (2026-07-07), PAGE 2. The copy is final and implemented verbatim; do
  * not reword or add sections. Layout only here.
  *
- * The "See It For Yourself" section holds embedded Arcade click-through
- * demos that are not yet built; it renders quiet placeholders until the
- * embeds exist (per the doc's production note).
+ * The "See It For Yourself" section embeds the two recorded demo videos
+ * (admin and participant) from YouTube. Video sits above the title and
+ * description in each card so the two 16:9 frames align across columns
+ * no matter how the copy wraps.
  */
 
 export const metadata: Metadata = {
@@ -211,36 +212,44 @@ export default function TheProgramPage() {
 
           <div className="mt-10 grid gap-8 sm:grid-cols-2">
             <div>
-              <h3 className="font-serif text-2xl leading-snug text-foreground">
+              <div className="aspect-video overflow-hidden rounded-lg border bg-muted/50">
+                <iframe
+                  className="h-full w-full"
+                  src="https://www.youtube-nocookie.com/embed/ocFw8hxAYrQ"
+                  title="The Admin Experience demo video"
+                  loading="lazy"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+              <h3 className="mt-5 font-serif text-2xl leading-snug text-foreground">
                 The Admin Experience.
               </h3>
               <p className="mt-2 text-base leading-relaxed text-[var(--text-secondary)]">
                 Walk through setting up an event, scheduling the blocks, and
                 running the show.
               </p>
-              {/* Arcade click-through embed goes here once built. */}
-              <div
-                aria-hidden
-                className="mt-5 flex aspect-video items-center justify-center rounded-lg border bg-muted/50"
-              >
-                <span className="mono-label">Interactive demo coming soon</span>
-              </div>
             </div>
             <div>
-              <h3 className="font-serif text-2xl leading-snug text-foreground">
+              <div className="aspect-video overflow-hidden rounded-lg border bg-muted/50">
+                <iframe
+                  className="h-full w-full"
+                  src="https://www.youtube-nocookie.com/embed/rQh4elF1bUA"
+                  title="The Participant Journey demo video"
+                  loading="lazy"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+              <h3 className="mt-5 font-serif text-2xl leading-snug text-foreground">
                 The Participant Journey.
               </h3>
               <p className="mt-2 text-base leading-relaxed text-[var(--text-secondary)]">
                 See what your team sees, from posting an idea to the Blueprint
                 to demo day.
               </p>
-              {/* Arcade click-through embed goes here once built. */}
-              <div
-                aria-hidden
-                className="mt-5 flex aspect-video items-center justify-center rounded-lg border bg-muted/50"
-              >
-                <span className="mono-label">Interactive demo coming soon</span>
-              </div>
             </div>
           </div>
         </div>

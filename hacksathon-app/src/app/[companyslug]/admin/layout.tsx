@@ -18,9 +18,10 @@ interface LayoutProps {
  *
  * Auth-gates the entire `/[slug]/admin/*` tree via the `is_event_admin`
  * RPC (the same SECURITY DEFINER helper every admin RLS policy uses).
- * Non-admins 404 so the URL doesn't leak the existence of an admin
- * route. Renders a header, lock badge, and sub-nav shared across every
- * admin page.
+ * Signed-in non-admins are redirected to the event home, matching the
+ * participant pages' convention: members land on the event dashboard,
+ * non-members get the "This is a private event" card. Renders a header,
+ * lock badge, and sub-nav shared across every admin page.
  */
 export default async function SlugAdminLayout({
   children,
@@ -33,7 +34,7 @@ export default async function SlugAdminLayout({
   const viewer = await resolveSlugViewer(companyslug);
   if (!viewer)
     redirect(`/login?next=${encodeURIComponent(slugPath(ctx.slug, "admin"))}`);
-  if (!viewer.isAdmin) notFound();
+  if (!viewer.isAdmin) redirect(slugPath(ctx.slug));
 
   return (
     <div className="space-y-6">

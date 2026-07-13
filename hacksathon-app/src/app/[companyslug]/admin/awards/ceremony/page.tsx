@@ -42,7 +42,7 @@ export default async function CeremonyPage({ params, searchParams }: PageProps) 
     redirect(
       `/login?next=${encodeURIComponent(slugPath(ctx.slug, "admin/awards/ceremony"))}`,
     );
-  if (!viewer.isAdmin) notFound();
+  if (!viewer.isAdmin) redirect(slugPath(ctx.slug));
 
   // The ceremony only makes sense once voting has been closed/tallied -
   // except in preview, which is meant to be run beforehand.

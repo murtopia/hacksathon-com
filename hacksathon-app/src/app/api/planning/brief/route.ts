@@ -13,7 +13,12 @@ import {
   BRIEF_GENERATION_INSTRUCTION,
 } from "@/lib/planning/prompts";
 
-export const maxDuration = 60;
+// Blueprint synthesis of a long conversation legitimately runs 45-90s;
+// the old 60s cap was killing slow-but-healthy generations mid-write
+// (Vercel 504 "Task timed out after 60 seconds"). Fluid Compute allows
+// up to 300s, so 180s gives real headroom without letting a truly hung
+// call burn forever.
+export const maxDuration = 180;
 
 /**
  * Schema-enforced Blueprint payload. generateObject drives Anthropic's
@@ -162,7 +167,9 @@ export async function POST(req: Request) {
         error:
           firstError instanceof Error ? firstError.message : String(firstError),
       });
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      // Anthropic overloads usually need a few seconds to clear; with a
+      // 180s budget we can afford a real pause before the retry.
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       result = await runGenerate();
     }
     briefData = result.object;

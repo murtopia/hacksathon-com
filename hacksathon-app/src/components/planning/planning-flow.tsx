@@ -33,10 +33,11 @@ async function fetchWithTimeout(
   }
 }
 
-// Brief synthesis is an LLM call (server maxDuration 60s); the client
-// guard sits just above that. The starter prompt is template-built and
-// fast, so it gets a tighter ceiling.
-const BRIEF_TIMEOUT_MS = 70_000;
+// Brief synthesis is an LLM call (server maxDuration 180s); the client
+// guard sits just above that so it only trips on a genuinely dead
+// connection, never on a slow-but-alive generation. The starter prompt
+// is template-built and fast, so it gets a tighter ceiling.
+const BRIEF_TIMEOUT_MS = 190_000;
 const STARTER_PROMPT_TIMEOUT_MS = 30_000;
 
 interface PlanningFlowProps {
@@ -603,7 +604,7 @@ export function PlanningFlow({
         {!isPostPrd && streamAndErrorPanel}
 
         {briefGenerating && (
-          <div className="text-center py-8">
+          <div className="text-center py-8 space-y-4">
             <div
               className="inline-block w-6 h-6 border-2 rounded-full animate-spin"
               style={{
@@ -611,7 +612,15 @@ export function PlanningFlow({
                 borderTopColor: "var(--text-primary)",
               }}
             />
-            <p className="mt-4 mono-label">Generating your Blueprint…</p>
+            <p className="mono-label">Generating your Blueprint…</p>
+            <BlueprintProgressBar />
+            <p
+              className="font-serif text-xs italic"
+              style={{ color: "var(--text-tertiary)" }}
+            >
+              Synthesizing your whole conversation - this usually takes
+              about a minute, sometimes two.
+            </p>
           </div>
         )}
 
@@ -819,7 +828,7 @@ function UpdateCTA({
     : "◆ Update my Blueprint →";
 
   const helper = updating
-    ? "Rolling your changes into the Blueprint now."
+    ? "Synthesizing your whole conversation - this usually takes about a minute, sometimes two."
     : ready
       ? "Ready to roll those in."
       : "Hit Update when these changes feel right.";
@@ -844,12 +853,48 @@ function UpdateCTA({
       >
         {label}
       </button>
+      {updating && <BlueprintProgressBar />}
       <p
         className="font-serif text-xs italic text-center"
         style={{ color: "var(--text-tertiary)" }}
       >
         {helper}
       </p>
+    </div>
+  );
+}
+
+/**
+ * Indeterminate-but-honest progress bar for Blueprint synthesis. Eases
+ * toward ~90% over about 90 seconds (roughly the long end of a real
+ * generation) and holds there until the response lands and the parent
+ * unmounts it. Pure motion, no fake percentages - it exists so a 60-90
+ * second LLM call reads as "working" instead of "hung".
+ */
+function BlueprintProgressBar() {
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    // Kick the transition on the frame after mount so the browser
+    // registers the starting width and actually animates.
+    const raf = requestAnimationFrame(() => setStarted(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <div
+      aria-hidden
+      className="mx-auto h-1 w-full max-w-xs overflow-hidden rounded-full"
+      style={{ backgroundColor: "var(--border-default)" }}
+    >
+      <div
+        className="h-full rounded-full"
+        style={{
+          width: started ? "90%" : "3%",
+          backgroundColor: "var(--text-primary)",
+          transition: "width 90s cubic-bezier(0.16, 0.84, 0.44, 1)",
+        }}
+      />
     </div>
   );
 }

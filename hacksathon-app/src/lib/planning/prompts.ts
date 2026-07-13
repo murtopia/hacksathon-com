@@ -253,4 +253,13 @@ Only include this subsection if scope risk was flagged in the conversation. Bull
 - Plain markdown only. No HTML, no code fences inside the Blueprint body.
 - The prdMarkdown field must contain the literal markdown text.
 - Aim for a Blueprint that is at least 1.5 pages of substantive content. A thin Blueprint is a failure mode.
-- Return ONLY the JSON object. No prose before or after.`;
+- Return ONLY the JSON object. No prose before or after.
+
+## If the conversation is incomplete
+
+Participants can generate early, before every theme has been discussed. That is allowed - never refuse, never return an empty section, and never invent content the conversation doesn't support. Instead:
+
+- Write every theme the conversation DID cover at full depth per the template above.
+- For a required section the conversation never touched, keep the section header and write 1-2 sentences that (a) state the most reasonable starting point implied by what they HAVE said, clearly framed as a suggestion, and (b) pose the open question they should answer, prefixed with "Open question:". Example: "Open question: who is the primary user - just you, or other dog owners too?"
+- For the structured JSON fields backing an undiscussed theme, give your best one-line inference from context rather than an empty string, phrased tentatively (e.g. "TBD - likely ...").
+- The participant can continue the conversation afterward and regenerate, so a partial Blueprint with honest open questions is the goal, not a fabricated complete one.`;

@@ -1,4 +1,5 @@
-import { generateText } from "ai";
+import { generateObject } from "ai";
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { planningModel } from "@/lib/ai/model";
@@ -14,18 +15,51 @@ import {
 
 export const maxDuration = 60;
 
-interface BriefData {
-  projectName: string;
-  oneSentenceScope: string;
-  targetUser: string;
-  coreFeature: string;
-  designVibe: string | null;
-  referenceUrl: string | null;
-  colorToneNotes: string | null;
-  outOfScope: string;
-  doneLooksLike: string;
-  prdMarkdown: string;
-}
+/**
+ * Schema-enforced Blueprint payload. generateObject drives Anthropic's
+ * tool-calling mode, so the model structurally cannot return prose or
+ * malformed JSON - the historical failure mode where a regex JSON.parse
+ * failed and a silently-empty Blueprint got saved.
+ */
+const briefSchema = z.object({
+  projectName: z.string().describe("The project's name"),
+  oneSentenceScope: z
+    .string()
+    .describe("One sentence describing what this does and for whom"),
+  targetUser: z
+    .string()
+    .describe("A specific, vivid description of the target user"),
+  coreFeature: z
+    .string()
+    .describe("The single most important thing this build does"),
+  designVibe: z
+    .string()
+    .nullable()
+    .describe("The visual feel/mood described in the conversation"),
+  referenceUrl: z
+    .string()
+    .nullable()
+    .describe("Any reference URL they shared"),
+  colorToneNotes: z
+    .string()
+    .nullable()
+    .describe("Color preferences or tone notes"),
+  outOfScope: z
+    .string()
+    .describe(
+      "Clean list of what's explicitly NOT in v1, one per line, prefixed with '- '",
+    ),
+  doneLooksLike: z
+    .string()
+    .describe("Their specific done state, refined for clarity"),
+  prdMarkdown: z
+    .string()
+    .describe(
+      "The full consolidated Blueprint as markdown, following the section template exactly",
+    ),
+});
+
+type BriefData = z.infer<typeof briefSchema>;
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -99,11 +133,12 @@ export async function POST(req: Request) {
     ? "The participant has refined their thinking after generating the original Blueprint. Re-synthesize the Blueprint from the FULL conversation above, including everything they've said since the last Blueprint was generated. Return ONLY the JSON object."
     : "Generate the participant's Blueprint from our full conversation above. Return ONLY the JSON object.";
 
-  let text: string;
+  let briefData: BriefData;
   try {
     const runGenerate = () =>
-      generateText({
+      generateObject({
         model: planningModel,
+        schema: briefSchema,
         system: `${systemPrompt}\n\n---\n\n${BRIEF_GENERATION_INSTRUCTION}`,
         messages: [
           ...aiMessages,
@@ -122,7 +157,7 @@ export async function POST(req: Request) {
       // One quick retry to ride out transient model hiccups (overload,
       // rate limit, blip) before surfacing an error to the participant.
       // This is the failure mode where a manual "Retry" used to work.
-      console.warn("[planning/brief] generateText retrying after error", {
+      console.warn("[planning/brief] generateObject retrying after error", {
         sessionId: session.id,
         error:
           firstError instanceof Error ? firstError.message : String(firstError),
@@ -130,12 +165,14 @@ export async function POST(req: Request) {
       await new Promise((resolve) => setTimeout(resolve, 600));
       result = await runGenerate();
     }
-    text = result.text;
+    briefData = result.object;
   } catch (error) {
     // Make model failures loud in Vercel logs and surface a 502 to the
     // client. The Blueprint step is non-streaming, so the client can show
-    // a clear error toast instead of guessing.
-    console.error("[planning/brief] generateText failed", {
+    // a clear error toast instead of guessing. Never fall back to saving
+    // a placeholder Blueprint - an error the participant can retry beats
+    // a confident-looking empty document marked complete.
+    console.error("[planning/brief] generateObject failed", {
       sessionId: session.id,
       regenerate: !!regenerate,
       error: error instanceof Error ? error.message : String(error),
@@ -147,33 +184,6 @@ export async function POST(req: Request) {
       },
       { status: 502 }
     );
-  }
-
-  let briefData: BriefData;
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON found in response");
-    briefData = JSON.parse(jsonMatch[0]) as BriefData;
-  } catch {
-    briefData = {
-      projectName: ideaName ?? "Untitled Project",
-      oneSentenceScope: session.stepAnswers.step1 ?? "",
-      targetUser: session.stepAnswers.step2 ?? "",
-      coreFeature: session.stepAnswers.step1 ?? "",
-      designVibe: session.stepAnswers.step3?.vibe ?? null,
-      referenceUrl: session.stepAnswers.step3?.referenceUrl ?? null,
-      colorToneNotes: session.stepAnswers.step3?.colorNotes ?? null,
-      outOfScope: session.stepAnswers.step4 ?? "",
-      doneLooksLike: session.stepAnswers.step5 ?? "",
-      prdMarkdown: buildFallbackMarkdown({
-        projectName: ideaName ?? "Untitled Project",
-        whatItDoes: session.stepAnswers.step1 ?? "",
-        whoItsFor: session.stepAnswers.step2 ?? "",
-        howItFeels: session.stepAnswers.step3?.vibe ?? "",
-        oneThing: session.stepAnswers.step4 ?? "",
-        doneWhen: session.stepAnswers.step5 ?? "",
-      }),
-    };
   }
 
   const briefPayload = {
@@ -194,11 +204,19 @@ export async function POST(req: Request) {
   };
 
   if (regenerate && session.briefId) {
+    // Version lives on project_briefs, not the session row - read the
+    // current value so repeated regenerations actually increment.
+    const { data: currentBrief } = await supabase
+      .from("project_briefs")
+      .select("version")
+      .eq("id", session.briefId)
+      .single<{ version: number }>();
+
     const { data: updated, error: updateError } = await supabase
       .from("project_briefs")
       .update({
         ...briefPayload,
-        version: ((sessionRow.brief_version as number) ?? 1) + 1,
+        version: (currentBrief?.version ?? 1) + 1,
         updated_at: new Date().toISOString(),
       })
       .eq("id", session.briefId)
@@ -246,31 +264,4 @@ export async function POST(req: Request) {
     .eq("id", session.id);
 
   return NextResponse.json({ brief: inserted });
-}
-
-function buildFallbackMarkdown(args: {
-  projectName: string;
-  whatItDoes: string;
-  whoItsFor: string;
-  howItFeels: string;
-  oneThing: string;
-  doneWhen: string;
-}): string {
-  return `# ${args.projectName} - Blueprint
-
-## 🎯 What It Does
-${args.whatItDoes || "_(Not yet captured.)_"}
-
-## 👥 Who It's For
-${args.whoItsFor || "_(Not yet captured.)_"}
-
-## ✨ How It Should Feel
-${args.howItFeels || "_(Not yet captured.)_"}
-
-## ⚡ The One Thing
-${args.oneThing || "_(Not yet captured.)_"}
-
-## ✅ Done When
-${args.doneWhen || "_(Not yet captured.)_"}
-`;
 }

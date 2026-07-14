@@ -16,21 +16,8 @@ const POSTHOG_ASSETS_HOST = POSTHOG_HOST.replace(
 const nextConfig: NextConfig = {
   // PostHog uses trailing-slash-sensitive paths; don't let Next redirect them.
   skipTrailingSlashRedirect: true,
-  // Branded campaign short links: friendly /go/* paths that forward to the
-  // real destination with full UTM parameters, so posts and printed
-  // materials never show a raw tracking URL. Non-permanent (307) so a
-  // campaign can be re-pointed later without browsers caching the old
-  // destination. The "go" slug is reserved in reserved-slugs.ts.
-  async redirects() {
-    return [
-      {
-        source: "/go/agency-launch",
-        destination:
-          "/seven2?utm_source=linkedin&utm_medium=organic&utm_campaign=agency-launch-q3&utm_content=founder-quote-v1",
-        permanent: false,
-      },
-    ];
-  },
+  // Campaign short links (/go/*) are data-backed: see src/app/go/[slug]/
+  // route.ts and the short_links table, managed from /murtopolis/links.
   async rewrites() {
     return [
       {

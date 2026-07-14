@@ -42,6 +42,8 @@ export const RESERVED_SLUGS = new Set<string>([
   "callback",
   "accept-invite",
   "murtopolis",
+  // Campaign short-link namespace (/go/* redirects in next.config.ts).
+  "go",
 ]);
 
 export function isReservedSlug(slug: string): boolean {

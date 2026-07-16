@@ -17,7 +17,7 @@ import {
 } from "@/components/murtopolis/panel";
 import {
   listCustomers,
-  type CustomerPaymentState,
+  type CustomerListFilter,
 } from "@/lib/murtopolis/queries";
 import {
   formatCurrencyFromCents,
@@ -35,7 +35,7 @@ type SearchParams = Promise<{
 }>;
 
 const SORTS = new Set(["recent", "revenue", "name", "members"]);
-const STATES = new Set(["all", "paid", "comped", "demo", "none"]);
+const STATES = new Set(["all", "paid", "comped", "demo", "none", "test"]);
 
 export default async function CustomersPage({
   searchParams,
@@ -49,7 +49,7 @@ export default async function CustomersPage({
 
   const customers = await listCustomers({
     search: q,
-    paymentState: state as CustomerPaymentState | "all",
+    paymentState: state as CustomerListFilter,
     sort: sort as "recent" | "revenue" | "name" | "members",
   });
 
@@ -73,6 +73,7 @@ export default async function CustomersPage({
               { value: "comped", label: "Comped" },
               { value: "demo", label: "Demo" },
               { value: "none", label: "No event" },
+              { value: "test", label: "Test" },
             ],
           },
           {
@@ -131,7 +132,10 @@ export default async function CustomersPage({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <PaymentStateBadge state={c.paymentState} />
+                  <PaymentStateBadge
+                    state={c.paymentState}
+                    isInternal={c.isInternal}
+                  />
                 </TableCell>
                 <TableCell>
                   {c.phase ? (

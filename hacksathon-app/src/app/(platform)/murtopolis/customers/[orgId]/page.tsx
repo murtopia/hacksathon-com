@@ -14,6 +14,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { MetricCard } from "@/components/murtopolis/metric-card";
 import { EmptyState, Panel } from "@/components/murtopolis/panel";
 import { EventProgressPanel } from "@/components/murtopolis/event-progress-panel";
+import { TestAccountToggle } from "@/app/(platform)/murtopolis/customers/test-account-toggle";
 import {
   getCustomerDetail,
   getCustomerEventProgress,
@@ -73,6 +74,9 @@ export default async function CustomerDetailPage({
           <span className="font-mono text-xs text-muted-foreground">
             /{summary.vanitySlug ?? summary.orgSlug}
           </span>
+          {summary.isInternal && (
+            <Badge variant="outline">Test account</Badge>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">
           Customer since {formatDate(summary.createdAt)} · Last activity{" "}
@@ -134,6 +138,10 @@ export default async function CustomerDetailPage({
               <span className="text-muted-foreground">-</span>
             )}
           </Field>
+          <TestAccountToggle
+            orgId={summary.orgId}
+            isInternal={summary.isInternal}
+          />
         </dl>
       </Panel>
 

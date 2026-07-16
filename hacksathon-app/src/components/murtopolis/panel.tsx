@@ -84,7 +84,17 @@ const PAYMENT_LABEL: Record<CustomerPaymentState, string> = {
 };
 
 /** Grayscale badge describing a customer's billing state. */
-export function PaymentStateBadge({ state }: { state: CustomerPaymentState }) {
+export function PaymentStateBadge({
+  state,
+  isInternal,
+}: {
+  state: CustomerPaymentState;
+  /** When true, show "Test" instead of the payment state. */
+  isInternal?: boolean;
+}) {
+  if (isInternal) {
+    return <Badge variant="outline">Test</Badge>;
+  }
   return <Badge variant={PAYMENT_VARIANT[state]}>{PAYMENT_LABEL[state]}</Badge>;
 }
 

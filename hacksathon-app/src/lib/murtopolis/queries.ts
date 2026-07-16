@@ -45,6 +45,7 @@ interface OrgRow {
   slug: string;
   created_at: string;
   stripe_customer_id: string | null;
+  is_internal: boolean;
 }
 
 interface EventRow {
@@ -368,6 +369,8 @@ export interface CustomerSummary {
    */
   phase: HelperPhase | null;
   warnFlagCount: number;
+  /** True when marked as a platform test account (hidden from metrics/alerts). */
+  isInternal: boolean;
 }
 
 interface CustomerDataset {
@@ -380,18 +383,19 @@ interface CustomerDataset {
 async function loadCustomerDataset(): Promise<CustomerDataset> {
   const admin = createAdminClient();
 
+  // Include internal (test) orgs so the customers list can show them under
+  // Billing → Test and so getCustomerDetail still resolves after toggling.
+  // Overview metrics / revenue / cron keep their own is_internal=false filters.
   const [{ data: orgs }, { data: events }, { data: members }, { data: profiles }] =
     await Promise.all([
       admin
         .from("organizations")
-        .select("id, name, slug, created_at, stripe_customer_id")
-        .eq("is_internal", false),
+        .select("id, name, slug, created_at, stripe_customer_id, is_internal"),
       admin
         .from("events")
         .select(
-          "id, organization_id, title, status, payment_status, price_cents, amount_paid_cents, participant_limit, vanity_slug, start_date, end_date, public_showcase, created_at, organizations!inner(is_internal)",
-        )
-        .eq("organizations.is_internal", false),
+          "id, organization_id, title, status, payment_status, price_cents, amount_paid_cents, participant_limit, vanity_slug, start_date, end_date, public_showcase, created_at",
+        ),
       admin
         .from("organization_members")
         .select("organization_id, user_id, role, status"),
@@ -509,6 +513,7 @@ async function loadCustomerDataset(): Promise<CustomerDataset> {
       primaryEventId: primaryEvent?.id ?? null,
       phase: null,
       warnFlagCount: 0,
+      isInternal: Boolean(org.is_internal),
     };
 
     customers.push(summary);
@@ -518,9 +523,12 @@ async function loadCustomerDataset(): Promise<CustomerDataset> {
   return { customers, eventsByOrg, membersByOrg, orgById };
 }
 
+/** Billing toolbar filter: payment states, plus "test" for is_internal orgs. */
+export type CustomerListFilter = CustomerPaymentState | "all" | "test";
+
 export interface ListCustomersOptions {
   search?: string;
-  paymentState?: CustomerPaymentState | "all";
+  paymentState?: CustomerListFilter;
   sort?: "recent" | "revenue" | "name" | "members";
 }
 
@@ -532,8 +540,16 @@ export async function listCustomers(
 
   let rows = customers;
 
-  if (paymentState !== "all") {
-    rows = rows.filter((c) => c.paymentState === paymentState);
+  // "All" = real customers only. "Test" = internal accounts. Payment
+  // filters also exclude test orgs so the default list stays clean.
+  if (paymentState === "test") {
+    rows = rows.filter((c) => c.isInternal);
+  } else if (paymentState === "all") {
+    rows = rows.filter((c) => !c.isInternal);
+  } else {
+    rows = rows.filter(
+      (c) => !c.isInternal && c.paymentState === paymentState,
+    );
   }
 
   if (search && search.trim()) {

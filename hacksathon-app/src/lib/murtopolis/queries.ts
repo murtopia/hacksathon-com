@@ -540,13 +540,11 @@ export async function listCustomers(
 
   let rows = customers;
 
-  // "All" = real customers only. "Test" = internal accounts. Payment
-  // filters also exclude test orgs so the default list stays clean.
+  // "All" = every org (test accounts keep a Test badge). "Test" =
+  // internal only. Named payment filters exclude test orgs.
   if (paymentState === "test") {
     rows = rows.filter((c) => c.isInternal);
-  } else if (paymentState === "all") {
-    rows = rows.filter((c) => !c.isInternal);
-  } else {
+  } else if (paymentState !== "all") {
     rows = rows.filter(
       (c) => !c.isInternal && c.paymentState === paymentState,
     );

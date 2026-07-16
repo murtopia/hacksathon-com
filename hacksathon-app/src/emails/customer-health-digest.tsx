@@ -88,10 +88,11 @@ export function CustomerHealthDigestEmail({
 CustomerHealthDigestEmail.PreviewProps = {
   items: [
     {
-      orgName: "Interrupt Media",
-      eventTitle: "Interrupt Media Hacks-a-Thon",
-      message: "Only 2 of 8 invites accepted after 3+ days.",
-      customerUrl: "https://hacksathon.com/murtopolis/customers/example-id",
+      orgName: "Delivery check",
+      eventTitle: "Customer health digest",
+      message:
+        "This is a delivery check for the morning health digest. The daily cron only emails when new warn-level flags appear.",
+      customerUrl: "https://hacksathon.com/murtopolis/customers",
     },
   ],
 } satisfies CustomerHealthDigestEmailProps;

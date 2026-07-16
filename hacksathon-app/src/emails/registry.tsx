@@ -10,6 +10,7 @@ import { VotingOpenNotificationEmail } from "./voting-open-notification";
 import { ReflectionsOpenNotificationEmail } from "./reflections-open-notification";
 import { PurchaseNotificationEmail } from "./purchase-notification";
 import { SupportMessageEmail } from "./support-message";
+import { CustomerHealthDigestEmail } from "./customer-health-digest";
 
 export type EmailGroup = "Customer-facing" | "Internal";
 
@@ -129,6 +130,15 @@ export const emailPreviews: EmailPreviewEntry[] = [
     group: "Internal",
     subject: "Support · Running an event · Jane Doe",
     element: <SupportMessageEmail {...SupportMessageEmail.PreviewProps} />,
+  },
+  {
+    slug: "customer-health-digest",
+    label: "Customer health digest (internal)",
+    group: "Internal",
+    subject: "Customer health: 1 new flag",
+    element: (
+      <CustomerHealthDigestEmail {...CustomerHealthDigestEmail.PreviewProps} />
+    ),
   },
 ];
 

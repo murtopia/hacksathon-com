@@ -13,7 +13,11 @@ import {
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { MetricCard } from "@/components/murtopolis/metric-card";
 import { EmptyState, Panel } from "@/components/murtopolis/panel";
-import { getCustomerDetail } from "@/lib/murtopolis/queries";
+import { EventProgressPanel } from "@/components/murtopolis/event-progress-panel";
+import {
+  getCustomerDetail,
+  getCustomerEventProgress,
+} from "@/lib/murtopolis/queries";
 import {
   formatCurrencyFromCents,
   formatDate,
@@ -44,7 +48,10 @@ export default async function CustomerDetailPage({
   params: Params;
 }) {
   const { orgId } = await params;
-  const detail = await getCustomerDetail(orgId);
+  const [detail, progress] = await Promise.all([
+    getCustomerDetail(orgId),
+    getCustomerEventProgress(orgId),
+  ]);
   if (!detail) notFound();
 
   const { summary, events, members } = detail;
@@ -129,6 +136,14 @@ export default async function CustomerDetailPage({
           </Field>
         </dl>
       </Panel>
+
+      {progress.map((p) => (
+        <EventProgressPanel
+          key={p.eventId}
+          progress={p}
+          showEventTitle={progress.length > 1}
+        />
+      ))}
 
       <Panel
         title={`Events (${formatNumber(events.length)})`}

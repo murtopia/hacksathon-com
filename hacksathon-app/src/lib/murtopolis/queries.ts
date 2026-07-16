@@ -1,4 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { loadHelperContext } from "@/lib/helper/loader";
+import {
+  computeHelperStops,
+  computePhase,
+  type HelperPhase,
+} from "@/lib/helper/phase";
+import type { SlugContext, SlugEvent } from "@/lib/routing/slug-context";
+
+export type { HelperPhase };
 
 /**
  * Murtopolis data layer - platform-owner analytics.
@@ -351,6 +360,14 @@ export interface CustomerSummary {
   revenueCents: number;
   lastActiveAt: string | null;
   vanitySlug: string | null;
+  primaryEventId: string | null;
+  /**
+   * Helper phase + warn-flag count for the primary event. Populated by
+   * `listCustomers` (which fans out the progress engine per customer);
+   * `null` / `0` elsewhere so `loadCustomerDataset` stays cheap.
+   */
+  phase: HelperPhase | null;
+  warnFlagCount: number;
 }
 
 interface CustomerDataset {
@@ -489,6 +506,9 @@ async function loadCustomerDataset(): Promise<CustomerDataset> {
       revenueCents,
       lastActiveAt,
       vanitySlug: primaryEvent?.vanitySlug ?? null,
+      primaryEventId: primaryEvent?.id ?? null,
+      phase: null,
+      warnFlagCount: 0,
     };
 
     customers.push(summary);
@@ -525,6 +545,39 @@ export async function listCustomers(
         (c.adminEmail?.toLowerCase().includes(q) ?? false) ||
         (c.adminName?.toLowerCase().includes(q) ?? false) ||
         (c.vanitySlug?.toLowerCase().includes(q) ?? false),
+    );
+  }
+
+  // Attach primary-event progress (phase + warn-flag count) so the list
+  // answers "who needs attention" at a glance. Parallel fan-out; the
+  // customer count is small so per-row helper loads are fine here.
+  const withEvents = rows.filter((c) => c.primaryEventId);
+  if (withEvents.length > 0) {
+    const admin = createAdminClient();
+    const { data: eventRows } = await admin
+      .from("events")
+      .select(PROGRESS_EVENT_COLUMNS)
+      .in(
+        "id",
+        withEvents.map((c) => c.primaryEventId as string),
+      )
+      .neq("status", "archived");
+    const rowById = new Map(
+      ((eventRows ?? []) as unknown as ProgressEventRow[]).map((e) => [
+        e.id,
+        e,
+      ]),
+    );
+    await Promise.all(
+      withEvents.map(async (c) => {
+        const eventRow = rowById.get(c.primaryEventId as string);
+        if (!eventRow) return;
+        const progress = await computeEventProgress(eventRow, c.orgName);
+        c.phase = progress.phase;
+        c.warnFlagCount = progress.flags.filter(
+          (f) => f.severity === "warn",
+        ).length;
+      }),
     );
   }
 
@@ -838,4 +891,441 @@ export async function getRevenueByMonth(
     totalSeats,
     byStatus,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Event progress + roadblock flags
+// ---------------------------------------------------------------------------
+
+export interface ProgressFlag {
+  /**
+   * Stable per flag-type + event (e.g. "low-join-rate:<eventId>") so the
+   * platform_alerts dedupe can tell a new flag from an ongoing one.
+   */
+  key: string;
+  severity: "warn" | "info";
+  message: string;
+}
+
+export interface ProgressPendingStep {
+  label: string;
+  kind: "required" | "recommended";
+}
+
+export interface EventFunnel {
+  /** Email invitations sent (event_invitations rows). */
+  invited: number;
+  /** Active org members - the joined roster, admin included. */
+  joined: number;
+  postedIdea: number;
+  generatedBlueprint: number;
+  voted: number;
+  reflected: number;
+}
+
+export interface EventProgress {
+  eventId: string;
+  eventTitle: string;
+  vanitySlug: string | null;
+  createdAt: string;
+  phase: HelperPhase;
+  requiredDone: number;
+  requiredTotal: number;
+  /** Pending setup steps (required + recommended; event-day steps excluded). */
+  pendingSteps: ProgressPendingStep[];
+  scheduledBlocks: number;
+  totalBlocks: number;
+  /** First and last scheduled block start times - the event window. */
+  windowStart: string | null;
+  windowEnd: string | null;
+  nextBlock: { title: string; scheduledAt: string } | null;
+  votingStatus: "closed" | "open" | "revealed";
+  reflectionStatus: "closed" | "open" | "complete";
+  recapGenerated: boolean;
+  recapApproved: boolean;
+  activeMembers: number;
+  funnel: EventFunnel;
+  flags: ProgressFlag[];
+}
+
+export interface DeriveFlagsInput {
+  eventId: string;
+  eventCreatedAt: string;
+  votingStatus: string;
+  scheduledBlocks: number;
+  /** End of the last scheduled block (start + duration), ms epoch. */
+  windowEndMs: number | null;
+  invitedCount: number;
+  oldestInviteAt: string | null;
+  acceptedInvites: number;
+  ideaUsers: number;
+  blueprintUsers: number;
+  recapGenerated: boolean;
+  recapApproved: boolean;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Pure roadblock heuristics. Each flag key is stable per flag type +
+ * event so the daily sweep can diff against `platform_alerts` (a flag
+ * that clears is deleted there; if it recurs it re-alerts).
+ */
+export function deriveFlags(
+  input: DeriveFlagsInput,
+  now: Date = new Date(),
+): ProgressFlag[] {
+  const flags: ProgressFlag[] = [];
+  const t = now.getTime();
+
+  // Low join rate: 3+ invites sent, the oldest 3+ days ago, and fewer
+  // than half have been accepted. Small invite counts don't trip it.
+  if (input.invitedCount >= 3 && input.oldestInviteAt) {
+    const oldest = new Date(input.oldestInviteAt).getTime();
+    if (
+      !Number.isNaN(oldest) &&
+      t - oldest >= 3 * DAY_MS &&
+      input.acceptedInvites < input.invitedCount / 2
+    ) {
+      flags.push({
+        key: `low-join-rate:${input.eventId}`,
+        severity: "warn",
+        message: `Only ${input.acceptedInvites} of ${input.invitedCount} invites accepted after 3+ days.`,
+      });
+    }
+  }
+
+  // Nothing scheduled 3+ weeks (21 days) after the event was created.
+  const created = new Date(input.eventCreatedAt).getTime();
+  if (
+    input.scheduledBlocks === 0 &&
+    !Number.isNaN(created) &&
+    t - created >= 21 * DAY_MS
+  ) {
+    flags.push({
+      key: `nothing-scheduled:${input.eventId}`,
+      severity: "warn",
+      message: "No blocks scheduled 3+ weeks after purchase.",
+    });
+  }
+
+  // Event window has fully passed but voting was never opened.
+  if (
+    input.windowEndMs !== null &&
+    t > input.windowEndMs &&
+    input.votingStatus === "closed"
+  ) {
+    flags.push({
+      key: `voting-never-opened:${input.eventId}`,
+      severity: "warn",
+      message: "Event window has passed but voting was never opened.",
+    });
+  }
+
+  // Participants posted ideas but nobody generated a Blueprint - the
+  // planning flow may be stuck or undiscovered.
+  if (input.ideaUsers > 0 && input.blueprintUsers === 0) {
+    flags.push({
+      key: `ideas-no-blueprints:${input.eventId}`,
+      severity: "info",
+      message: `${input.ideaUsers} ${input.ideaUsers === 1 ? "person" : "people"} posted ideas but nobody has generated a Blueprint.`,
+    });
+  }
+
+  // Recap generated but sitting unapproved - the wrap-up is stalled at
+  // the finish line.
+  if (input.recapGenerated && !input.recapApproved) {
+    flags.push({
+      key: `recap-unapproved:${input.eventId}`,
+      severity: "info",
+      message: "AI recap was generated but hasn't been approved yet.",
+    });
+  }
+
+  return flags;
+}
+
+/** Event columns the progress engine needs (superset of what the Helper reads). */
+const PROGRESS_EVENT_COLUMNS =
+  "id, organization_id, title, status, vanity_slug, created_at, welcome_message, logo_url, settings, voting_status, voting_open_at, voting_close_at, results_published_at, reflection_status, reflections_open_at, reflections_close_at, reflection_summary, reflection_summary_approved_at, build_tool";
+
+interface ProgressEventRow {
+  id: string;
+  organization_id: string;
+  title: string;
+  status: string | null;
+  vanity_slug: string | null;
+  created_at: string;
+  welcome_message: string | null;
+  logo_url: string | null;
+  settings: Record<string, unknown> | null;
+  voting_status: "closed" | "open" | "revealed";
+  voting_open_at: string | null;
+  voting_close_at: string | null;
+  results_published_at: string | null;
+  reflection_status: "closed" | "open" | "complete";
+  reflections_open_at: string | null;
+  reflections_close_at: string | null;
+  reflection_summary: string | null;
+  reflection_summary_approved_at: string | null;
+  build_tool: string;
+}
+
+function distinctUsers(rows: { user_id: string }[] | null): number {
+  return new Set((rows ?? []).map((r) => r.user_id)).size;
+}
+
+/**
+ * Compute the full progress picture for one event: Helper checklist
+ * state (reusing the exact functions the customer's own Hacky Helper
+ * uses), block schedule, engagement funnel, and roadblock flags.
+ */
+async function computeEventProgress(
+  event: ProgressEventRow,
+  orgName: string,
+): Promise<EventProgress> {
+  const admin = createAdminClient();
+  const slug = event.vanity_slug ?? "_";
+
+  // Adapt the row into the SlugContext shape loadHelperContext expects.
+  // The fields we didn't fetch aren't read by the Helper.
+  const ctx: SlugContext = {
+    slug,
+    event: {
+      ...event,
+      description: null,
+      status: event.status ?? "draft",
+      welcome_video_url: null,
+      vanity_slug: event.vanity_slug ?? "",
+      is_locked: false,
+      public_showcase: false,
+      reflection_summary_generated_at: null,
+    } as SlugEvent,
+    org: { id: event.organization_id, name: orgName, slug: "", logo_url: null },
+  };
+
+  const [
+    helperCtx,
+    { data: blocks },
+    { data: members },
+    { data: invites },
+    { data: ideas },
+    { data: briefs },
+    { data: votes },
+    { data: reflections },
+  ] = await Promise.all([
+    loadHelperContext(ctx),
+    admin
+      .from("blocks")
+      .select("title, scheduled_date, duration_minutes")
+      .eq("event_id", event.id),
+    admin
+      .from("organization_members")
+      .select("user_id, status")
+      .eq("organization_id", event.organization_id),
+    admin
+      .from("event_invitations")
+      .select("status, invited_at")
+      .eq("event_id", event.id),
+    admin.from("ideas").select("user_id").eq("event_id", event.id),
+    admin
+      .from("project_briefs")
+      .select("user_id")
+      .eq("event_id", event.id)
+      .eq("is_current", true),
+    admin.from("votes").select("user_id").eq("event_id", event.id),
+    admin.from("reflections").select("user_id").eq("event_id", event.id),
+  ]);
+
+  const stops = computeHelperStops(helperCtx, slug);
+  const phase = computePhase(helperCtx);
+  const requiredTotal = stops.reduce((sum, s) => sum + s.requiredTotal, 0);
+  const requiredDone = stops.reduce((sum, s) => sum + s.requiredDone, 0);
+  const pendingSteps: ProgressPendingStep[] = stops.flatMap((stop) =>
+    stop.steps
+      .filter((s) => s.state === "pending" && s.kind !== "event-day")
+      .map((s) => ({ label: s.label, kind: s.kind as "required" | "recommended" })),
+  );
+
+  const blockRows = (blocks ?? []) as {
+    title: string;
+    scheduled_date: string | null;
+    duration_minutes: number | null;
+  }[];
+  const scheduled = blockRows.filter((b) => b.scheduled_date);
+  scheduled.sort((a, b) =>
+    (a.scheduled_date as string) < (b.scheduled_date as string) ? -1 : 1,
+  );
+  const windowStart = scheduled[0]?.scheduled_date ?? null;
+  const windowEnd = scheduled[scheduled.length - 1]?.scheduled_date ?? null;
+
+  const now = new Date();
+  const nowMs = now.getTime();
+  const upcoming = scheduled.find(
+    (b) => new Date(b.scheduled_date as string).getTime() > nowMs,
+  );
+  const nextBlock = upcoming
+    ? { title: upcoming.title, scheduledAt: upcoming.scheduled_date as string }
+    : null;
+
+  // End of the last scheduled block including its duration - used by
+  // the "window passed, voting never opened" flag.
+  let windowEndMs: number | null = null;
+  for (const b of scheduled) {
+    const start = new Date(b.scheduled_date as string).getTime();
+    if (Number.isNaN(start)) continue;
+    const end = start + (b.duration_minutes ?? 30) * 60_000;
+    if (windowEndMs === null || end > windowEndMs) windowEndMs = end;
+  }
+
+  const memberRows = (members ?? []) as { user_id: string; status: string }[];
+  const activeMembers = memberRows.filter((m) => m.status === "active").length;
+
+  const inviteRows = (invites ?? []) as {
+    status: string;
+    invited_at: string;
+  }[];
+  const invitedCount = inviteRows.length;
+  const acceptedInvites = inviteRows.filter(
+    (i) => i.status === "accepted",
+  ).length;
+  let oldestInviteAt: string | null = null;
+  for (const i of inviteRows) {
+    if (!oldestInviteAt || i.invited_at < oldestInviteAt) {
+      oldestInviteAt = i.invited_at;
+    }
+  }
+
+  const funnel: EventFunnel = {
+    invited: invitedCount,
+    joined: activeMembers,
+    postedIdea: distinctUsers(ideas),
+    generatedBlueprint: distinctUsers(briefs),
+    voted: distinctUsers(votes),
+    reflected: distinctUsers(reflections),
+  };
+
+  const recapGenerated = Boolean(event.reflection_summary?.trim());
+  const recapApproved = Boolean(event.reflection_summary_approved_at);
+
+  const flags = deriveFlags(
+    {
+      eventId: event.id,
+      eventCreatedAt: event.created_at,
+      votingStatus: event.voting_status,
+      scheduledBlocks: scheduled.length,
+      windowEndMs,
+      invitedCount,
+      oldestInviteAt,
+      acceptedInvites,
+      ideaUsers: funnel.postedIdea,
+      blueprintUsers: funnel.generatedBlueprint,
+      recapGenerated,
+      recapApproved,
+    },
+    now,
+  );
+
+  return {
+    eventId: event.id,
+    eventTitle: event.title,
+    vanitySlug: event.vanity_slug,
+    createdAt: event.created_at,
+    phase,
+    requiredDone,
+    requiredTotal,
+    pendingSteps,
+    scheduledBlocks: scheduled.length,
+    totalBlocks: blockRows.length,
+    windowStart,
+    windowEnd,
+    nextBlock,
+    votingStatus: event.voting_status,
+    reflectionStatus: event.reflection_status,
+    recapGenerated,
+    recapApproved,
+    activeMembers,
+    funnel,
+    flags,
+  };
+}
+
+/**
+ * Progress for every non-archived event of one customer, newest first.
+ * Used by the customer detail page.
+ */
+export async function getCustomerEventProgress(
+  orgId: string,
+): Promise<EventProgress[]> {
+  const admin = createAdminClient();
+  const [{ data: org }, { data: events }] = await Promise.all([
+    admin
+      .from("organizations")
+      .select("name")
+      .eq("id", orgId)
+      .maybeSingle<{ name: string }>(),
+    admin
+      .from("events")
+      .select(PROGRESS_EVENT_COLUMNS)
+      .eq("organization_id", orgId)
+      .neq("status", "archived")
+      .order("created_at", { ascending: false }),
+  ]);
+  if (!org) return [];
+
+  const rows = (events ?? []) as unknown as ProgressEventRow[];
+  return Promise.all(rows.map((e) => computeEventProgress(e, org.name)));
+}
+
+export interface CustomerProgress {
+  orgId: string;
+  orgName: string;
+  events: EventProgress[];
+}
+
+/**
+ * Progress for every non-archived event across all external customers.
+ * Powers the daily health sweep (cron). Customer count is small, so
+ * the per-event fan-out is fine at this scale.
+ */
+export async function getAllCustomerProgress(): Promise<CustomerProgress[]> {
+  const admin = createAdminClient();
+  const [{ data: orgs }, { data: events }] = await Promise.all([
+    admin
+      .from("organizations")
+      .select("id, name")
+      .eq("is_internal", false),
+    admin
+      .from("events")
+      .select(`${PROGRESS_EVENT_COLUMNS}, organizations!inner(is_internal)`)
+      .eq("organizations.is_internal", false)
+      .neq("status", "archived"),
+  ]);
+
+  const orgRows = (orgs ?? []) as { id: string; name: string }[];
+  const eventRows = (events ?? []) as unknown as ProgressEventRow[];
+  const nameById = new Map(orgRows.map((o) => [o.id, o.name]));
+
+  const progressById = new Map<string, EventProgress>();
+  await Promise.all(
+    eventRows.map(async (e) => {
+      const progress = await computeEventProgress(
+        e,
+        nameById.get(e.organization_id) ?? "",
+      );
+      progressById.set(e.id, progress);
+    }),
+  );
+
+  return orgRows
+    .map((o) => ({
+      orgId: o.id,
+      orgName: o.name,
+      events: eventRows
+        .filter((e) => e.organization_id === o.id)
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+        .map((e) => progressById.get(e.id))
+        .filter((p): p is EventProgress => Boolean(p)),
+    }))
+    .filter((c) => c.events.length > 0);
 }

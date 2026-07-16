@@ -9,7 +9,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MurtopolisToolbar } from "@/components/murtopolis/murtopolis-toolbar";
-import { EmptyState, Panel, PaymentStateBadge } from "@/components/murtopolis/panel";
+import {
+  EmptyState,
+  Panel,
+  PaymentStateBadge,
+  PhaseBadge,
+} from "@/components/murtopolis/panel";
 import {
   listCustomers,
   type CustomerPaymentState,
@@ -96,6 +101,7 @@ export default async function CustomersPage({
               <TableHead>Customer</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Billing</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Members</TableHead>
               <TableHead className="text-right">Revenue</TableHead>
               <TableHead>Created</TableHead>
@@ -126,6 +132,27 @@ export default async function CustomersPage({
                 </TableCell>
                 <TableCell>
                   <PaymentStateBadge state={c.paymentState} />
+                </TableCell>
+                <TableCell>
+                  {c.phase ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <PhaseBadge phase={c.phase} />
+                      {c.warnFlagCount > 0 && (
+                        <span
+                          className="inline-flex items-center gap-1 font-mono text-[11px] text-red-600"
+                          title={`${c.warnFlagCount} roadblock ${c.warnFlagCount === 1 ? "flag" : "flags"}`}
+                        >
+                          <span
+                            aria-hidden
+                            className="size-1.5 rounded-full bg-red-500"
+                          />
+                          {c.warnFlagCount}
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">-</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
                   {formatNumber(c.memberCount)}

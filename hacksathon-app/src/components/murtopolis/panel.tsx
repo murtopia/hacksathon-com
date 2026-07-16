@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import type { CustomerPaymentState } from "@/lib/murtopolis/queries";
+import type {
+  CustomerPaymentState,
+  HelperPhase,
+} from "@/lib/murtopolis/queries";
 
 interface PanelProps {
   /** Mono uppercase section title, e.g. "GROWTH". */
@@ -83,4 +86,24 @@ const PAYMENT_LABEL: Record<CustomerPaymentState, string> = {
 /** Grayscale badge describing a customer's billing state. */
 export function PaymentStateBadge({ state }: { state: CustomerPaymentState }) {
   return <Badge variant={PAYMENT_VARIANT[state]}>{PAYMENT_LABEL[state]}</Badge>;
+}
+
+const PHASE_VARIANT: Record<HelperPhase, "default" | "outline" | "secondary"> =
+  {
+    setup: "outline",
+    polish: "secondary",
+    "run-day": "default",
+    "wrap-up": "secondary",
+  };
+
+const PHASE_LABEL: Record<HelperPhase, string> = {
+  setup: "Setup",
+  polish: "Polish",
+  "run-day": "Run day",
+  "wrap-up": "Wrap-up",
+};
+
+/** Badge for the Hacky Helper phase of a customer's event. */
+export function PhaseBadge({ phase }: { phase: HelperPhase }) {
+  return <Badge variant={PHASE_VARIANT[phase]}>{PHASE_LABEL[phase]}</Badge>;
 }
